@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "agents": "^0.13.2",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "@engram/types": "*",
     "@engram/schema": "*",
     "@engram/workspace-do": "*"
