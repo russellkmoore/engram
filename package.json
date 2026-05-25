@@ -1,0 +1,44 @@
+{
+  "name": "engram",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "shared/*"
+  ],
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "lint": "eslint .",
+    "lint:wrangler": "node scripts/lint-wrangler.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc -b --noEmit",
+    "types:gen": "npm run types:gen --workspaces --if-present",
+    "dev:mcp": "npm run dev --workspace @engram/mcp-server",
+    "dev:triage": "npm run dev --workspace @engram/triage-worker",
+    "setup": "npm install && npm run types:gen"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260525.1",
+    "@eslint/js": "^9",
+    "eslint": "^9",
+    "globals": "^16",
+    "husky": "^9",
+    "jsonc-parser": "^3",
+    "lint-staged": "^17",
+    "prettier": "^3",
+    "typescript": "^5",
+    "typescript-eslint": "^8",
+    "wrangler": "^4.94.0"
+  },
+  "lint-staged": {
+    "*.{ts,mts,cts,js,mjs,cjs}": ["eslint --fix", "prettier --write"],
+    "*.{json,jsonc,md,yaml,yml}": ["prettier --write"],
+    "**/wrangler.jsonc": ["node scripts/lint-wrangler.mjs"]
+  }
+}
