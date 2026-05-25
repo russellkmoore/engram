@@ -1,0 +1,29 @@
+// tests/fixtures/bad-wrangler.jsonc
+// NEGATIVE lint fixture — declares new_classes instead of new_sqlite_classes.
+// This is the exact regression FND-08 prevents (DO-1: KV-backed DOs cannot be
+// retroactively converted to SQLite-backed — Cloudflare workers-sdk #9909).
+// The FND-08 lint script MUST exit 1 against this file.
+// This file is intentionally outside packages/ so the production glob does not pick it up.
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "engram-mcp-server-bad-fixture",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "MCP_OBJECT", "class_name": "EngramMcp" },
+      { "name": "WORKSPACE",  "class_name": "WorkspaceDO" }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      // BUG: new_classes creates KV-backed DOs — irreversible and incompatible with Engram.
+      "new_classes": ["WorkspaceDO"]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+// tests/fixtures/good-wrangler.jsonc
+// Positive lint fixture — mirrors packages/mcp-server/wrangler.jsonc (RESEARCH §Pattern 1).
+// Uses new_sqlite_classes (correct). The FND-08 lint script MUST exit 0 against this file.
+// This file is intentionally outside packages/ so the production glob does not pick it up.
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "engram-mcp-server-good-fixture",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "MCP_OBJECT", "class_name": "EngramMcp" },
+      { "name": "WORKSPACE",  "class_name": "WorkspaceDO" }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      // SQLite-backed DOs are required — new_sqlite_classes is correct.
+      "new_sqlite_classes": ["EngramMcp", "WorkspaceDO"]
+    }
+  ]
+}
