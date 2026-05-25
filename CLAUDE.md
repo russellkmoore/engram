@@ -54,7 +54,6 @@ engram/
   packages/
     mcp-server/           # MCP Worker — primary interface for AI clients
     workspace-do/         # Durable Object — workspace actor, owns SQLite
-    ingest-worker/        # Ingest pipeline Worker — fetch, chunk, embed, store
     triage-worker/        # Conflict detection + memorability scoring
     connector-slack/      # Slack connector (v0.4)
     connector-drive/      # Google Drive connector (v0.4)
@@ -68,11 +67,13 @@ engram/
     connectors.md         # Connector interface spec
   .claude/
     commands/             # GSD slash commands
-  wrangler.toml           # Root Cloudflare config
+  # No root wrangler config — each Worker package owns its own wrangler.jsonc.
   package.json            # Workspace root
   README.md
   CLAUDE.md               # This file
 ```text
+
+*Note: `ingest-worker` was an earlier design — folded into `triage-worker` for v0.1; reintroduced in v0.4 if connector volume warrants it.*
 
 ---
 
@@ -98,6 +99,14 @@ UserDO          personal memories, identity, preferences
 ```text
 
 Project DOs are fully isolated — not partitions of TeamDO. This enables clean archiving, transfer, and deletion without coordination.
+
+### Session DO vs Workspace DO
+
+Each Worker that hosts an MCP endpoint actually owns **two DO classes** declared in the same `wrangler.jsonc`:
+- **`EngramMcp`** — auto-managed by `agents/mcp` `McpAgent`; holds transient MCP session state (per active client connection). Lifecycle: one DO instance per session, garbage-collected when the session ends.
+- **`WorkspaceDO`** — durable, per-workspace, reached via `getAgentByName(env.WORKSPACE, this.props.workspace_id)` after JWT validation. This is where the SQLite store lives.
+
+Both are declared together under `migrations[0].new_sqlite_classes: ["EngramMcp", "WorkspaceDO"]`. SQLite-backed (not KV-backed) is irreversible per Cloudflare's migration rules.
 
 ### SQLite Schema (inside WorkspaceDO)
 
@@ -239,6 +248,8 @@ Triage Worker steps:
 
 The tools are verbs, not endpoints. Nine tools maximum — cognitive overhead for Claude scales with tool count.
 
+The Worker uses `import { McpAgent } from "agents/mcp"` and serves via `EngramMcp.serve("/mcp")`. Do NOT use raw `@modelcontextprotocol/sdk` HTTP transports — they depend on `node:http` and will not run on `workerd`.
+
 ### Core Tools
 
 ```typescript
@@ -251,9 +262,10 @@ recall(query, types?, project?, scope?, limit?, since?, until?)
   // Vectorize: search all variants, deduplicate, rank
   // Returns: memories[], synthesis (CF AI summary), related[], conflicts[]
 
-search(query, filters, format?)
+search(query, filters)
   // Structured query with explicit filters
-  // Returns: memories[], count, export_url? (if format specified)
+  // Returns: memories[], count
+  // Note: export(query, format, filters?) is a separate v0.3 tool — see Milestones.
 
 reflect(topic, depth?, include_conflicts?)
   // Deep synthesis across all related memories
@@ -342,6 +354,8 @@ Adding a new connector = adding a new Cron Worker. No core changes needed.
 | v0.4 Connectors + Alerts | 2026-08-02 | Slack, Drive connectors, daily digest, inbox UI |
 | v1.0 Public Launch | 2026-09-01 | Managed hosting, billing, OSS launch |
 
+`ingest-worker` is **not** part of v0.1. The triage-worker consumes the Queue directly. The `ingest-worker` package returns in v0.4 when external connectors (Slack, Drive) need a general ingest orchestration layer.
+
 ---
 
 ## Development Guidelines
@@ -398,21 +412,19 @@ engram/
           recall.ts
           search.ts
           forget.ts
-      wrangler.toml
+      wrangler.jsonc
       package.json
     workspace-do/
       src/
         index.ts          # DO class
         schema.ts         # SQLite init + migrations
         queries.ts        # typed query helpers
-      wrangler.toml
       package.json
   shared/
     types/
       index.ts            # MemoryEvent, Memory, EngramResponse, etc.
     schema/
       system-types.ts     # system memory type seed data
-  wrangler.toml           # root config, DO bindings
   package.json            # workspace root
   tsconfig.json
   README.md
