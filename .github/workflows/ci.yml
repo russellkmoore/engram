@@ -36,6 +36,21 @@ jobs:
       - name: Lint wrangler.jsonc (FND-08)
         run: npm run lint:wrangler
 
+      # FND-08 negative-fixture assertion: the bad fixture MUST trigger a
+      # lint failure. If this step succeeds (lint exits 0 on bad fixture),
+      # the linter has regressed and is no longer catching `new_classes`.
+      - name: Lint wrangler.jsonc — negative fixture must fail (FND-08)
+        run: |
+          if node scripts/lint-wrangler.mjs tests/fixtures/bad-wrangler.jsonc; then
+            echo "FND-08 regression: bad fixture did not trigger lint failure"
+            exit 1
+          fi
+          echo "FND-08 negative fixture correctly failed."
+
+      # FND-08 positive-fixture assertion: the good fixture must pass cleanly.
+      - name: Lint wrangler.jsonc — positive fixture must pass (FND-08)
+        run: node scripts/lint-wrangler.mjs tests/fixtures/good-wrangler.jsonc
+
       - name: Smoke - wrangler dev (mcp-server)
         run: bash scripts/smoke-wrangler-dev.sh packages/mcp-server/wrangler.jsonc
 
