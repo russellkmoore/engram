@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Wrangler types
+        run: npm run types:gen
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Format check (Prettier)
+        run: npm run format:check
+
+      - name: Lint wrangler.jsonc (FND-08)
+        run: npm run lint:wrangler
+
+      - name: Smoke - wrangler dev (mcp-server)
+        run: bash scripts/smoke-wrangler-dev.sh packages/mcp-server/wrangler.jsonc
+
+      - name: Smoke - wrangler dev (triage-worker)
+        run: bash scripts/smoke-wrangler-dev.sh packages/triage-worker/wrangler.jsonc
+
+      - name: Smoke - fresh install
+        run: bash scripts/smoke-install.sh
