@@ -94,6 +94,38 @@ Plans:
 - **Touches irreversible decision AI-1 / STO-04 (embedding columns from day 1)**: must land in P2's first migration even though AI doesn't activate until P5. (SUMMARY.md §7 #8.)
 - **Touches irreversible decision MT-1 / STO-07 (DO defense-in-depth)**: workspace_id check verified here so all later tool/RPC code inherits it. (SUMMARY.md §7 #4.)
 
+**Plans:** 9 plans (Wave 0 → Wave 5)
+
+Plans:
+
+**Wave 0** (test infrastructure)
+
+- [ ] 02-00-PLAN.md (Wave 0, autonomous) — Vitest framework install + per-package vitest.config.ts + wrangler.test.jsonc + 6 RED test stubs + 2 lint fixtures under __fixtures__/ + root npm test wiring [STO-08]
+
+**Wave 1** (schema + migrations + seeding — sequential within wave, can run after Wave 0)
+
+- [ ] 02-01-PLAN.md (Wave 1, autonomous) — Migration runner (_schema_migrations table, no PRAGMA user_version) + NotFoundError class [STO-02]
+- [ ] 02-02-PLAN.md (Wave 1, autonomous) — V1_SQL DDL string (7 tables + 10 indexes + STO-04 embedding columns) [STO-03, STO-04]
+- [ ] 02-03-PLAN.md (Wave 1, autonomous) — seedSystemTypes helper (INSERT OR IGNORE on SYSTEM_TYPES) [STO-05]
+
+**Wave 2** (DO body wiring + 3 GREEN test files)
+
+- [ ] 02-04-PLAN.md (Wave 2, autonomous) — WorkspaceDO constructor wires runMigrations + seedSystemTypes inside blockConcurrencyWhile + GREEN schema/seeding/hibernation tests [STO-01, STO-02, STO-05, STO-09]
+
+**Wave 3** (query helpers + last GREEN test file)
+
+- [ ] 02-05-PLAN.md (Wave 3, autonomous) — 7 typed query helpers (queries.ts) + query-specific types (types.ts) + WorkspaceDO method scaffolding + GREEN helpers test [STO-06]
+
+**Wave 4** (defense-in-depth + lint script — parallel)
+
+- [ ] 02-06-PLAN.md (Wave 4, autonomous) — assertOwnsWorkspace guard + per-method wiring + GREEN defense-in-depth test [STO-07]
+- [ ] 02-07-PLAN.md (Wave 4, autonomous) — scripts/lint-blockconcurrency.mjs + GREEN self-test [STO-10]
+
+**Wave 5** (CI + lint-staged wiring)
+
+- [ ] 02-08-PLAN.md (Wave 5, autonomous) — CI workflow patch (3-step lint block + Vitest step) + lint-staged rule [STO-08, STO-10]
+
+
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 
 ### Phase 3: MCP Server Scaffold
@@ -222,7 +254,7 @@ Plans:
 | Phase                    | Plans Complete | Status      | Completed |
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
-| 2. WorkspaceDO + SQLite  | 0/0            | Not started | —         |
+| 2. WorkspaceDO + SQLite  | 0/9            | Not started | —         |
 | 3. MCP Server Scaffold   | 0/0            | Not started | —         |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |

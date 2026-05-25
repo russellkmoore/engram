@@ -35,8 +35,8 @@ Scope is locked by STO-01 through STO-10 (10 requirements with concrete acceptan
 ### EngramMcp v2 migration scope
 
 - **D-06:** Phase 2 **does NOT touch `packages/mcp-server/wrangler.jsonc`**. The Worker-level Cloudflare migrations array remains `[{ tag: "v1", new_sqlite_classes: ["WorkspaceDO"] }]`. The v2 migration that adds `EngramMcp` to `new_sqlite_classes` lands in **Phase 3** alongside the EngramMcp session-DO body.
-- **D-07:** Phase 3's `discuss-phase` and `plan-phase` MUST add an explicit success criterion enforcing the v2 migration (e.g., "wrangler.jsonc migrations[] now contains a v2 entry adding EngramMcp; `npm run lint:wrangler` exits 0; deploy-dry-run confirms the migration would apply cleanly"). Phase 2's CONTEXT.md flags this so it isn't forgotten — see [[engram-linear-sync]] memory for the broader pattern.
-- **D-08:** The per-DO `_schema_migrations` table built in Phase 2 is **conceptually separate** from the Worker-level `wrangler.jsonc › migrations[]` array. The former tracks SQLite schema (tables, columns, indexes) inside the DO; the latter tracks DO class additions/renames at the Cloudflare platform level. They don't need to be coordinated.
+- **D-07** *[informational — Phase 3 forward-note, not a Phase 2 implementation decision]*: Phase 3's `discuss-phase` and `plan-phase` MUST add an explicit success criterion enforcing the v2 migration (e.g., "wrangler.jsonc migrations[] now contains a v2 entry adding EngramMcp; `npm run lint:wrangler` exits 0; deploy-dry-run confirms the migration would apply cleanly"). Phase 2's CONTEXT.md flags this so it isn't forgotten — see [[engram-linear-sync]] memory for the broader pattern.
+- **D-08** *[informational — conceptual clarification, no implementation work needed in Phase 2]*: The per-DO `_schema_migrations` table built in Phase 2 is **conceptually separate** from the Worker-level `wrangler.jsonc › migrations[]` array. The former tracks SQLite schema (tables, columns, indexes) inside the DO; the latter tracks DO class additions/renames at the Cloudflare platform level. They don't need to be coordinated.
 
 ### STO-10 enforcement mechanism
 

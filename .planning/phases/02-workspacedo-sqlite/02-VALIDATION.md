@@ -65,8 +65,8 @@ created: 2026-05-25
 - [ ] `packages/workspace-do/src/__tests__/hibernation.test.ts` — stub for STO-09
 - [ ] `packages/workspace-do/src/__tests__/defense-in-depth.test.ts` — stub for STO-07
 - [ ] `packages/workspace-do/src/__tests__/blockconcurrency-lint.test.ts` — self-test for `scripts/lint-blockconcurrency.mjs` (STO-10's own sanity check)
-- [ ] `packages/workspace-do/src/__tests__/fixtures/bad-blockconcurrency.ts` — has `await env.AI.run(...)` inside the block; lint MUST catch
-- [ ] `packages/workspace-do/src/__tests__/fixtures/good-blockconcurrency.ts` — pure sync `sql.exec` only; lint MUST pass
+- [ ] `packages/workspace-do/__fixtures__/bad-blockconcurrency.ts` — has `await env.AI.run(...)` inside the block; lint MUST catch. *(Lives OUTSIDE `src/` to keep the STO-10 production glob from self-matching — PATTERNS.md §17 drift mitigation.)*
+- [ ] `packages/workspace-do/__fixtures__/good-blockconcurrency.ts` — pure sync `sql.exec` only; lint MUST pass. *(Outside `src/` for the same reason.)*
 - [ ] Framework install: `npm install --save-dev --workspace @engram/workspace-do @cloudflare/vitest-pool-workers@^0.16.9 vitest@^4.1.7`
 - [ ] Root `package.json` — add `"test": "npm run test --workspaces --if-present"`
 
