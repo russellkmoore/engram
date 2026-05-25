@@ -1,0 +1,171 @@
+# Engram
+
+## What This Is
+
+Engram is an open-source, MCP-native second brain for AI assistants. Where Notion was built for humans to browse, Engram is built for AI to query — every MCP response is pre-processed so Claude receives synthesis, not raw data. Memory is layered (personal → team → project → org), each layer is its own Cloudflare Durable Object with SQLite, and Cloudflare Workers AI handles all the embedding/extraction/scoring work that should never burn Claude tokens.
+
+Russell is the first user. The first integration target is his existing job-search agent. The first shared-workspace user is Devon at Black Magic Consulting, where team memory will cover engagements built with Claude Code / Linear / Astro / Cloudflare Workers (the BMC website is the reference shared-workspace scenario).
+
+## Core Value
+
+**Layered memory that AI queries directly via MCP — personal, team, project, and org memory exposed as the same tool surface, with all preprocessing done by cheaper models so Claude only does reasoning.**
+
+If everything else fails, that single sentence has to remain true. Specifically:
+
+- Anthropic shipping cross-chat memory does not invalidate Engram — Anthropic will not build team/project/org memory.
+- The killer differentiator is the **same answer from Slack and from Claude**, both backed by the same layered store.
+- Token efficiency is a first-class design constraint, not an optimization.
+
+## Requirements
+
+> **Scope note:** `/gsd:new-project` scopes the first milestone only. v0.1 (MCP Foundation) is in **Active** below. v0.2 through v1.0 are documented under [Milestone Arc](#milestone-arc) and will be scoped via `/gsd:new-milestone` when each milestone begins.
+
+### Validated
+
+(None yet — ship v0.1 to validate)
+
+### Active (v0.1 — MCP Foundation, target 2026-06-07)
+
+- [ ] Cloudflare Worker MCP server with `remember`, `recall`, `search`, `forget`, `ingest` tools
+- [ ] `WorkspaceDO` Durable Object owning per-workspace SQLite database
+- [ ] SQLite schema: `blocks`, `relations`, `tags`, `members`, `memory_types`, `inbox`, `conflicts`
+- [ ] System memory types seeded as data (`job_application`, `contact`, `company`, `project`, `research_note`, `decision_log`, `meeting_note`)
+- [ ] `MemoryEvent` universal intake primitive
+- [ ] Triage Worker skeleton consuming `MemoryEvent` from Queue
+- [ ] Cloudflare Workers AI integration: embeddings, entity extraction, summarization, memorability scoring
+- [ ] Vectorize integration for semantic search backing `recall` and `search`
+- [ ] JWT-per-workspace auth, single user (Russell), hosted on Russell's Cloudflare account
+- [ ] `EngramResponse` envelope wrapping every MCP tool return (result, context, meta, suggestions)
+- [ ] Russell's job-search agent can `remember()` a job posting and `recall()` it later via Claude in a new conversation
+- [ ] Wrangler deploy succeeds; MCP server reachable from Claude Desktop config
+
+### Out of Scope (v0.1)
+
+- Multi-workspace / shared team / project DOs — deferred to v0.3
+- `reflect`, `relate`, `export`, `conflict` MCP tools — deferred to v0.3
+- Slack, Drive, or any other connectors — deferred to v0.4
+- Daily digest emails, inbox UI — deferred to v0.4
+- Public OSS launch, managed hosting, billing, Stripe — deferred to v1.0
+- Real-time WebSocket sync — explicit anti-feature for v0.1, revisit later
+- Web/desktop UI for browsing memories — Engram is MCP-first; any UI is secondary
+- Mobile apps — out of scope entirely until post-v1.0
+
+## Context
+
+**Origin story.** Russell saw the opportunity while working with Claude and the Cloudflare stack at his day job. Anthropic has been adding memory primitives to Claude but they're not fully fleshed out — and crucially, Anthropic has no incentive to build team/project/org memory. Engram fills that gap. The architecture and tool surface were extracted from an ~hour-long working session with Claude before this `/gsd:new-project` run; that thinking is preserved verbatim in the repo's [CLAUDE.md](../CLAUDE.md) and is the authoritative source of truth for architecture decisions until something here supersedes it.
+
+**Three simultaneous goals (in priority order).**
+
+1. **Personal tool** — Russell uses it daily inside his job-search agent.
+2. **Thought leadership / portfolio** — a public, well-built reference implementation of MCP-native layered memory that he can point hiring managers at.
+3. **Side-business / OSS** — open core: self-hosted free forever, managed cloud at $5–20/mo.
+
+These do not conflict, but the prioritization matters when scope cuts come up: ship to your own workflow first, polish for show second, monetize third.
+
+**Operating principle (locked in during questioning).** "Do it RIGHT, not FAST." Russell explicitly rejected reshaping milestones around an earlier demo because foundational flaws are more damaging than a late wow-moment. Subsequent scope debates should default to depth over speed.
+
+**Prior thinking captured.** [CLAUDE.md](../CLAUDE.md) contains the full architecture spec: tech stack, repo structure, DO hierarchy, SQLite schema, MemoryEvent ingest pipeline, MCP tool signatures, response envelope, connector interface, naming conventions, and "what goes where" routing rules. The roadmapper should treat that file as the architectural baseline. Where this PROJECT.md and CLAUDE.md disagree, this file wins for *what to build when*; CLAUDE.md wins for *how the pieces are shaped*.
+
+**Killer demo (v0.4 north star, not v0.1).** Ask Engram a question in Slack, get the same answer Claude gives — proving that one MCP tool call traverses both personal and team memory layers. Variant: Engram detects a conflict between two memories and posts it to Slack proactively. This is the moment that has to land for the portfolio/thought-leadership goal; everything before it is plumbing.
+
+## Constraints
+
+- **Tech stack**: Cloudflare-native end to end (Workers, Durable Objects, Vectorize, Workers AI, Queues, R2, KV) — chosen because Russell knows it deeply, costs scale to zero, and a single platform avoids glue infra. Not negotiable for v0.1–v1.0.
+- **Runtime**: Wrangler + TypeScript. npm workspaces monorepo (see [packages layout in CLAUDE.md](../CLAUDE.md#repository-structure)).
+- **Interface**: MCP-first. Any human UI is a strictly secondary convenience layer and ships after the MCP surface is validated.
+- **Token budget**: Every MCP response must minimize Claude tokens by pre-processing. CF AI does embeddings, chunking, extraction, summarization, dedup, conflict detection, query expansion, type inference. Claude does reasoning and user interaction. See "What Goes Where" in CLAUDE.md.
+- **Tool count**: MCP surface capped at 9 tools across the full v1.0 surface — cognitive overhead constraint for Claude.
+- **Auth (v0.1)**: JWT per workspace, validated at Worker, trusted by DO. Single user for v0.1 means only Russell's JWT exists.
+- **Workspace isolation**: Project DOs are fully isolated (own DO instance), not partitions of TeamDO. Enables clean archive/transfer/delete with no cross-workspace coordination.
+- **Memory types**: Schema-as-data — stored in the `memory_types` table, never as TypeScript classes. Enables user/community extensibility without redeploy.
+- **Timeline**: v0.1 by 2026-06-07 (~2 weeks). v1.0 public launch by 2026-09-01 (~15 weeks). Russell explicitly chose depth-over-speed; treat these as aspirational, not hard deadlines.
+- **Cost**: Cloudflare's pay-per-use model is what makes the business viable. Any service we'd reach for outside CF needs a strong justification.
+
+## Project Tracking
+
+### Linear Sync Convention
+
+| | |
+|---|---|
+| **Workspace** | `blackmagicconsulting` |
+| **Project** | Engram |
+| **Project ID** | `a0f0e1f5-1cbc-48de-8f7a-7c8bbafc25b2` |
+| **Project URL** | https://linear.app/blackmagicconsulting/project/engram-3cebc9097d0e |
+| **Team** | Engram (key `ENG`) |
+| **Team ID** | `1b736009-b518-4900-98f3-f5011428d26a` |
+| **Lead** | russell@justblackmagic.com |
+
+**Sync rule: Phase = Linear Issue.** GSD has no native Linear integration; Claude wires it manually inside GSD commands without per-issue confirmation. Mappings:
+
+| GSD event | Linear action |
+|---|---|
+| `/gsd:plan-phase N` produces PLAN.md | Create issue in team `ENG`, link to milestone `vX.Y — Name`, state `Todo`, description = phase goal + plan summary + link to PLAN.md path |
+| `/gsd:execute-phase N` begins | Update issue state → `In Progress` |
+| `/gsd:execute-phase N` completes (verification passes) | Update issue state → `Done` (or `In Review` if a PR will be opened) |
+| `/gsd:ship` creates PR | Append PR link to issue, transition to `In Review` until PR merges |
+| Phase blocker logged | Add comment to issue, leave state as `In Progress` |
+| `/gsd:complete-milestone` runs | Verify all milestone issues are `Done`; post a Linear comment with milestone summary |
+| New GSD milestone scoped | Existing Linear milestone already present (v0.1 → v1.0 are pre-created); ensure phases attach to the correct one by name |
+
+**Existing Linear milestones (all 0% — sync target):**
+
+| Linear Milestone | Target | Maps to GSD milestone |
+|---|---|---|
+| v0.1 — MCP Foundation | 2026-06-07 | Current (this PROJECT.md) |
+| v0.2 — Intelligence Layer | 2026-06-21 | Future |
+| v0.3 — Workspaces + Memory Types | 2026-07-12 | Future |
+| v0.4 — Connectors + Alerts | 2026-08-02 | Future |
+| v1.0 — Public Launch | 2026-09-01 | Future |
+
+A duplicate of this rule lives in [CLAUDE.md](../CLAUDE.md) so any future Claude session — including ones that bypass `/gsd:` — honors it.
+
+## Milestone Arc
+
+This is the full v0.1 → v1.0 arc carried over from CLAUDE.md. Only **v0.1** is in Active above; subsequent milestones get their own `/gsd:new-milestone` scoping pass.
+
+| Milestone | Target | Scope |
+|---|---|---|
+| **v0.1 MCP Foundation** | 2026-06-07 | DO + SQLite schema, core MCP tools (`remember`, `recall`, `search`, `forget`, `ingest`), single user, no Vectorize/AI yet — or minimal stubs so the contract is right. |
+| **v0.2 Intelligence Layer** | 2026-06-21 | Vectorize, CF Workers AI, full ingest pipeline (chunk, embed, score, store), conflict detection at write time. |
+| **v0.3 Workspaces + Types** | 2026-07-12 | Multi-workspace, UserDO/TeamDO/ProjectDO hierarchy, member management, schema-as-data memory types, `reflect`/`relate`/`export` tools. |
+| **v0.4 Connectors + Alerts** | 2026-08-02 | Slack + Drive connectors, daily digest, agentic inbox UI, conflict alerting. **Killer demo lands here.** |
+| **v1.0 Public Launch** | 2026-09-01 | Managed hosting, Stripe billing, OAuth, admin UI, connector registry on R2, community memory-type packs, OSS launch + HN post. |
+
+## Key Decisions
+
+| Decision | Rationale | Outcome |
+|---|---|---|
+| Durable Objects per workspace (not D1) | Workspace isolation by default, clean archive/transfer/delete, no sharding complexity | — Pending v0.1 |
+| Project DOs fully isolated, not partitions of TeamDO | Clean project lifecycle, zero cross-project data leakage | — Pending v0.3 |
+| Schema-as-data memory types (not TS classes) | User and community extensibility without redeploy | — Pending v0.1 seeding |
+| MemoryEvent as universal intake primitive | One pipeline serves MCP, connectors, and webhooks | — Pending v0.1 |
+| CF AI for all grunt work | Token budget is a hard design constraint; Claude must not embed or extract | — Pending v0.2 |
+| MCP tool surface capped at 9 tools | Cognitive overhead — too many tools dilute Claude's tool selection | — Pending v1.0 |
+| Inbox triage layer for low-confidence captures | Avoid auto-storing noise; preserve human-in-the-loop for ambiguity | — Pending v0.2 |
+| Progressive enrichment (phase 1 immediate, phase 2/3 via Queue) | Claude never waits on the full pipeline | — Pending v0.2 |
+| Open core (self-hosted free, managed $5–20/mo) | Aligns OSS legitimacy with business viability | — Pending v1.0 |
+| Keep CLAUDE.md milestones, don't reshape around the v0.4 demo | Russell explicitly chose depth over speed: shipping flawed foundations damages thought-leadership goal more than a delayed wow-moment | ✓ Locked 2026-05-24 |
+| Linear sync = Phase = Issue, auto-sync, milestones already exist | One issue per phase keeps board readable for solo + Devon, milestones pre-seeded match CLAUDE.md dates | ✓ Locked 2026-05-24 |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+6. **Linear**: confirm the phase's issue is `Done` (or `In Review` if PR open)
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state (Russell's daily use? Devon onboarded? what feedback?)
+5. Move the next milestone from "Milestone Arc" into Active and re-scope via `/gsd:new-milestone`
+6. **Linear**: post milestone summary comment on the Linear milestone
+
+---
+*Last updated: 2026-05-24 after initialization*
