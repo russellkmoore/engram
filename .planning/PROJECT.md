@@ -22,7 +22,15 @@ If everything else fails, that single sentence has to remain true. Specifically:
 
 ### Validated
 
-(None yet — ship v0.1 to validate)
+_Phase 1: Foundation (2026-05-25):_
+
+- Monorepo scaffolding (npm workspaces, strict TypeScript, ESLint flat, Prettier, Husky+lint-staged, dotfiles, Apache-2.0 LICENSE)
+- Per-Worker `wrangler.jsonc` (no root `wrangler.toml`) with compat date 2026-05-22 + nodejs_compat
+- `wrangler dev` boots each Worker (mcp-server on 8787, triage-worker on 8788)
+- `shared/types` exports `MemoryEvent`, `Memory`, `Entity`, `EngramResponse<T>`, `Conflict` (plus `TimelineEvent`)
+- `shared/schema/system-types.ts` exports the 7 system memory types as data
+- CLAUDE.md aligned with v0.1 corrections (JSONC, two-DO topology, `McpAgent`, `search` without `format?`, ingest-worker deferred to v0.4)
+- FND-08 `wrangler.jsonc` lint blocking `new_classes` DO declarations, wired into CI
 
 ### Active (v0.1 — MCP Foundation, target 2026-06-07)
 
@@ -168,4 +176,4 @@ This document evolves at phase transitions and milestone boundaries.
 6. **Linear**: post milestone summary comment on the Linear milestone
 
 ---
-*Last updated: 2026-05-24 after initialization*
+_Last updated: 2026-05-25 after Phase 1 (Foundation) completion_
