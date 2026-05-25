@@ -1,0 +1,25 @@
+// packages/mcp-server/wrangler.jsonc
+// Source: developers.cloudflare.com/workers/wrangler/configuration/
+//         developers.cloudflare.com/durable-objects/reference/durable-objects-migrations/
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "engram-mcp-server",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "MCP_OBJECT", "class_name": "EngramMcp" },
+      { "name": "WORKSPACE", "class_name": "WorkspaceDO" },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["EngramMcp", "WorkspaceDO"],
+    },
+  ],
+}
