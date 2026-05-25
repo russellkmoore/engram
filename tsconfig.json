@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./shared/types" },
+    { "path": "./shared/schema" },
+    { "path": "./packages/workspace-do" },
+    { "path": "./packages/mcp-server" },
+    { "path": "./packages/triage-worker" }
+  ]
+}
