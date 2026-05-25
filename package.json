@@ -21,7 +21,7 @@
     "types:gen": "npm run types:gen --workspaces --if-present",
     "dev:mcp": "npm run dev --workspace @engram/mcp-server",
     "dev:triage": "npm run dev --workspace @engram/triage-worker",
-    "setup": "npm install && npm run types:gen"
+    "setup": "node -e \"console.log('Engram setup: see CONTRIBUTING.md for GSD plugin install steps.')\" && npm install && npm run types:gen"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260525.1",
@@ -37,8 +37,15 @@
     "wrangler": "^4.94.0"
   },
   "lint-staged": {
-    "*.{ts,mts,cts,js,mjs,cjs}": ["eslint --fix", "prettier --write"],
-    "*.{json,jsonc,md,yaml,yml}": ["prettier --write"],
-    "**/wrangler.jsonc": ["node scripts/lint-wrangler.mjs"]
+    "*.{ts,mts,cts,js,mjs,cjs}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,jsonc,md,yaml,yml}": [
+      "prettier --write"
+    ],
+    "**/wrangler.jsonc": [
+      "node scripts/lint-wrangler.mjs"
+    ]
   }
 }
