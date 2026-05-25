@@ -19,7 +19,12 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["EngramMcp", "WorkspaceDO"],
+      // WorkspaceDO is re-exported from @engram/workspace-do — see src/index.ts:30.
+      // EngramMcp is intentionally NOT in v1: it is a Phase 1 stub. DO migrations
+      // are append-only (cannot retract `new_sqlite_classes` once committed), so
+      // we defer EngramMcp to a v2 migration that Phase 3 will add once the
+      // McpAgent persistence semantics are real (see REVIEW-FIX WR-06).
+      "new_sqlite_classes": ["WorkspaceDO"],
     },
   ],
 }
