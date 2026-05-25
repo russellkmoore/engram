@@ -24,7 +24,7 @@ export default tseslint.config(
       },
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["*.mjs", "*.cjs"],
+          allowDefaultProject: ["*.mjs", "*.cjs", "scripts/*.mjs", "scripts/*.cjs"],
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -35,9 +35,18 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": "error",
     },
   },
-  // Root config files (.mjs, .cjs) are not TypeScript source — disable type-aware rules for them
+  // Root config files (.mjs, .cjs) and scripts/ are not TypeScript source — disable type-aware rules
   {
-    files: ["*.mjs", "*.cjs"],
+    files: ["*.mjs", "*.cjs", "scripts/**/*.mjs", "scripts/**/*.cjs"],
     ...tseslint.configs.disableTypeChecked,
+  },
+  // scripts/ run under Node — expose Node globals (process, Buffer, etc.)
+  {
+    files: ["scripts/**/*.mjs", "scripts/**/*.cjs", "*.mjs", "*.cjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
   },
 );
