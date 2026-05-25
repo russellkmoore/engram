@@ -917,27 +917,31 @@ All other CLAUDE.md content remains untouched. CONTRIBUTING.md is not modified (
 | A6 | The `globals@^16.x` major version is current. | Standard Stack §Supporting | Wrong version pin → install fails or rule drift. Low-risk. |
 | A7 | `.nvmrc` content is `22` (Node 22 LTS) — matches `engines.node: ">=22"`. | Pattern §root package.json | If Russell prefers a different LTS line (e.g., 20), trivial swap. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `setup-dev.sh` be folded into `npm run setup` or kept as a thin shim?**
    - What we know: D-12 + D-09 imply consolidation; the existing script only echoes GSD plugin install instructions which now live in CONTRIBUTING.md.
    - What's unclear: Russell may want the bash script to remain as a discoverability artifact for non-Claude-Code users.
    - Recommendation: Fold into `npm run setup` (which prints the same GSD instructions before running `npm install`) and retire the standalone bash file. CONTRIBUTING.md already covers the GSD install steps.
+   - RESOLVED in 01-06 Task 2: `setup-dev.sh` folded into `npm run setup` (which runs `npm install && npm run types:gen`); standalone bash file retired.
 
 2. **Should Phase 1 also scaffold a placeholder `vitest.config.ts` per Worker package, or defer entirely to Phase 2?**
    - What we know: D-09 says scaffold all v0.1 packages so later phases don't carry scaffolding friction.
    - What's unclear: Whether the vitest config is "scaffolding" (P1) or "test infrastructure" (P2 alongside the first STO-08 test).
    - Recommendation: Defer to Phase 2 — vitest config depends on knowing what fixtures the package will need, and Phase 2 is where the first real test lands. Phase 1 just installs `@cloudflare/vitest-pool-workers` as a root dev-dep (optional even then).
+   - RESOLVED: deferred to Phase 2 per RESEARCH §Q2 recommendation; no Phase 1 plan ships vitest config.
 
 3. **Should `@engram/workspace-do` export an empty stub class in Phase 1, or wait until Phase 2?**
    - What we know: D-10 says workspace-do is library-only; mcp-server's `wrangler.jsonc` migration references the class.
    - What's unclear: If we omit the class export in Phase 1, `wrangler dev` for mcp-server may fail with "class not found" because the binding has no target.
    - Recommendation: Export a minimal `export class WorkspaceDO { /* phase 2 */ }` stub from `@engram/workspace-do/src/index.ts` and re-export it from mcp-server's `src/index.ts`. This makes the FND-03 smoke test work (`wrangler dev` boots cleanly) without preempting Phase 2 design decisions.
+   - RESOLVED in 01-05 Task 1: minimal `export class WorkspaceDO extends DurableObject {}` stub exported from `@engram/workspace-do/src/index.ts`, re-exported from mcp-server's `src/index.ts` (A5 fallback to empty class allowed if `cloudflare:workers` import fails).
 
 4. **Where should the FND-08 lint script live — `scripts/lint-wrangler.mjs` or `tools/lint-wrangler/index.mjs`?**
    - What we know: The script is tiny (~40 LOC) and has zero dependencies beyond `jsonc-parser`.
    - What's unclear: Whether to grow it into a `tools/` directory anticipating other lint scripts.
    - Recommendation: `scripts/lint-wrangler.mjs` (flat file, ~40 LOC). If future phases add `lint:envvars` or similar, promote to `scripts/lint/` then.
+   - RESOLVED in 01-02 Task 1: lint script lives at flat `scripts/lint-wrangler.mjs` (~40 LOC, jsonc-parser only).
 
 ## Environment Availability
 
