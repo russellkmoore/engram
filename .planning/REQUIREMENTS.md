@@ -166,16 +166,81 @@ Explicit boundaries for v0.1. Each has its reason so we don't re-litigate.
 
 ## Traceability
 
-Empty initially; populated by the roadmapper when ROADMAP.md is written. Each requirement maps to exactly one phase.
+Populated by the roadmapper at ROADMAP.md creation. Each requirement maps to exactly one phase.
 
 | Requirement | Phase | Status |
 |---|---|---|
-| (filled by roadmapper) | | |
+| FND-01 | Phase 1: Foundation | Pending |
+| FND-02 | Phase 1: Foundation | Pending |
+| FND-03 | Phase 1: Foundation | Pending |
+| FND-04 | Phase 1: Foundation | Pending |
+| FND-05 | Phase 1: Foundation | Pending |
+| FND-06 | Phase 1: Foundation | Pending |
+| FND-07 | Phase 1: Foundation | Pending |
+| FND-08 | Phase 1: Foundation | Pending |
+| STO-01 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-02 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-03 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-04 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-05 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-06 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-07 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-08 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-09 | Phase 2: WorkspaceDO + SQLite | Pending |
+| STO-10 | Phase 2: WorkspaceDO + SQLite | Pending |
+| MCP-01 | Phase 3: MCP Server Scaffold | Pending |
+| MCP-02 | Phase 3: MCP Server Scaffold | Pending |
+| MCP-03 | Phase 3: MCP Server Scaffold | Pending |
+| MCP-04 | Phase 3: MCP Server Scaffold | Pending |
+| MCP-05 | Phase 3: MCP Server Scaffold | Pending |
+| MCP-06 | Phase 3: MCP Server Scaffold | Pending |
+| MCP-07 | Phase 4: Core Tools + Envelope | Pending |
+| MCP-08 | Phase 4: Core Tools + Envelope | Pending |
+| MCP-09 | Phase 3: MCP Server Scaffold | Pending |
+| TOL-01 | Phase 4: Core Tools + Envelope | Pending |
+| TOL-02 | Phase 4: Core Tools + Envelope | Pending |
+| TOL-03 | Phase 4: Core Tools + Envelope | Pending |
+| TOL-04 | Phase 4: Core Tools + Envelope | Pending |
+| TOL-05 | Phase 4: Core Tools + Envelope | Pending |
+| TOL-06 | Phase 4: Core Tools + Envelope | Pending |
+| TOL-07 | Phase 4: Core Tools + Envelope | Pending |
+| TOL-08 | Phase 4: Core Tools + Envelope | Pending |
+| AI-01 | Phase 5: AI Integration | Pending |
+| AI-02 | Phase 5: AI Integration | Pending |
+| AI-03 | Phase 5: AI Integration | Pending |
+| AI-04 | Phase 5: AI Integration | Pending |
+| AI-05 | Phase 5: AI Integration | Pending |
+| AI-06 | Phase 5: AI Integration | Pending |
+| AI-07 | Phase 5: AI Integration | Pending |
+| AI-08 | Phase 5: AI Integration | Pending |
+| PIP-01 | Phase 6: Async Pipeline | Pending |
+| PIP-02 | Phase 6: Async Pipeline | Pending |
+| PIP-03 | Phase 6: Async Pipeline | Pending |
+| PIP-04 | Phase 6: Async Pipeline | Pending |
+| PIP-05 | Phase 6: Async Pipeline | Pending |
+| PIP-06 | Phase 6: Async Pipeline | Pending |
+| DEP-01 | Phase 7: Deploy + Acceptance | Pending |
+| DEP-02 | Phase 7: Deploy + Acceptance | Pending |
+| DEP-03 | Phase 7: Deploy + Acceptance | Pending |
+| DEP-04 | Phase 7: Deploy + Acceptance | Pending |
+| DEP-05 | Phase 7: Deploy + Acceptance | Pending |
 
-**Coverage target (after roadmapper runs):**
+**Coverage (after roadmapper run):**
+
 - v0.1 requirements: 54 total
-- Mapped to phases: TBD
-- Unmapped: must be 0
+- Mapped to phases: 54
+- Unmapped: 0 ✓
+
+**Per-phase mapping summary:**
+
+- Phase 1 (Foundation): 8 — FND-01..08
+- Phase 2 (WorkspaceDO + SQLite): 10 — STO-01..10
+- Phase 3 (MCP Server Scaffold): 7 — MCP-01..06, MCP-09
+- Phase 4 (Core Tools + Envelope): 10 — TOL-01..08, MCP-07, MCP-08
+- Phase 5 (AI Integration): 8 — AI-01..08
+- Phase 6 (Async Pipeline): 6 — PIP-01..06
+- Phase 7 (Deploy + Acceptance): 5 — DEP-01..05
+- Sum: 8 + 10 + 7 + 10 + 8 + 6 + 5 = **54** ✓
 
 ## Acceptance Criteria for v0.1 (the "done" definition)
 
@@ -193,4 +258,4 @@ Plus the foundational requirements:
 
 ---
 *Requirements defined: 2026-05-24*
-*Last updated: 2026-05-24 after initial definition*
+*Last updated: 2026-05-24 — Traceability section populated by roadmapper (7 phases, 54/54 mapped)*
