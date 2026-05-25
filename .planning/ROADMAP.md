@@ -31,6 +31,15 @@
 **Goal:** A clean clone bootstraps into a typed, lint-clean, license-bearing monorepo where every Worker package can boot under `wrangler dev`, and CLAUDE.md reflects the corrected baseline (JSONC, two-DO topology, `McpAgent`, `search` without `format?`, `ingest-worker` deferred).
 **Depends on:** none
 **Requirements:** FND-01, FND-02, FND-03, FND-04, FND-05, FND-06, FND-07, FND-08
+**Plans:** 6 plans
+
+Plans:
+- [ ] 01-01-PLAN.md (Wave 1, autonomous) — Root scaffolding: package.json + workspaces, tsconfigs, ESLint flat config, Prettier, Husky+lint-staged, dotfiles, LICENSE [FND-01, FND-06]
+- [ ] 01-02-PLAN.md (Wave 1, autonomous) — FND-08 wrangler lint script + good/bad fixtures + smoke scripts (install + wrangler-dev) [FND-08]
+- [ ] 01-03-PLAN.md (Wave 1, autonomous) — CLAUDE.md surgical edits per RESEARCH Pattern 11 (six line-anchored swaps + three additive paragraphs) [FND-07]
+- [ ] 01-04-PLAN.md (Wave 2, autonomous) — Shared packages: @engram/types (5 v0.1 types) + @engram/schema (7 system memory types) [FND-04, FND-05]
+- [ ] 01-05-PLAN.md (Wave 3, autonomous) — Worker packages: @engram/mcp-server (two-DO topology) + @engram/triage-worker (minimal) + @engram/workspace-do (library stub); end-to-end wrangler dev + lint:wrangler proofs [FND-02, FND-03]
+- [ ] 01-06-PLAN.md (Wave 4, checkpoint) — GitHub Actions CI workflow + portfolio-quality README + docs/architecture.svg + scripts/setup-dev.sh retirement + human-verify checkpoint [FND-01, FND-03, FND-08]
 **Success Criteria:**
   1. `git clone` + `npm install` from a clean tree completes without errors and produces a working workspace tree (`packages/*`, `shared/*`).
   2. `npx wrangler dev` against a placeholder Worker boots end-to-end and serves a no-op response without errors.
