@@ -36,17 +36,5 @@
     "typescript": "^5",
     "typescript-eslint": "^8",
     "wrangler": "^4.94.0"
-  },
-  "lint-staged": {
-    "*.{ts,mts,cts,js,mjs,cjs}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,jsonc,md,yaml,yml}": [
-      "prettier --write"
-    ],
-    "**/wrangler.jsonc": [
-      "node scripts/lint-wrangler.mjs"
-    ]
   }
 }
