@@ -1,0 +1,17 @@
+{
+  "name": "@engram/mcp-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types:gen": "wrangler types"
+  },
+  "dependencies": {
+    "agents": "^0.13.2",
+    "@engram/types": "*",
+    "@engram/schema": "*",
+    "@engram/workspace-do": "*"
+  }
+}
