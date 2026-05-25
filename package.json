@@ -15,10 +15,12 @@
     "prepare": "husky",
     "lint": "eslint .",
     "lint:wrangler": "node scripts/lint-wrangler.mjs",
+    "lint:blockconcurrency": "node scripts/lint-blockconcurrency.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -b --noEmit",
     "types:gen": "npm run types:gen --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
     "dev:mcp": "npm run dev --workspace @engram/mcp-server",
     "dev:triage": "npm run dev --workspace @engram/triage-worker",
     "setup": "node -e \"console.log('Engram setup: see CONTRIBUTING.md for GSD plugin install steps.')\" && npm install && npm run types:gen"
