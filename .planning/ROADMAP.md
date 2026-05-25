@@ -32,7 +32,7 @@
 **Goal:** A clean clone bootstraps into a typed, lint-clean, license-bearing monorepo where every Worker package can boot under `wrangler dev`, and CLAUDE.md reflects the corrected baseline (JSONC, two-DO topology, `McpAgent`, `search` without `format?`, `ingest-worker` deferred).
 **Depends on:** none
 **Requirements:** FND-01, FND-02, FND-03, FND-04, FND-05, FND-06, FND-07, FND-08
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 **Wave 1**
@@ -43,7 +43,7 @@ Plans:
 
 **Wave 2** _(blocked on Wave 1 completion)_
 
-- [ ] 01-04-PLAN.md (Wave 2, autonomous) — Shared packages: @engram/types (5 v0.1 types) + @engram/schema (7 system memory types) [FND-04, FND-05]
+- [x] 01-04-PLAN.md (Wave 2, autonomous) — Shared packages: @engram/types (5 v0.1 types) + @engram/schema (7 system memory types) [FND-04, FND-05]
 
 **Wave 3** _(blocked on Wave 2 completion)_
 
@@ -221,7 +221,7 @@ Plans:
 
 | Phase                    | Plans Complete | Status      | Completed |
 | ------------------------ | -------------- | ----------- | --------- |
-| 1. Foundation            | 3/6            | In Progress |           |
+| 1. Foundation            | 4/6            | In Progress |           |
 | 2. WorkspaceDO + SQLite  | 0/0            | Not started | —         |
 | 3. MCP Server Scaffold   | 0/0            | Not started | —         |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
