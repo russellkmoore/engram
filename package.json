@@ -27,6 +27,7 @@
     "@cloudflare/workers-types": "^4.20260525.1",
     "@eslint/js": "^9",
     "eslint": "^9",
+    "fast-glob": "^3.3.3",
     "globals": "^16",
     "husky": "^9",
     "jsonc-parser": "^3",

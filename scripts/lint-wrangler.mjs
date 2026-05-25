@@ -13,7 +13,7 @@
 // Exit codes: 0 clean | 1 violation | 2 no files matched (full-scan canary only).
 
 import { readFileSync } from "node:fs";
-import { glob } from "node:fs/promises";
+import fg from "fast-glob";
 import { parse, printParseErrorCode } from "jsonc-parser";
 
 const VIOLATION_KEY = "new_classes";
@@ -33,7 +33,9 @@ if (positionalArgs.length > 0) {
 } else {
   // No-arg full-scan mode: glob packages/*/wrangler.jsonc (production CI scan).
   // Exit 2 if no files found — canary against accidental packages/ rename.
-  for await (const file of glob("packages/*/wrangler.jsonc")) {
+  // Use fast-glob (stable API) instead of node:fs/promises glob (experimental in Node 22).
+  const matched = await fg("packages/*/wrangler.jsonc");
+  for (const file of matched) {
     files.push(file);
   }
 
