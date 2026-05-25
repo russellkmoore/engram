@@ -17,7 +17,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Foundation** — Monorepo, shared types, system memory type seeds, per-package `wrangler.jsonc`, license, CLAUDE.md corrections
+- [x] **Phase 1: Foundation** — Monorepo, shared types, system memory type seeds, per-package `wrangler.jsonc`, license, CLAUDE.md corrections (completed 2026-05-25)
 - [ ] **Phase 2: WorkspaceDO + SQLite** — Durable Object with idempotent schema migrations, all seven tables, system type seeding, typed query helpers, vitest coverage
 - [ ] **Phase 3: MCP Server Scaffold** — `EngramMcp extends McpAgent`, JWT-to-`props` middleware, two-DO topology, empty tool registrations, MCP Inspector connectivity
 - [ ] **Phase 4: Core Tools + Envelope** — `remember`/`recall`/`search`/`forget`/`ingest` with `EngramResponse` envelope, `McpError` shape, response-size budgets, transactional `forget`, cross-workspace penetration test
@@ -32,7 +32,7 @@
 **Goal:** A clean clone bootstraps into a typed, lint-clean, license-bearing monorepo where every Worker package can boot under `wrangler dev`, and CLAUDE.md reflects the corrected baseline (JSONC, two-DO topology, `McpAgent`, `search` without `format?`, `ingest-worker` deferred).
 **Depends on:** none
 **Requirements:** FND-01, FND-02, FND-03, FND-04, FND-05, FND-06, FND-07, FND-08
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -51,7 +51,7 @@ Plans:
 
 **Wave 4** _(blocked on Wave 3 completion)_
 
-- [ ] 01-06-PLAN.md (Wave 4, checkpoint) — GitHub Actions CI workflow + portfolio-quality README + docs/architecture.svg + scripts/setup-dev.sh retirement + human-verify checkpoint [FND-01, FND-03, FND-08]
+- [x] 01-06-PLAN.md (Wave 4, checkpoint) — GitHub Actions CI workflow + portfolio-quality README + docs/architecture.svg + scripts/setup-dev.sh retirement + human-verify checkpoint [FND-01, FND-03, FND-08]
 
 **Success Criteria:**
 
@@ -221,7 +221,7 @@ Plans:
 
 | Phase                    | Plans Complete | Status      | Completed |
 | ------------------------ | -------------- | ----------- | --------- |
-| 1. Foundation            | 5/6            | In Progress |           |
+| 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 0/0            | Not started | —         |
 | 3. MCP Server Scaffold   | 0/0            | Not started | —         |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
