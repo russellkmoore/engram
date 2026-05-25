@@ -5,4 +5,7 @@
   "compatibility_date": "2026-05-22",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  // Bind to 8788 so `npm run dev:triage` can run alongside `npm run dev:mcp`
+  // (which uses the wrangler default 8787). Matches README:127.
+  "dev": { "port": 8788 },
 }
