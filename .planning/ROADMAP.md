@@ -94,13 +94,13 @@ Plans:
 - **Touches irreversible decision AI-1 / STO-04 (embedding columns from day 1)**: must land in P2's first migration even though AI doesn't activate until P5. (SUMMARY.md §7 #8.)
 - **Touches irreversible decision MT-1 / STO-07 (DO defense-in-depth)**: workspace_id check verified here so all later tool/RPC code inherits it. (SUMMARY.md §7 #4.)
 
-**Plans:** 9 plans (Wave 0 → Wave 5)
+**Plans:** 1/9 plans executed
 
 Plans:
 
 **Wave 0** (test infrastructure)
 
-- [ ] 02-00-PLAN.md (Wave 0, autonomous) — Vitest framework install + per-package vitest.config.ts + wrangler.test.jsonc + 6 RED test stubs + 2 lint fixtures under __fixtures__/ + root npm test wiring [STO-08]
+- [x] 02-00-PLAN.md (Wave 0, autonomous) — Vitest framework install + per-package vitest.config.ts + wrangler.test.jsonc + 6 RED test stubs + 2 lint fixtures under __fixtures__/ + root npm test wiring [STO-08]
 
 **Wave 1** (schema + migrations + seeding — sequential within wave, can run after Wave 0)
 
@@ -254,7 +254,7 @@ Plans:
 | Phase                    | Plans Complete | Status      | Completed |
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
-| 2. WorkspaceDO + SQLite  | 0/9            | Not started | —         |
+| 2. WorkspaceDO + SQLite  | 1/9 | In Progress|  |
 | 3. MCP Server Scaffold   | 0/0            | Not started | —         |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
