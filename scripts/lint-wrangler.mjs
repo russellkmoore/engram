@@ -40,7 +40,7 @@ if (positionalArgs.length > 0) {
   if (files.length === 0) {
     console.error(
       "[lint:wrangler] No wrangler.jsonc files found — did packages/ get renamed? " +
-      "(glob: packages/*/wrangler.jsonc)"
+        "(glob: packages/*/wrangler.jsonc)",
     );
     process.exit(2);
   }
@@ -73,8 +73,8 @@ for (const file of files) {
     if (Array.isArray(mig?.[VIOLATION_KEY]) && mig[VIOLATION_KEY].length > 0) {
       console.error(
         `[lint:wrangler] ${file} migration[${i}] (tag: ${mig?.tag ?? "?"}) declares ` +
-        `${VIOLATION_KEY}=${JSON.stringify(mig[VIOLATION_KEY])}. ` +
-        `Engram requires SQLite-backed Durable Objects only — use ${REQUIRED_KEY}.`
+          `${VIOLATION_KEY}=${JSON.stringify(mig[VIOLATION_KEY])}. ` +
+          `Engram requires SQLite-backed Durable Objects only — use ${REQUIRED_KEY}.`,
       );
       violations++;
     }

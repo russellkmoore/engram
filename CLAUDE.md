@@ -33,23 +33,23 @@ If a task can be done by Cloudflare AI, it must not be done by Claude. CF AI han
 
 ## Tech Stack
 
-| Layer | Technology |
-| --- | --- |
-| Compute | Cloudflare Workers (TypeScript) |
-| Workspace storage | Cloudflare Durable Objects (SQLite per workspace) |
-| Semantic search | Cloudflare Vectorize |
-| AI processing | Cloudflare Workers AI |
-| Async pipeline | Cloudflare Queues |
-| File/export storage | Cloudflare R2 |
-| Config/metadata | Cloudflare KV |
-| Runtime | Wrangler + TypeScript |
-| Package manager | npm workspaces (monorepo) |
+| Layer               | Technology                                        |
+| ------------------- | ------------------------------------------------- |
+| Compute             | Cloudflare Workers (TypeScript)                   |
+| Workspace storage   | Cloudflare Durable Objects (SQLite per workspace) |
+| Semantic search     | Cloudflare Vectorize                              |
+| AI processing       | Cloudflare Workers AI                             |
+| Async pipeline      | Cloudflare Queues                                 |
+| File/export storage | Cloudflare R2                                     |
+| Config/metadata     | Cloudflare KV                                     |
+| Runtime             | Wrangler + TypeScript                             |
+| Package manager     | npm workspaces (monorepo)                         |
 
 ---
 
 ## Repository Structure
 
-```text
+````text
 engram/
   packages/
     mcp-server/           # MCP Worker — primary interface for AI clients
@@ -182,7 +182,7 @@ CREATE TABLE conflicts (
   detected_at  INTEGER,
   resolved_at  INTEGER
 );
-```
+````
 
 ### Memory Types (Schema-as-Data)
 
@@ -206,19 +206,19 @@ Every intake path — MCP tool call, scheduled connector, webhook — produces a
 
 ```typescript
 type MemoryEvent = {
-  id:           string
-  source:       string        // "mcp:claude" | "connector:slack" | "scheduler:drive"
-  content:      string        // raw content
-  hint?:        string        // user intent if explicit
-  context?:     object        // source metadata
-  workspace_id: string
-  timestamp:    number
-}
+  id: string;
+  source: string; // "mcp:claude" | "connector:slack" | "scheduler:drive"
+  content: string; // raw content
+  hint?: string; // user intent if explicit
+  context?: object; // source metadata
+  workspace_id: string;
+  timestamp: number;
+};
 ```
 
 ### Ingest Pipeline
 
-```text
+````text
 Source → MemoryEvent → Queue → Triage Worker → WorkspaceDO
 
 Triage Worker steps:
@@ -294,7 +294,7 @@ conflict(passive?)
   // passive=true: return known conflicts
   // passive=false: actively scan for new ones
   // Returns: conflicts[] with severity, description, sources
-```
+````
 
 ### Universal Response Envelope
 
@@ -302,24 +302,24 @@ Every MCP response follows this shape:
 
 ```typescript
 type EngramResponse<T> = {
-  result:       T                    // the actual answer
+  result: T; // the actual answer
   context: {
-    related:    Memory[]             // pre-fetched adjacent memories
-    entities:   Entity[]             // pre-extracted people/companies/things
-    timeline?:  Event[]              // pre-constructed if chronological
-    conflicts?: Conflict[]           // pre-detected tensions
-  }
+    related: Memory[]; // pre-fetched adjacent memories
+    entities: Entity[]; // pre-extracted people/companies/things
+    timeline?: Event[]; // pre-constructed if chronological
+    conflicts?: Conflict[]; // pre-detected tensions
+  };
   meta: {
-    confidence: number               // 0-1, how sure is Engram
-    coverage:   number               // 0-1, completeness signal for Claude
-    last_updated: number
-    gaps:       string[]             // what Engram doesn't know but probably should
-  }
+    confidence: number; // 0-1, how sure is Engram
+    coverage: number; // 0-1, completeness signal for Claude
+    last_updated: number;
+    gaps: string[]; // what Engram doesn't know but probably should
+  };
   suggestions?: {
-    actions:    string[]             // "ask user about testing owner"
-    queries:    string[]             // related things worth knowing
-  }
-}
+    actions: string[]; // "ask user about testing owner"
+    queries: string[]; // related things worth knowing
+  };
+};
 ```
 
 ---
@@ -330,10 +330,10 @@ Every connector implements this interface. Connectors are independent Cron Worke
 
 ```typescript
 interface EngramConnector {
-  id:       string
-  schedule: string                   // cron expression
-  fetch():  Promise<RawContent[]>
-  diff(previous: string, current: string): Change[]
+  id: string;
+  schedule: string; // cron expression
+  fetch(): Promise<RawContent[]>;
+  diff(previous: string, current: string): Change[];
 }
 ```
 
@@ -346,13 +346,13 @@ Adding a new connector = adding a new Cron Worker. No core changes needed.
 
 ## Milestones
 
-| Milestone | Target | Description |
-| --- | --- | --- |
-| v0.1 MCP Foundation | 2026-06-07 | DO, SQLite schema, core MCP tools, single user |
-| v0.2 Intelligence Layer | 2026-06-21 | Vectorize, CF AI, ingest pipeline, conflict detection |
-| v0.3 Workspaces + Types | 2026-07-12 | Multi-workspace, Project DOs, memory types, reflect/relate/export |
-| v0.4 Connectors + Alerts | 2026-08-02 | Slack, Drive connectors, daily digest, inbox UI |
-| v1.0 Public Launch | 2026-09-01 | Managed hosting, billing, OSS launch |
+| Milestone                | Target     | Description                                                       |
+| ------------------------ | ---------- | ----------------------------------------------------------------- |
+| v0.1 MCP Foundation      | 2026-06-07 | DO, SQLite schema, core MCP tools, single user                    |
+| v0.2 Intelligence Layer  | 2026-06-21 | Vectorize, CF AI, ingest pipeline, conflict detection             |
+| v0.3 Workspaces + Types  | 2026-07-12 | Multi-workspace, Project DOs, memory types, reflect/relate/export |
+| v0.4 Connectors + Alerts | 2026-08-02 | Slack, Drive connectors, daily digest, inbox UI                   |
+| v1.0 Public Launch       | 2026-09-01 | Managed hosting, billing, OSS launch                              |
 
 `ingest-worker` is **not** part of v0.1. The triage-worker consumes the Queue directly. The `ingest-worker` package returns in v0.4 when external connectors (Slack, Drive) need a general ingest orchestration layer.
 
@@ -362,18 +362,18 @@ Adding a new connector = adding a new Cron Worker. No core changes needed.
 
 ### What Goes Where
 
-| Task | Where |
-| --- | --- |
-| Embeddings | CF Workers AI |
-| Entity extraction | CF Workers AI |
-| Chunking + summarization | CF Workers AI |
-| Conflict detection | Triage Worker (CF AI scoring) |
-| Deduplication | Triage Worker (Vectorize similarity) |
-| Memorability scoring | Triage Worker (CF AI) |
-| Query expansion | MCP Server (CF AI before Vectorize) |
-| Semantic ranking | Vectorize |
-| Reasoning + synthesis | Claude (via MCP response) |
-| User interaction | Claude |
+| Task                     | Where                                |
+| ------------------------ | ------------------------------------ |
+| Embeddings               | CF Workers AI                        |
+| Entity extraction        | CF Workers AI                        |
+| Chunking + summarization | CF Workers AI                        |
+| Conflict detection       | Triage Worker (CF AI scoring)        |
+| Deduplication            | Triage Worker (Vectorize similarity) |
+| Memorability scoring     | Triage Worker (CF AI)                |
+| Query expansion          | MCP Server (CF AI before Vectorize)  |
+| Semantic ranking         | Vectorize                            |
+| Reasoning + synthesis    | Claude (via MCP response)            |
+| User interaction         | Claude                               |
 
 ### Never Do This
 
@@ -401,7 +401,7 @@ JWT per workspace. Worker validates JWT, extracts workspace_id, proxies to corre
 
 First GSD session should produce:
 
-```text
+````text
 engram/
   packages/
     mcp-server/
@@ -493,7 +493,7 @@ npm install
 # 5. Open in VS Code, launch Claude Code
 # 6. Get oriented
 #    /gsd:map-codebase
-```
+````
 
 GSD is the recommended development workflow. Commands use `/gsd:` prefix (colon, not hyphen).
 

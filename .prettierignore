@@ -3,3 +3,6 @@ dist
 .wrangler
 **/worker-configuration.d.ts
 package-lock.json
+
+# GSD-templated planning docs — not subject to project prettier rules
+.planning/**/*.md
