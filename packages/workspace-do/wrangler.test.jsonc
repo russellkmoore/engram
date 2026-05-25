@@ -1,0 +1,39 @@
+// packages/workspace-do/wrangler.test.jsonc
+//
+// TEST-ONLY Wrangler config used by @cloudflare/vitest-pool-workers to resolve
+// the WorkspaceDO binding inside test runs. This file is NOT used by `wrangler
+// dev` or `wrangler deploy` — those use packages/mcp-server/wrangler.jsonc,
+// which is where the production WORKSPACE binding lives.
+//
+// Why a separate file (not a shared `wrangler.jsonc`):
+//   1. The FND-08 lint glob is `packages/*/wrangler.jsonc` (literal filename —
+//      see scripts/lint-wrangler.mjs line 37). The `.test.jsonc` suffix means
+//      this file is NOT linted, by design — it carries its own minimal v1
+//      migration that exists ONLY for the test pool's binding resolver.
+//   2. The test pool needs a single DO binding (WORKSPACE → WorkspaceDO). The
+//      production mcp-server config carries an additional MCP_OBJECT binding
+//      for EngramMcp; tests don't need it (Phase 2 doesn't touch EngramMcp —
+//      that work lands in Phase 3 per D-06).
+//   3. `compatibility_date` is intentionally omitted — the test pool infers
+//      the latest per the Cloudflare-maintained fixture pattern. Including a
+//      date would freeze the test runtime to a specific version that may
+//      drift from production.
+//
+// FND-08 invariant: this file uses `new_sqlite_classes` (NOT `new_classes`).
+// Even though the lint glob doesn't pick this file up, the convention is
+// permanent project policy — KV-backed DOs cannot be retroactively converted
+// to SQLite-backed (Cloudflare workers-sdk #9909).
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "workspace-do-test",
+  "main": "src/index.ts",
+  "durable_objects": {
+    "bindings": [{ "name": "WORKSPACE", "class_name": "WorkspaceDO" }],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["WorkspaceDO"],
+    },
+  ],
+}

@@ -11,5 +11,18 @@
   },
   "files": [
     "src"
-  ]
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@engram/types": "*",
+    "@engram/schema": "*",
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.16.9",
+    "vitest": "^4.1.7"
+  }
 }
