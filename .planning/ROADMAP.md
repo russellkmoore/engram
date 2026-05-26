@@ -150,13 +150,13 @@ Plans:
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 **UI hint:** no
 
-**Plans:** 6 plans
+**Plans:** 1/6 plans executed
 
 Plans:
 
 **Wave 0** (test infrastructure + dependency installs + EngramProps interface emit)
 
-- [ ] 03-01-PLAN.md (Wave 0, autonomous) — package.json deps (oauth-provider 0.7.0, zod ^4, vitest), EngramProps interface emit (no default-export swap), vitest.config.ts + wrangler.test.jsonc + 4 RED test files, scripts/kv-bootstrap.mjs + root npm script [MCP-01, MCP-06]
+- [x] 03-01-PLAN.md (Wave 0, autonomous) — package.json deps (oauth-provider 0.7.0, zod ^4, vitest), EngramProps interface emit (no default-export swap), vitest.config.ts + wrangler.test.jsonc + 4 RED test files, scripts/kv-bootstrap.mjs + root npm script [MCP-01, MCP-06]
 
 **Wave 1** (pure-data/pure-function modules — parallel within wave)
 
@@ -280,7 +280,7 @@ Plans:
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
-| 3. MCP Server Scaffold   | 0/6            | Not started | —         |
+| 3. MCP Server Scaffold   | 1/6 | In Progress|  |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
