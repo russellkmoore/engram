@@ -918,37 +918,43 @@ First connection opens a browser to `/authorize` (port 3334 callback); subsequen
 | A6 | `@cloudflare/workers-oauth-provider@0.7.0` is API-stable enough for v0.1 (pre-1.0 library) | Standard Stack | A 0.8 release with breaking changes could force a Phase 3 rewrite. Mitigation: pin exact version `0.7.0` in package.json (not `^0.7.0`) |
 | A7 | `wrangler kv namespace create OAUTH_KV` returns an ID that can be pasted into wrangler.jsonc — no other library setup required | Pattern 6 / Example 3 | If the provider expects pre-seeded keys, bootstrap script needs more steps |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **`OAuthProvider.apiRoute`: exact match or prefix match?**
    - What we know: README example sets `apiRoute: "/mcp"` and `apiHandler: MyMCP.serve("/mcp")` — symmetric paths.
    - What's unclear: Library source not deeply inspected; behavior under `/mcp/foo` undocumented.
    - Recommendation: Add a `wrangler dev` curl probe to the plan's verification steps — `curl http://localhost:8787/mcp/leaked` should return 404 or 401, never the apiHandler's response without auth.
+   - **Resolved:** Plan `03-06` MCP Inspector smoke includes the curl prefix-leak probe; failure of the probe blocks Phase 3 closeout.
 
 2. **`/jwks` endpoint: emitted automatically?**
    - What we know: Library emits `/.well-known/oauth-authorization-server` and `/.well-known/oauth-protected-resource` automatically. README references `jwksUri` in metadata but doesn't explicitly say `/jwks` is a library-served route.
    - What's unclear: Is `jwksUri` in the AS metadata document a pointer to a library-served route, or do we need to mount our own?
    - Recommendation: Test during Wave 0 — curl the AS metadata, follow the `jwks_uri`, confirm it returns valid JWK Set JSON.
+   - **Resolved:** `@cloudflare/workers-oauth-provider` emits the discovery metadata automatically per RFC 8414. Plan `03-06` smoke includes the follow-the-`jwks_uri` curl check (returns a valid JWK Set or the smoke fails). No Phase 3 source change required.
 
 3. **`sub` claim source for v0.1 single-user auto-approve.**
    - What we know: D-04 says "OAuth subject (`sub` claim) → `{ workspace_id, user_id }`". The `sub` for an OAuth flow is set by the AS during authorization — in this case, our own library.
    - What's unclear: For `mcp-remote`'s dynamic-registered client, what value does `sub` take? Is it the dynamic `client_id`? A library default?
    - Recommendation: Wave 0 task — run the OAuth dance once manually, observe the `sub` value, document it in DEP-05.
+   - **Resolved:** Plan `03-06` Task 2 (manual MCP Inspector smoke) captures the observed `sub` value during the first `/authorize` call and writes it into `03-MCP-INSPECTOR-SMOKE.md`; the bootstrap then runs `npm run kv:bootstrap -- --sub <observed>` per Plan `03-01` Task 4. The `sub` discovery is folded into the same dance the smoke already requires.
 
 4. **Props refresh: does `mcp-remote`'s token refresh re-trigger `/authorize` and re-inject props?**
    - What we know: `tokenExchangeCallback` is an OAuthProvider option that fires on refresh — `accessTokenProps` / `newProps` can be updated.
    - What's unclear: Without setting `tokenExchangeCallback`, do props persist verbatim across refresh? Or do they need to be re-fetched from KV on every refresh?
    - Recommendation: v0.1 — don't set `tokenExchangeCallback` (default: props persist). If Phase 4 observes stale props after refresh, add the callback to re-read KV.
+   - **Resolved:** Accept the v0.1 default — no `tokenExchangeCallback` in Plan `03-04` oauth.ts. Phase 4 observes refresh behavior with real handlers and adds the callback if stale props surface. A1/A2 (props persistence) is accepted as a v0.1 assumption with a Phase 4 escalation path.
 
 5. **`EngramMcp` SQLite usage — do we need it?**
    - What we know: `McpAgent.sql` is exposed (per `node_modules/agents/dist/.../McpAgent` property list). The v2 migration declares `EngramMcp` SQLite-backed.
    - What's unclear: Phase 3's `EngramMcp` doesn't actually use `this.sql` — it's a thin session shell. Is SQLite-backed declaration still right, or should it be... non-SQLite-backed?
    - Recommendation: Declare SQLite-backed regardless. Phase 1's FND-08 lint requires `new_sqlite_classes`. Future phases may use `this.sql` for per-session caching (e.g., recall query expansion); the irreversibility of `new_classes` means we MUST start SQLite-backed.
+   - **Resolved:** Plan `03-05` Task 2 lands `{ "tag": "v2", "new_sqlite_classes": ["EngramMcp"] }` per D-09. SQLite-backed declaration is irreversible — the conservative call (SQLite-backed) is locked because future phases may use `this.sql` and downgrading is not possible.
 
 6. **`mcp-remote` first-call `sub` discovery.**
    - What we know: First call opens browser to `/authorize`; library generates dynamic client; bootstrap KV entry needed.
    - What's unclear: The flow is "open browser → fail with 403 because KV entry doesn't exist → observe `sub` from logs → write KV → retry". This is painful for Russell's first-time setup.
    - Recommendation: DEP-05 documents this as a 2-step bootstrap: "First call will fail with 'Unknown OAuth subject'. Copy the subject from the error message, run `npm run kv:bootstrap -- --sub <value>`, retry." Or: v0.1 hard-codes a known `sub` in the bootstrap script if mcp-remote's dynamic client_id is deterministic for a given local install.
+   - **Resolved:** Plan `03-06` Task 1 (DEP-05 README) documents the 2-step bootstrap flow verbatim: `/authorize` first → copy `sub` from the structured 403 error → `npm run kv:bootstrap -- --sub <value>` → retry. Plan `03-04` oauth.ts is responsible for emitting the structured 403 error containing the observed `sub` (without leaking KV values — T-03-KV-LEAK).
 
 ## Environment Availability
 
