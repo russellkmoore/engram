@@ -134,12 +134,8 @@ export class WorkspaceDO extends DurableObject<unknown> {
     return getBlockQuery(this.ctx.storage.sql, args.id);
   }
 
-  // prettier-ignore -- keep `args: { workspace_id: string` on the signature line so Plan 06's grep verifier matches all 7 methods uniformly.
-  lexicalSearchBlocks(args: {
-    workspace_id: string;
-    query: string;
-    limit?: number;
-  }): LexicalSearchHit[] {
+  // prettier-ignore
+  lexicalSearchBlocks(args: { workspace_id: string; query: string; limit?: number }): LexicalSearchHit[] {
     // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
     return lexicalSearchBlocksQuery(this.ctx.storage.sql, args.query, args.limit);
   }
