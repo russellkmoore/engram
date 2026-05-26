@@ -97,24 +97,15 @@ Each command prints a real namespace ID. Open
 with the IDs `wrangler` just printed. KV namespace IDs are **not** secrets;
 they are safe to commit.
 
-### Set the cookie encryption secret
+### No additional secrets required
 
-`@cloudflare/workers-oauth-provider` encrypts the OAuth grant-state cookie it
-writes during `/authorize`. Provide a high-entropy secret (32+ characters)
-once:
-
-```bash
-# Generate a fresh random value
-openssl rand -hex 32
-
-# Then store it as a Wrangler secret (paste the value when prompted)
-npx wrangler secret put COOKIE_ENCRYPTION_KEY --name engram-mcp-server
-```
-
-**Never** put this value in `wrangler.jsonc` or any committed file. The Worker
-reads it from `env.COOKIE_ENCRYPTION_KEY` at runtime. If you rotate it,
-existing OAuth grants are invalidated and every client re-walks the dance on
-its next call — a feature, not a bug.
+`@cloudflare/workers-oauth-provider` v0.7.0 derives all encryption keys from
+OAuth grant material stored in `OAUTH_KV` — no Worker secret is required at
+deploy time. The Worker does NOT consume any `COOKIE_ENCRYPTION_KEY` or
+analogous binding (verified against the library's `OAuthProviderOptions`
+surface at `node_modules/@cloudflare/workers-oauth-provider/dist/oauth-provider.d.ts`).
+If a future library version introduces a secret binding, this section will
+be updated alongside the wrangler change that actually consumes it.
 
 ### Bootstrap the identity record
 
@@ -123,31 +114,50 @@ this KV to populate `{ workspace_id, user_id }` into the JWT props. For a
 brand-new install the bootstrap is a deliberate **2-step flow**:
 
 1. **Trigger one failed `/authorize` attempt** so the dynamic client id is
-   registered and you can observe its `sub`. Run either:
-   - The MCP Inspector procedure below (recommended — see
-     [Smoke Test: MCP Inspector](#smoke-test-mcp-inspector)), or
-   - Claude Desktop with the local-dev config snippet wired in (see
-     [Claude Desktop Configuration](#claude-desktop-configuration)).
+   registered and you can observe its `sub`. Run the MCP Inspector
+   procedure below (see [Smoke Test: MCP Inspector](#smoke-test-mcp-inspector)).
+   The recommended smoke path is pure-local `wrangler dev` — see that
+   section for the full two-terminal procedure.
+
 2. **Read the 403 error body.** The response body looks like:
 
-   ```
+   ```text
    Unknown OAuth subject: <some-sub-value>. Bootstrap via npm run kv:bootstrap.
    ```
 
    Copy the `<some-sub-value>` (it is the OAuth subject claim that the
    dynamically-registered client uses; safe to log — it is not a secret).
 
-3. **Write the identity into KV** by running, from the repo root:
+3. **Write the identity into KV** by running, from the repo root.
+
+   For the **local-mode smoke** (Inspector against `wrangler dev`):
 
    ```bash
    npm run kv:bootstrap -- --sub <observed-sub> \
-     --workspace-id rmoore-personal \
-     --user-id rmoore
+     --workspace-id <your-workspace-id> \
+     --user-id <your-user-id> \
+     --local
    ```
 
-   The script wraps `npx wrangler kv key put --binding ENGRAM_IDENTITIES`
-   and never echoes the identity JSON to stdout (T-03-KV-LEAK mitigation).
-   See [`scripts/kv-bootstrap.mjs`](../../scripts/kv-bootstrap.mjs) for the
+   For a **deployed Worker** (or `wrangler dev --remote` against your
+   production KV):
+
+   ```bash
+   npm run kv:bootstrap -- --sub <observed-sub> \
+     --workspace-id <your-workspace-id> \
+     --user-id <your-user-id>
+   ```
+
+   `--workspace-id` and `--user-id` are **required** — there are no
+   developer-specific defaults. Use whatever identifier you want for your
+   own workspace and user records; they become the `props.workspace_id`
+   and `props.user_id` Engram populates into the JWT on every `/authorize`.
+
+   The script wraps `npx wrangler kv key put --binding ENGRAM_IDENTITIES`,
+   writes the identity JSON to a 0o600 temp file (instead of passing it on
+   the command line where it would leak to `ps -ef`), and never echoes
+   the value to stdout (T-03-KV-LEAK mitigation). See
+   [`scripts/kv-bootstrap.mjs`](../../scripts/kv-bootstrap.mjs) for the
    CLI surface (`--dry-run` lets you preview without writing).
 
 4. **Retry the OAuth flow.** The same client should now succeed and cache a
@@ -255,23 +265,30 @@ The MCP Inspector is the canary for the entire Phase 3 surface — OAuth dance
 
 ### Two-terminal procedure
 
-**Terminal 1 — boot the Worker locally:**
+**Terminal 1 — boot the Worker locally** (from repo root):
+
+```bash
+npm run dev:mcp
+```
+
+Or, equivalently, from the package directory:
 
 ```bash
 cd packages/mcp-server
 npm run dev
 ```
 
-`wrangler dev` prints `Ready on http://localhost:8787` (or similar). For the
-OAuth dance to find an `ENGRAM_IDENTITIES` entry during local-dev, run with
-the `--remote` flag against your bootstrapped production KV:
-
-```bash
-npx wrangler dev --remote
-```
-
-(See [Troubleshooting](#troubleshooting) entry on Inspector hanging at
-"Connecting…" for why this matters.)
+`wrangler dev` prints `Ready on http://localhost:8787` (or similar). **Do
+NOT use `--remote`** for the Inspector smoke — the OAuth Protected Resource
+Metadata endpoint (RFC 9728) derives its `resource` field from
+`request.url`, so under `--remote` the metadata advertises the
+Cloudflare-edge hostname (`https://engram-mcp-server.<subdomain>.workers.dev/mcp`)
+while MCP Inspector connects to `http://localhost:8787/mcp` — the
+resource mismatch trips RFC 9728 §3.3 and the OAuth dance fails before
+it ever reaches `/authorize`. See [Troubleshooting](#troubleshooting) for
+the full explanation. The recorded smoke evidence is
+[`.planning/phases/03-mcp-server-scaffold/03-MCP-INSPECTOR-SMOKE.md`](../../.planning/phases/03-mcp-server-scaffold/03-MCP-INSPECTOR-SMOKE.md)
+§"Smoke Run" Deviation 1.
 
 **Terminal 2 — boot the Inspector:**
 
@@ -289,9 +306,19 @@ A browser tab opens at `http://localhost:5173/?MCP_PROXY_AUTH_TOKEN=...`.
 4. When prompted for auth, click **"Open Auth settings" → "Quick OAuth
    Flow"**. The browser may redirect to `/authorize`.
 5. If you see a 403 body `Unknown OAuth subject: <sub>. Bootstrap via
-npm run kv:bootstrap.` — copy the `<sub>` value, run
-   `npm run kv:bootstrap -- --sub <copied-sub> --workspace-id rmoore-personal
---user-id rmoore` from the repo root, then click Connect again.
+npm run kv:bootstrap.` — copy the `<sub>` value, run from the repo root:
+
+   ```bash
+   npm run kv:bootstrap -- --sub <copied-sub> \
+     --workspace-id <your-workspace-id> \
+     --user-id <your-user-id> \
+     --local
+   ```
+
+   Then click Connect again. (The `--local` flag writes to
+   `.wrangler/state/v3/kv/` — the storage backend `wrangler dev` reads
+   without `--remote`.)
+
 6. Once connected, click the **Tools** tab and the **"List tools"** action.
 7. Pick any tool (e.g. `remember`) and run it with a sample payload.
 
@@ -331,16 +358,40 @@ shape regresses. SQLite-backed DOs are irreversible per
 Cloudflare workers-sdk #9909, so never switch `new_sqlite_classes` to
 `new_classes`.
 
-### MCP Inspector hangs at "Connecting…" or shows 401
+### MCP Inspector fails with "Failed to start OAuth flow: Protected resource ... does not match expected `http://localhost:8787/mcp`"
 
-The `ENGRAM_IDENTITIES` KV namespace has no entry for the Inspector's
-dynamically-registered client id. Two fixes:
+The Worker is running under `wrangler dev --remote`, which routes
+requests through the Cloudflare edge. The OAuth library advertises an
+OAuth Protected Resource URL derived from `new URL(request.url).origin`
+— under `--remote` that origin is the Cloudflare edge hostname
+(`https://engram-mcp-server.<subdomain>.workers.dev`), not
+`http://localhost:8787`. MCP Inspector enforces the RFC 9728 §3.3
+resource-binding check against its own connect URL (the local proxy at
+`localhost:8787`) and rejects the mismatch — by design.
 
-1. **Path A (preferred):** Run `wrangler dev --remote` so KV reads hit the
-   production namespace where your bootstrap entry lives.
-2. **Path B (one-shot):** Trigger one `/authorize` attempt to surface the
-   403 body, copy the `sub` from the error, run
-   `npm run kv:bootstrap -- --sub <copied-sub>`, and reconnect.
+**Fix:** Always use pure-local `wrangler dev` (no `--remote`) for the
+Inspector smoke. The Worker reads the `ENGRAM_IDENTITIES` binding from
+`.wrangler/state/v3/kv/` instead of the production namespace; bootstrap
+the local-mode identity record via
+`npm run kv:bootstrap -- --sub <sub> --workspace-id <id> --user-id <id> --local`.
+See [Smoke Test: MCP Inspector](#smoke-test-mcp-inspector) for the full
+two-terminal procedure.
+
+### MCP Inspector hangs at "Connecting…" or shows 403 "Unknown OAuth subject"
+
+The `ENGRAM_IDENTITIES` KV namespace (local-mode or remote, depending on
+which `wrangler dev` mode you're in) has no entry for the Inspector's
+dynamically-registered client id. Trigger one `/authorize` attempt to
+surface the 403 body, copy the `sub` from the error, then run:
+
+```bash
+npm run kv:bootstrap -- --sub <copied-sub> \
+  --workspace-id <your-workspace-id> \
+  --user-id <your-user-id> \
+  --local   # omit for production KV (--remote wrangler dev path)
+```
+
+Reconnect from the Inspector UI.
 
 ### `curl /health` works but `/mcp` returns 401
 
