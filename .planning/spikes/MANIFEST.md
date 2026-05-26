@@ -26,3 +26,21 @@ Locked by user choices during decomposition. Non-negotiable for the spike (and t
 | 003 | embedding-sensibility | standard | Given the same 30 samples embedded via `@cf/baai/bge-base-en-v1.5`, when pairwise cosine similarity is computed, then intra-bucket pairs are systematically higher than inter-bucket pairs (mean(intra) − mean(inter) ≥ 0.10 with no overlap in the IQR). | PARTIAL ⚠ (intra.mean=0.6472 > inter.mean=0.5776, Δ=0.0696 below 0.10 gate; IQR overlaps. Embedding captures domain not type — top cross-bucket pair cosine 0.8251. Confirms Phase 5 hybrid ranking todo). | embeddings, bge-base-en-v1.5, P5/AI-04 |
 
 Risk ordering: 001 first (most likely to kill the synthesis-only thesis — if extraction precision is poor, the whole envelope contract is wrong). 002 second (synthesis-only viability depends on summaries preserving facts). 003 last (Phase 5 ranking depends on it but doesn't block Phase 4 envelope freeze).
+
+## Session Verdict Summary (2026-05-26)
+
+All three spikes PARTIAL. Two independent signals (001 + 002) both land in the 75-90% BORDERLINE band on synthesis-only fidelity → **D-02 verbosity default flips from `"synthesis"` to `"both"`** for Phase 4. 003 confirms hybrid ranking is required for Phase 5 AI-04.
+
+**For Phase 4 planning (consume via `/gsd:spike-wrap-up` skill):**
+
+1. Flip D-02 `verbosity` default from `"synthesis"` to `"both"` on `recall()` (raw chunks always returned alongside synthesis). Both spike 001 (extraction precision F1=90.2% with hallucinated nullable fields) and spike 002 (summarization fact preservation 83.7%) argue for the BORDERLINE branch of D-01's decision gate.
+2. Reinforce D-04 honest-stubs (`synthesis = null` in v0.1 is the correct contract until Phase 5 demonstrates ≥95% real-corpus fact preservation).
+3. Add real-corpus validation as a Phase 4 plan task gated before TOL-08 closure (Russell's job-search agent corpus is the validation set).
+
+**For Phase 5 planning (deferred — emerges at `/gsd:discuss-phase 5`):**
+
+1. AI-05 system-prompt design: explicitly preserve dates, sources, technical identifiers, numeric metadata, and "rejected alternative" facts (the five drop categories from spike 002).
+2. AI-04 must apply `metadata.type` filter at Vectorize query time (spike 003 showed cross-bucket cosine up to 0.8251 — embedding captures domain not type).
+3. Hybrid ranking confirmed as required, not optional: vector score + type match + recency decay + scope filter. Folds the Phase 5 todo `2026-05-26-phase-5-hybrid-ranking-not-vector-only.md`.
+
+**Total spike cost:** ~$0.10 across all 3 spikes (~$0.02 ext + ~$0.03 summarization + ~$0.005 embeddings, repeated across debugging runs).
