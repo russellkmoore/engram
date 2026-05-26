@@ -19,21 +19,23 @@
 // false positive.
 import { DurableObject } from "cloudflare:workers";
 
-// `DurableObject<unknown>` keeps the fixture from depending on the generated
-// `Cloudflare.Env` type — this fixture file isn't expected to compile against
-// a real wrangler config, it only exercises the STO-10 lint script's regex
-// against the bad pattern. PATTERNS.md §12 calls for `env: unknown` and the
-// `<unknown>` generic carries that intent through to the base class.
-export class BadDO extends DurableObject<unknown> {
-  constructor(ctx: DurableObjectState, env: unknown) {
+// Local environment type with the AI binding shape needed for the violation.
+// Defined inline so the fixture is self-contained — it doesn't depend on the
+// generated `Cloudflare.Env` type (PATTERNS.md §12 alignment). The parameter
+// name `env` is preserved so the violation site reads as plain `env.AI.run(...)`
+// and the STO-10 lint matches the literal `env.` token from D-10.
+interface BadEnv {
+  AI: { run: (m: string) => Promise<unknown> };
+}
+
+export class BadDO extends DurableObject<BadEnv> {
+  constructor(ctx: DurableObjectState, env: BadEnv) {
     super(ctx, env);
     void ctx.blockConcurrencyWhile(async () => {
       // VIOLATION: env.* + await is forbidden inside the bootstrap block.
       // The STO-10 lint script must extract the blockConcurrencyWhile block
       // body and flag the `env.` access + the `await` together.
-      await (env as { AI: { run: (m: string) => Promise<unknown> } }).AI.run(
-        "@cf/baai/bge-base-en-v1.5",
-      );
+      await env.AI.run("@cf/baai/bge-base-en-v1.5");
     });
   }
 }
