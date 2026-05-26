@@ -50,11 +50,15 @@
  *   real login + consent UI; the contract here (props derived from KV only)
  *   does not change.
  * - **Env shape:** `EngramOAuthEnv` extends the wrangler-codegen `Env`
- *   interface (from `worker-configuration.d.ts`) with the two library-related
- *   bindings (`ENGRAM_IDENTITIES`, `OAUTH_KV`) and the runtime helper injected
- *   by the OAuth library (`OAUTH_PROVIDER`). The codegen `Env` is regenerated
- *   by Plan 05 once `wrangler.jsonc` declares the new KV bindings; this
- *   module-scoped augmentation keeps oauth.ts compiling cleanly until then.
+ *   interface (from `worker-configuration.d.ts`, which after Plan 05 ships
+ *   types `MCP_OBJECT`, `WORKSPACE`, `OAUTH_KV`, and `ENGRAM_IDENTITIES`
+ *   directly) with the single runtime helper injected by the OAuth library
+ *   (`OAUTH_PROVIDER`). `OAUTH_PROVIDER` is NOT a wrangler binding — it is
+ *   surfaced by `@cloudflare/workers-oauth-provider` at request-dispatch
+ *   time, so it must live in this module-scoped augmentation rather than
+ *   in wrangler.jsonc / worker-configuration.d.ts (T-03-ENV-DRIFT — checker
+ *   WARNING 1: the codegen Env owns every binding-derived field; only the
+ *   non-binding library surface is extended here).
  *
  * @module @engram/mcp-server/oauth
  */
@@ -75,22 +79,18 @@ interface IdentityRecord {
 /**
  * Environment augmentation for the OAuth `defaultHandler`.
  *
- * Extends the wrangler-codegen global `Env` (which already types `MCP_OBJECT`
- * → `EngramMcp` and `WORKSPACE` → `WorkspaceDO`) with the OAuth-flow bindings:
- * - `ENGRAM_IDENTITIES`: KV with `sub → IdentityRecord` mapping (D-04)
- * - `OAUTH_KV`: KV owned by the OAuth library for grant/token state
- * - `OAUTH_PROVIDER`: `OAuthHelpers` instance injected by the library at
- *   request-dispatch time (NOT declared in wrangler.jsonc — it's a runtime
- *   surface, not a binding)
- *
- * Plan 05's `wrangler.jsonc` edit + `wrangler types` regen will fold
- * `ENGRAM_IDENTITIES` and `OAUTH_KV` into the codegen `Env` directly; this
- * augmentation can be simplified to `Env & { OAUTH_PROVIDER: OAuthHelpers }`
- * once that lands. Until then this shape is the source of truth.
+ * Extends the wrangler-codegen global `Env` (which after Plan 05 ships types
+ * `MCP_OBJECT` → `EngramMcp`, `WORKSPACE` → `WorkspaceDO`, `OAUTH_KV` →
+ * `KVNamespace`, and `ENGRAM_IDENTITIES` → `KVNamespace`) with the SINGLE
+ * runtime-injected surface from the OAuth library:
+ * - `OAUTH_PROVIDER`: `OAuthHelpers` instance injected by
+ *   `@cloudflare/workers-oauth-provider` at request-dispatch time. NOT a
+ *   wrangler binding — does NOT appear in wrangler.jsonc and therefore does
+ *   NOT appear in the regenerated `worker-configuration.d.ts`. This is the
+ *   only field this augmentation contributes (T-03-ENV-DRIFT — every other
+ *   binding-derived field flows from the codegen Env).
  */
 interface EngramOAuthEnv extends Env {
-  ENGRAM_IDENTITIES: KVNamespace;
-  OAUTH_KV: KVNamespace;
   OAUTH_PROVIDER: OAuthHelpers;
 }
 
