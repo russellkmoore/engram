@@ -23,9 +23,9 @@ files_reviewed_list:
   - scripts/kv-bootstrap.mjs
 findings:
   critical: 1
-  warning: 6
+  warning: 8
   info: 4
-  total: 11
+  total: 13
 status: issues_found
 ---
 
@@ -292,6 +292,99 @@ This is a minor doc-drift, but the comment is the rationale for an eslint-disabl
    Phase 4 may add async setup (e.g., warm-loading user preferences from
    `this.env`). Keeping the keyword now means Phase 4 edits are body-only. */
 ```
+
+---
+
+### WR-07: README's `wrangler dev --remote` recommendation breaks Inspector smoke (RFC 9728 resource mismatch)
+
+**File:** `packages/mcp-server/README.md` (smoke section — currently §"Smoke Test: MCP Inspector" lines ~258-310, and also referenced in §"Bootstrap the identity record" step 1 and §"Troubleshooting" entries)
+
+**Source:** Surfaced during the MCP-09 live smoke on 2026-05-26 — see `.planning/phases/03-mcp-server-scaffold/03-MCP-INSPECTOR-SMOKE.md` Deviation 1.
+
+**Issue:**
+The README recommends `npx wrangler dev --remote` for the Inspector smoke so KV reads hit the bootstrapped production namespaces. This pattern fails the actual smoke at the OAuth-resource-binding step:
+
+When the Worker runs under `wrangler dev --remote`, the request URL the Worker sees is the Cloudflare-edge hostname (`https://engram-mcp-server.<subdomain>.workers.dev/mcp`), not `http://localhost:8787/mcp`. `@cloudflare/workers-oauth-provider@0.7.0` constructs the `/.well-known/oauth-protected-resource` document's `resource` field from `new URL(request.url).origin`, which means the metadata advertises the edge hostname.
+
+MCP Inspector connects to `http://localhost:8787/mcp` (the local proxy), fetches that metadata, and per RFC 9728 §3.3 ("Resource Identifier") rejects the OAuth flow with:
+
+```
+Failed to start OAuth flow: Protected resource https://engram-mcp-server.<subdomain>.workers.dev/mcp
+does not match expected http://localhost:8787/mcp (or origin)
+```
+
+This is a reproducible blocker — the documented smoke path cannot complete as written.
+
+**Impact:**
+
+1. **Operator dead-end on first smoke** — the most-recommended path (`--remote`) bricks the OAuth handshake, with an error that looks security-relevant rather than configuration-relevant.
+2. **Two more downstream README sections are wrong** — §"Bootstrap the identity record" step 1 ("Trigger one failed `/authorize` attempt") and §"Troubleshooting" entry "MCP Inspector hangs at Connecting…" both assume `--remote` is the working configuration.
+3. **Misleads on a real protocol guarantee** — RFC 9728 resource binding is intentional; the README implicitly suggests it's overrideable when it is not.
+
+**Fix:**
+Rewrite the smoke section to recommend **pure local** `wrangler dev` (no `--remote`) and document local KV bootstrap as the canonical path. Update the troubleshooting entry to call out the RFC 9728 mismatch explicitly. Specifically:
+
+1. **§Smoke Test (Terminal 1 block):** Change `npx wrangler dev --remote` to `npx wrangler dev`. Remove the paragraph that says "For the OAuth dance to find an `ENGRAM_IDENTITIES` entry during local-dev, run with the `--remote` flag against your bootstrapped production KV".
+2. **§Bootstrap the identity record:** Update the 2-step flow to use `npx wrangler kv key put --binding=ENGRAM_IDENTITIES --local '<sub>' '<json>'` (or, post-WR-08 fix, `npm run kv:bootstrap -- --sub <sub> --local`).
+3. **§Troubleshooting → "MCP Inspector hangs at Connecting…":** Replace the current `--remote` advice with: "The Worker advertises an OAuth resource URL derived from `request.url`. Under `wrangler dev --remote` this is the Cloudflare-edge hostname, which MCP Inspector rejects per RFC 9728 against its local connect URL. Always use pure-local `wrangler dev` for Inspector smoke runs."
+4. **(Optional, defer to Phase 7 — Deploy + Acceptance):** Add a `production smoke` section documenting how to point Inspector at the deployed `*.workers.dev` URL directly, where resource binding matches naturally.
+
+**Code anchors:**
+
+- `@cloudflare/workers-oauth-provider@0.7.0` resource derivation: `node_modules/@cloudflare/workers-oauth-provider/dist/oauth-provider.js` (search for `oauth-protected-resource`)
+- RFC 9728 §3.3: <https://www.rfc-editor.org/rfc/rfc9728#section-3.3>
+- Smoke evidence: `.planning/phases/03-mcp-server-scaffold/03-MCP-INSPECTOR-SMOKE.md` §"Smoke Run" → "Mode: `wrangler dev` (pure local mode — see Deviation 1)"
+
+**Severity:** Warning — operator can recover (this REVIEW.md and the smoke record both document the workaround), but the canonical README path is broken for the documented v0.1 deploy procedure.
+
+---
+
+### WR-08: `kv-bootstrap.mjs` does not support `--local` — cannot bootstrap into local-mode KV
+
+**File:** `scripts/kv-bootstrap.mjs` (argument parser + wrangler subprocess invocation)
+
+**Source:** Surfaced during the MCP-09 live smoke on 2026-05-26 — see `.planning/phases/03-mcp-server-scaffold/03-MCP-INSPECTOR-SMOKE.md` Deviation 2.
+
+**Issue:**
+The bootstrap CLI only knows the remote-write path:
+
+```
+$ npm run kv:bootstrap -- --sub rJkmmoWYMRb5fW6Q --workspace-id rmoore-personal --user-id rmoore --local
+[kv:bootstrap] unknown argument: --local
+[kv:bootstrap] usage: node scripts/kv-bootstrap.mjs --sub <oauth-sub> [--workspace-id <id>] [--user-id <id>] [--dry-run]
+```
+
+The script's internal `wrangler kv key put` invocation hard-codes the binding lookup against the deployed namespace (effectively `--remote`-equivalent — no `--local` flag is passed through to wrangler). In the pure-local smoke path required by WR-07's fix, operators must bypass this script entirely and call wrangler directly:
+
+```bash
+npx wrangler kv key put --binding=ENGRAM_IDENTITIES --local 'rJkmmoWYMRb5fW6Q' \
+  '{"workspace_id":"rmoore-personal","user_id":"rmoore"}'
+```
+
+This negates the script's T-03-KV-LEAK protection (the script's whole point is to wrap the wrangler invocation so the identity JSON never reaches the process table — see WR-03), since the manual workaround puts the JSON on the command line.
+
+**Impact:**
+
+1. **Local-mode smoke is now manual** — defeats the kv-bootstrap script's existence; every first-time operator has to read this REVIEW.md or the smoke-record deviations to discover the workaround.
+2. **T-03-KV-LEAK regression in the documented local path** — the manual workaround exposes the identity JSON via the process table. WR-03 fixes the same leak for the remote path; we should not introduce a regression in the local path.
+3. **README ↔ script ↔ smoke-record drift** — README points operators at `npm run kv:bootstrap`; script rejects `--local`; smoke record documents the bypass. Three out-of-sync sources of truth.
+
+**Fix:**
+Add `--local` support to `scripts/kv-bootstrap.mjs`:
+
+1. **Argument parser** — accept `--local` as a flag (no value). Update the usage block.
+2. **Subprocess invocation** — when `--local` is set, append `--local` to the `npx wrangler kv key put` argv array. The binding-resolution path works identically in local mode (wrangler reads `wrangler.jsonc` for the binding name; `--local` swaps the storage backend to `.wrangler/state/v3/kv/`).
+3. **Maintain T-03-KV-LEAK protection** — keep the existing pattern that hides the identity JSON from the process table (whichever mechanism the script uses — temp file + `--path`, or stdin pipe — applies equally to local and remote modes).
+4. **Tests** — add a test case covering `--local --dry-run` to verify the wrangler argv contains `--local` and does not contain `--remote`.
+5. **README update (cascades with WR-07)** — update §"Bootstrap the identity record" to use `npm run kv:bootstrap -- --sub <sub> --local` for the local-mode smoke flow.
+
+**Code anchors:**
+
+- Current arg parser: `scripts/kv-bootstrap.mjs` (search for `unknown argument`)
+- Wrangler `--local` semantics: `node_modules/wrangler/wrangler-dist/cli.js` `kv key put` subcommand
+- Smoke evidence: `.planning/phases/03-mcp-server-scaffold/03-MCP-INSPECTOR-SMOKE.md` §"Smoke Run" → Deviation 2
+
+**Severity:** Warning — local-mode smoke is a documented requirement (per WR-07) but the script doesn't support it, forcing every operator into a workaround that has its own security implication (process-table leakage).
 
 ---
 
