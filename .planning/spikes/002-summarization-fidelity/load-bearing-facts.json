@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "description": "Per-sample list of load-bearing facts. A summary 'preserves' a fact if a normalized substring/token-overlap match exists in the summary text. Same comparator as spike 001's fuzzyEq, applied to the summary string.",
+    "source_corpus": "../001-extraction-precision-recall/samples/"
+  },
+  "ja-01": ["Cloudflare", "Senior Staff Engineer", "$260k-$310k", "Remote", "LinkedIn"],
+  "ja-02": [
+    "Anthropic",
+    "Member of Technical Staff",
+    "Inference",
+    "$300k-$400k",
+    "2026-05-10",
+    "Devon"
+  ],
+  "ja-03": ["Stripe", "Principal Engineer", "Payments Platform", "Dublin", "Hacker News"],
+  "ja-04": ["Vercel", "Distributed Systems Engineer", "$240k-$290k", "2026-05-22"],
+  "ja-05": [
+    "Notion",
+    "Senior Software Engineer",
+    "AI Platform",
+    "$220k-$260k",
+    "2026-04-18",
+    "Wellfound"
+  ],
+  "ja-06": [
+    "Linear",
+    "Sync Infrastructure",
+    "$180,000-$220,000",
+    "Remote",
+    "2026-05-23",
+    "Twitter"
+  ],
+  "ja-07": ["Supabase", "Staff Engineer", "Postgres Tooling", "2026-05-15", "Reddit"],
+  "ja-08": ["Replit", "Senior Engineer", "Agents", "230k-280k", "SF"],
+  "ja-09": ["Render", "Staff Platform Engineer", "$250k-$300k", "2026-05-19", "recruiter"],
+  "ja-10": ["OpenAI", "Forward Deployed Engineer", "Enterprise", "NYC", "2026-05-08"],
+
+  "dl-01": [
+    "Durable Objects",
+    "per workspace",
+    "D1",
+    "workspace isolation",
+    "Russell",
+    "2026-05-24",
+    "Engram v0.1"
+  ],
+  "dl-02": ["Apache-2.0", "placeholder license", "v1.0", "Devon"],
+  "dl-03": ["Astro", "Cloudflare Pages", "Next.js", "Vercel", "Devon", "2026-04-12", "BMC-WEBSITE"],
+  "dl-04": ["no web UI", "Engram v0.1", "MCP-first", "Russell", "2026-05-23"],
+  "dl-05": [
+    "job-search agent",
+    "existing memory backend",
+    "Engram",
+    "Phase 7",
+    "Russell",
+    "2026-05-20"
+  ],
+  "dl-06": ["Defer Vectorize optimization", "HNSW", "Russell", "2026-05-15"],
+  "dl-07": ["GPT-tokenizer", "tiktoken", "MCP-08", "8K-token", "Russell"],
+  "dl-08": ["honest envelope stubs", "templated heuristics", "Russell", "2026-05-26", "Phase 4"],
+  "dl-09": ["two-DO topology", "EngramMcp", "WorkspaceDO", "single-DO", "Russell", "2026-05-18"],
+  "dl-10": ["Mondays 9am PT", "engagement check-ins", "Devon", "Russell"],
+
+  "rn-01": ["Cloudflare Workers AI", "llama-3.1-8b", "response_format", "json_schema"],
+  "rn-02": ["mem0", "conflict resolution", "ADD", "UPDATE", "DELETE", "NOOP"],
+  "rn-03": ["Letta", "MemGPT", "self-edit", "memory blocks", "archival memory"],
+  "rn-04": [
+    "MCP",
+    "Resource Server",
+    "2025-03-26",
+    "/.well-known/oauth-protected-resource",
+    "mcp-remote"
+  ],
+  "rn-05": ["Vectorize", "namespaces", "100-index-per-account", "Engram v0.1"],
+  "rn-06": ["bge-base-en-v1.5", "768-dimensional", "cosine", "RAG"],
+  "rn-07": ["Anthropic", "prompt cache", "5-minute TTL", "Claude Code", "270s"],
+  "rn-08": ["@cloudflare/workers-oauth-provider", "/authorize", "/token", "/jwks", "Phase 3"],
+  "rn-09": [
+    "Durable Objects",
+    "SQLite",
+    "new_sqlite_classes",
+    "new_classes",
+    "irreversible",
+    "FND-08"
+  ],
+  "rn-10": ["getAgentByName", "DurableObjectStub", "Promise", "await"]
+}

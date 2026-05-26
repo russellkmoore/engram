@@ -1,0 +1,16 @@
+{
+  // Spike 002 — summarization fidelity. Same model as spike 001 (`@cf/meta/
+  // llama-3.1-8b-instruct`), different endpoint. Lives under .planning/spikes/
+  // so npm workspaces never see it. wrangler dev calls REAL Workers AI.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "engram-spike-002-summarization",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-05-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": {
+    "binding": "AI",
+  },
+  "dev": {
+    "port": 8902,
+  },
+}

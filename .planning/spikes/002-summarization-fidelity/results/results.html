@@ -1,0 +1,233 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Spike 002 results</title>
+<style>body{font-family:system-ui,sans-serif;max-width:1000px;margin:2rem auto;padding:0 1rem;color:#0f172a}
+h1{margin-bottom:0}.gate{padding:1rem;border-radius:8px;margin:1rem 0}
+.PASS{background:#dcfce7;border:1px solid #16a34a}
+.BORDERLINE{background:#fef9c3;border:1px solid #ca8a04}
+.FAIL{background:#fee2e2;border:1px solid #dc2626}
+table{border-collapse:collapse;margin:1rem 0}
+th,td{border:1px solid #e2e8f0;padding:6px 12px;font-size:14px}
+details{margin:8px 0;border:1px solid #e2e8f0;border-radius:6px}
+summary{padding:8px 12px;cursor:pointer;background:#f8fafc}</style></head><body>
+<h1>Spike 002 — Summarization Fidelity</h1>
+<p style="color:#64748b">Workers AI <code>@cf/meta/llama-3.1-8b-instruct</code> · plain-text summarization · 2026-05-26T17:44:10.351Z</p>
+<div class="gate BORDERLINE">
+  <strong>BORDERLINE — PARTIAL</strong>
+  <p>Overall fact preservation: 83.7% (128/153 facts)</p>
+  <p>Synthetic-recalibrated borderline (75-90%). Summaries drop a meaningful fraction of load-bearing facts; raw_chunks-by-default becomes mandatory rather than optional.</p>
+</div>
+<h2>Per-bucket</h2>
+<table><thead><tr><th>Bucket</th><th>N</th><th>Facts (preserved/total)</th><th>Recall</th></tr></thead><tbody><tr><td>job_application</td><td>10</td><td>41/52</td><td>78.8%</td></tr><tr><td>decision_log</td><td>10</td><td>47/53</td><td>88.7%</td></tr><tr><td>research_note</td><td>10</td><td>40/48</td><td>83.3%</td></tr></tbody></table>
+<h2>Per-sample</h2><details><summary><strong>ja-01</strong> (job_application) — <span style="color:#ca8a04">⚠ 80%</span> — 1392ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Senior Staff Engineer at Cloudflare. Remote (US). Salary range $260k-$310k + equity. Apply at https://www.cloudflare.com/careers/4827193 by 2026-06-15. Found via LinkedIn.</p>
+          <p><strong>Summary:</strong> Cloudflare is hiring a Senior Staff Engineer in a remote US position, offering a salary range of $260k-$310k plus equity, with an application deadline of June 15, 2026, and can be found on their careers page.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Cloudflare</li><li style="color:#16a34a">✓ Senior Staff Engineer</li><li style="color:#16a34a">✓ $260k-$310k</li><li style="color:#16a34a">✓ Remote</li><li style="color:#dc2626">✗ LinkedIn</li></ul>
+        </div>
+      </details><details><summary><strong>ja-02</strong> (job_application) — <span style="color:#16a34a">✓ 100%</span> — 608ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Anthropic is hiring a Member of Technical Staff — Inference. Hybrid SF, base $300k-$400k plus generous equity. Applied 2026-05-10 after Devon's referral. JD: https://www.anthropic.com/careers/inference-mts</p>
+          <p><strong>Summary:</strong> Anthropic is hiring a Member of Technical Staff - Inference, offering a base salary of $300k-$400k plus generous equity, with the application submitted on May 10, 2026, following a referral by Devon.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Anthropic</li><li style="color:#16a34a">✓ Member of Technical Staff</li><li style="color:#16a34a">✓ Inference</li><li style="color:#16a34a">✓ $300k-$400k</li><li style="color:#16a34a">✓ 2026-05-10</li><li style="color:#16a34a">✓ Devon</li></ul>
+        </div>
+      </details><details><summary><strong>ja-03</strong> (job_application) — <span style="color:#16a34a">✓ 100%</span> — 739ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Stripe Principal Engineer, Payments Platform. Office: Dublin. No salary disclosed. Posting from Hacker News Who's Hiring May 2026. https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349</p>
+          <p><strong>Summary:</strong> Stripe is hiring a Principal Engineer for the Payments Platform in Dublin, with no salary disclosed, as posted on Hacker News' Who's Hiring in May 2026.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Stripe</li><li style="color:#16a34a">✓ Principal Engineer</li><li style="color:#16a34a">✓ Payments Platform</li><li style="color:#16a34a">✓ Dublin</li><li style="color:#16a34a">✓ Hacker News</li></ul>
+        </div>
+      </details><details><summary><strong>ja-04</strong> (job_application) — <span style="color:#16a34a">✓ 100%</span> — 569ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Just applied to Vercel for the Distributed Systems Engineer role. $240k-$290k base. Applied date 2026-05-22. Posted on their careers page directly. https://vercel.com/careers/dse-2026</p>
+          <p><strong>Summary:</strong> Applied for the Distributed Systems Engineer role at Vercel on 2026-05-22, with a salary range of $240k-$290k base, through their careers page at https://vercel.com/careers/dse-2026.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Vercel</li><li style="color:#16a34a">✓ Distributed Systems Engineer</li><li style="color:#16a34a">✓ $240k-$290k</li><li style="color:#16a34a">✓ 2026-05-22</li></ul>
+        </div>
+      </details><details><summary><strong>ja-05</strong> (job_application) — <span style="color:#dc2626">✗ 67%</span> — 584ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Posting: "Senior Software Engineer, AI Platform" at Notion. SF or NYC. Base 220-260k. Submitted application 2026-04-18. Came from Wellfound listing. https://wellfound.com/jobs/notion-ai-platform-senior</p>
+          <p><strong>Summary:</strong> A Senior Software Engineer position at Notion's AI Platform in San Francisco or New York City was applied for on April 18, 2026, with a base salary range of $220,000 to $260,000.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Notion</li><li style="color:#16a34a">✓ Senior Software Engineer</li><li style="color:#16a34a">✓ AI Platform</li><li style="color:#dc2626">✗ $220k-$260k</li><li style="color:#16a34a">✓ 2026-04-18</li><li style="color:#dc2626">✗ Wellfound</li></ul>
+        </div>
+      </details><details><summary><strong>ja-06</strong> (job_application) — <span style="color:#ca8a04">⚠ 83%</span> — 582ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Linear is hiring for Engineer, Sync Infrastructure. Fully remote globally. They state $180,000-$220,000 USD. Found by Twitter post from their CEO. Submitting today, 2026-05-23. https://linear.app/careers/sync-infra</p>
+          <p><strong>Summary:</strong> Linear is hiring a remote Engineer, Sync Infrastructure, with a salary range of $180,000-$220,000 USD, as advertised by their CEO on Twitter. The job posting is available on Linear's careers page at https://linear.app/careers/sync-infra.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Linear</li><li style="color:#16a34a">✓ Sync Infrastructure</li><li style="color:#16a34a">✓ $180,000-$220,000</li><li style="color:#16a34a">✓ Remote</li><li style="color:#dc2626">✗ 2026-05-23</li><li style="color:#16a34a">✓ Twitter</li></ul>
+        </div>
+      </details><details><summary><strong>ja-07</strong> (job_application) — <span style="color:#dc2626">✗ 60%</span> — 492ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Supabase — Staff Engineer, Postgres Tooling. Remote. Compensation TBD pending interview loop. Saw it on /r/cscareerquestions. Applied 2026-05-15. https://supabase.com/careers/staff-postgres</p>
+          <p><strong>Summary:</strong> Supabase is hiring a Staff Engineer for Postgres Tooling in a remote position, with compensation to be determined after the interview process, and the application was submitted on May 15, 2026.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Supabase</li><li style="color:#16a34a">✓ Staff Engineer</li><li style="color:#16a34a">✓ Postgres Tooling</li><li style="color:#dc2626">✗ 2026-05-15</li><li style="color:#dc2626">✗ Reddit</li></ul>
+        </div>
+      </details><details><summary><strong>ja-08</strong> (job_application) — <span style="color:#dc2626">✗ 60%</span> — 508ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Replit posting for Senior Engineer, Agents. SF on-site. They list 230k-280k base + equity. Posted on the company blog. Plan to apply this week (today is 2026-05-21). URL: https://replit.com/careers/senior-engineer-agents</p>
+          <p><strong>Summary:</strong> Replit is hiring a Senior Engineer, Agents, offering a base salary of $230,000 to $280,000 plus equity, with the position being based in San Francisco.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Replit</li><li style="color:#16a34a">✓ Senior Engineer</li><li style="color:#16a34a">✓ Agents</li><li style="color:#dc2626">✗ 230k-280k</li><li style="color:#dc2626">✗ SF</li></ul>
+        </div>
+      </details><details><summary><strong>ja-09</strong> (job_application) — <span style="color:#dc2626">✗ 60%</span> — 727ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Pulled this from a recruiter cold email. Render.com — Staff Platform Engineer. Remote (US or EU). $250k-$300k. Date: 2026-05-19. No URL — recruiter said they'd send the JD.</p>
+          <p><strong>Summary:</strong> Render.com is seeking a Staff Platform Engineer for a remote position in the US or EU, offering a salary of $250k-$300k, with the job description to be sent separately.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Render</li><li style="color:#16a34a">✓ Staff Platform Engineer</li><li style="color:#16a34a">✓ $250k-$300k</li><li style="color:#dc2626">✗ 2026-05-19</li><li style="color:#dc2626">✗ recruiter</li></ul>
+        </div>
+      </details><details><summary><strong>ja-10</strong> (job_application) — <span style="color:#ca8a04">⚠ 80%</span> — 707ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: OpenAI — Forward Deployed Engineer, Enterprise. NYC office. Comp not disclosed in posting. Applied via the OpenAI careers page on 2026-05-08. https://openai.com/careers/forward-deployed-engineer</p>
+          <p><strong>Summary:</strong> I couldn't find any information about the job posting for the Forward Deployed Engineer, Enterprise position at OpenAI's NYC office, specifically the compensation details. However, I can provide a summary based on the available information:
+
+A Forward Deployed Engineer, Enterprise position was posted on OpenAI's careers page on May 8, 2026, for their NYC office, with the compensation details not disclosed.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ OpenAI</li><li style="color:#16a34a">✓ Forward Deployed Engineer</li><li style="color:#16a34a">✓ Enterprise</li><li style="color:#16a34a">✓ NYC</li><li style="color:#dc2626">✗ 2026-05-08</li></ul>
+        </div>
+      </details><details><summary><strong>dl-01</strong> (decision_log) — <span style="color:#ca8a04">⚠ 86%</span> — 474ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Decision: Use Cloudflare Durable Objects per workspace rather than a shared D1 database. Rationale: workspace isolation by default, no sharding complexity, clean archive/delete semantics. Owner: Russell. Date: 2026-05-24. Project: Engram v0.1.</p>
+          <p><strong>Summary:</strong> Russell decided to use Cloudflare Durable Objects per workspace for Engram v0.1, implementing workspace isolation by default and avoiding sharding complexity, on 2026-05-24.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Durable Objects</li><li style="color:#16a34a">✓ per workspace</li><li style="color:#dc2626">✗ D1</li><li style="color:#16a34a">✓ workspace isolation</li><li style="color:#16a34a">✓ Russell</li><li style="color:#16a34a">✓ 2026-05-24</li><li style="color:#16a34a">✓ Engram v0.1</li></ul>
+        </div>
+      </details><details><summary><strong>dl-02</strong> (decision_log) — <span style="color:#16a34a">✓ 100%</span> — 650ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Decided in today's 1:1 with Devon: we ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0. Reason — keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model. Devon owns the v1.0 license review.</p>
+          <p><strong>Summary:</strong> The team has decided to ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0, with Devon owning the v1.0 license review. This decision aims to maintain OSS credibility without committing to AGPL terms until the managed-cloud business model is better understood.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Apache-2.0</li><li style="color:#16a34a">✓ placeholder license</li><li style="color:#16a34a">✓ v1.0</li><li style="color:#16a34a">✓ Devon</li></ul>
+        </div>
+      </details><details><summary><strong>dl-03</strong> (decision_log) — <span style="color:#16a34a">✓ 100%</span> — 7687ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: BMC website redesign — decision is to use Astro + Cloudflare Pages instead of Next.js + Vercel. Rationale: Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy we have. Owner: Devon. Decided 2026-04-12. Project tag: BMC-WEBSITE.</p>
+          <p><strong>Summary:</strong> The BMC website redesign will use Astro and Cloudflare Pages, replacing Next.js and Vercel, to consolidate the Cloudflare bill under one vendor and leverage Astro's content collections. This decision was made by Devon on 2026-04-12 with project tag BMC-WEBSITE.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Astro</li><li style="color:#16a34a">✓ Cloudflare Pages</li><li style="color:#16a34a">✓ Next.js</li><li style="color:#16a34a">✓ Vercel</li><li style="color:#16a34a">✓ Devon</li><li style="color:#16a34a">✓ 2026-04-12</li><li style="color:#16a34a">✓ BMC-WEBSITE</li></ul>
+        </div>
+      </details><details><summary><strong>dl-04</strong> (decision_log) — <span style="color:#ca8a04">⚠ 80%</span> — 1976ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: We will NOT build a web UI for Engram in v0.1. Reasoning: MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right. Russell decided 2026-05-23. Phase target: any post-v0.4 milestone.</p>
+          <p><strong>Summary:</strong> We will not build a web UI for Engram in v0.1, as per Russell's decision on 2026-05-23, to focus on the MCP surface first. The web UI will be targeted for any post-v0.4 milestone.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ no web UI</li><li style="color:#16a34a">✓ Engram v0.1</li><li style="color:#dc2626">✗ MCP-first</li><li style="color:#16a34a">✓ Russell</li><li style="color:#16a34a">✓ 2026-05-23</li></ul>
+        </div>
+      </details><details><summary><strong>dl-05</strong> (decision_log) — <span style="color:#16a34a">✓ 100%</span> — 610ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: On the job-search agent: keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships. Russell owns the cutover. Date of decision: 2026-05-20.</p>
+          <p><strong>Summary:</strong> The job-search agent will continue to use the existing memory backend through May 2026, and then switch to Engram for daily use after Phase 7 ships, with Russell owning the cutover, as decided on May 20, 2026.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ job-search agent</li><li style="color:#16a34a">✓ existing memory backend</li><li style="color:#16a34a">✓ Engram</li><li style="color:#16a34a">✓ Phase 7</li><li style="color:#16a34a">✓ Russell</li><li style="color:#16a34a">✓ 2026-05-20</li></ul>
+        </div>
+      </details><details><summary><strong>dl-06</strong> (decision_log) — <span style="color:#dc2626">✗ 50%</span> — 583ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Decision (logged 2026-05-15, owner: Russell, project: Engram): Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus to measure against. Premature optimization risk outweighs the latency we'd save.</p>
+          <p><strong>Summary:</strong> The decision was made to defer Vectorize indexing optimization, specifically HNSW tuning and ef search parameters, until a real-world recall corpus is available for measurement. This decision prioritizes avoiding premature optimization over potential latency savings.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Defer Vectorize optimization</li><li style="color:#16a34a">✓ HNSW</li><li style="color:#dc2626">✗ Russell</li><li style="color:#dc2626">✗ 2026-05-15</li></ul>
+        </div>
+      </details><details><summary><strong>dl-07</strong> (decision_log) — <span style="color:#16a34a">✓ 100%</span> — 487ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Picked GPT-tokenizer over tiktoken for MCP-08's 8K-token assertions. Why: pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric. Decided by Russell.</p>
+          <p><strong>Summary:</strong> Russell chose GPT-tokenizer over tiktoken for MCP-08's 8K-token assertions due to its pure-JS bundles and lower WASM init cost, prioritizing performance over Claude-fidelity.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ GPT-tokenizer</li><li style="color:#16a34a">✓ tiktoken</li><li style="color:#16a34a">✓ MCP-08</li><li style="color:#16a34a">✓ 8K-token</li><li style="color:#16a34a">✓ Russell</li></ul>
+        </div>
+      </details><details><summary><strong>dl-08</strong> (decision_log) — <span style="color:#16a34a">✓ 100%</span> — 595ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Decision from today's planning session — Engram v0.1 will ship honest envelope stubs rather than templated heuristics. Reasoning: Phase 5 should POPULATE rather than RESTRUCTURE. Owner: Russell, 2026-05-26, against the Phase 4 plan.</p>
+          <p><strong>Summary:</strong> Engram v0.1 will ship with honest envelope stubs instead of templated heuristics, deviating from the Phase 4 plan as decided by Russell on 2026-05-26.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ honest envelope stubs</li><li style="color:#16a34a">✓ templated heuristics</li><li style="color:#16a34a">✓ Russell</li><li style="color:#16a34a">✓ 2026-05-26</li><li style="color:#16a34a">✓ Phase 4</li></ul>
+        </div>
+      </details><details><summary><strong>dl-09</strong> (decision_log) — <span style="color:#dc2626">✗ 67%</span> — 965ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: After the architecture review, we're keeping the two-DO topology (EngramMcp session + WorkspaceDO durable). The alternative (single-DO with discriminator column) would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy. Russell owns; date 2026-05-18.</p>
+          <p><strong>Summary:</strong> The architecture review resulted in retaining the two-DO topology, consisting of an EngramMcp session and a WorkspaceDO durable, due to its better adaptability for future evolutions. This decision was made by Russell on May 18, 2026.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ two-DO topology</li><li style="color:#16a34a">✓ EngramMcp</li><li style="color:#16a34a">✓ WorkspaceDO</li><li style="color:#dc2626">✗ single-DO</li><li style="color:#16a34a">✓ Russell</li><li style="color:#dc2626">✗ 2026-05-18</li></ul>
+        </div>
+      </details><details><summary><strong>dl-10</strong> (decision_log) — <span style="color:#16a34a">✓ 100%</span> — 420ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Devon and Russell agreed on a sync window. Mondays 9am PT for engagement check-ins. Owner of the cadence: Devon. No specific project; standing meeting.</p>
+          <p><strong>Summary:</strong> Devon and Russell agreed on a standing meeting for engagement check-ins, scheduled for Mondays at 9am PT, with Devon as the owner of the cadence.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Mondays 9am PT</li><li style="color:#16a34a">✓ engagement check-ins</li><li style="color:#16a34a">✓ Devon</li><li style="color:#16a34a">✓ Russell</li></ul>
+        </div>
+      </details><details><summary><strong>rn-01</strong> (research_note) — <span style="color:#ca8a04">⚠ 75%</span> — 599ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Title: "Cloudflare Workers AI llama-3.1-8b structured output". Topic: Cloudflare AI / LLM JSON mode. Found at https://developers.cloudflare.com/workers-ai/features/json-mode/. Summary: Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer. Tags: cloudflare, workers-ai, llm, json-mode, structured-output.</p>
+          <p><strong>Summary:</strong> Cloudflare Workers AI now supports JSON mode, allowing users to pass a schema in the request payload and conform the model's output to it, eliminating the need for a parsing layer. This feature is available with the 'json_schema' response_format type.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Cloudflare Workers AI</li><li style="color:#dc2626">✗ llama-3.1-8b</li><li style="color:#16a34a">✓ response_format</li><li style="color:#16a34a">✓ json_schema</li></ul>
+        </div>
+      </details><details><summary><strong>rn-02</strong> (research_note) — <span style="color:#16a34a">✓ 100%</span> — 621ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Research on mem0 conflict resolution: their LLM-resolver maps to four ops — ADD / UPDATE / DELETE / NOOP. Source: https://docs.mem0.ai/conflict-resolution. Key takeaway: keeping conflict resolution in the LLM (not pre-computed rules) trades determinism for adaptability. Engram should consider this for v0.2 conflict detection. Tags: mem0, conflict-resolution, llm, memory.</p>
+          <p><strong>Summary:</strong> Mem0's LLM-resolver maps conflict resolution to four operations: ADD, UPDATE, DELETE, and NOOP, offering adaptability but trading determinism for a dynamic approach. This design consideration may influence Engram's v0.2 conflict detection implementation.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ mem0</li><li style="color:#16a34a">✓ conflict resolution</li><li style="color:#16a34a">✓ ADD</li><li style="color:#16a34a">✓ UPDATE</li><li style="color:#16a34a">✓ DELETE</li><li style="color:#16a34a">✓ NOOP</li></ul>
+        </div>
+      </details><details><summary><strong>rn-03</strong> (research_note) — <span style="color:#ca8a04">⚠ 80%</span> — 711ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Letta (formerly MemGPT) — self-edit memory mode. Title: Letta self-edit. URL: https://letta.com/blog/self-editing-memory. Summary: agents can call tools that rewrite their own memory blocks via patch operations. Risk: ungated self-edit becomes hallucination amplifier; Letta gates with a separate 'archival memory' tier. Engram should NOT adopt before v0.3 reflect ships. Tags: letta, memgpt, self-edit, agent-memory.</p>
+          <p><strong>Summary:</strong> Letta's self-edit memory mode allows agents to rewrite their own memory blocks via patch operations, but is gated to prevent hallucination amplification through a separate 'archival memory' tier. This feature is currently not available in versions prior to v0.3 reflect ships.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Letta</li><li style="color:#dc2626">✗ MemGPT</li><li style="color:#16a34a">✓ self-edit</li><li style="color:#16a34a">✓ memory blocks</li><li style="color:#16a34a">✓ archival memory</li></ul>
+        </div>
+      </details><details><summary><strong>rn-04</strong> (research_note) — <span style="color:#16a34a">✓ 100%</span> — 818ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Notes on the MCP Resource Server pattern (2025-03-26 spec revision). The pattern uses /.well-known/oauth-protected-resource to advertise the Authorization Server's location. Bridge tools like mcp-remote expect this exact shape. Read at https://modelcontextprotocol.io/specification/2025-03-26/oauth. Tags: mcp, oauth, resource-server, mcp-remote.</p>
+          <p><strong>Summary:</strong> The MCP Resource Server pattern uses the /.well-known/oauth-protected-resource path to advertise the Authorization Server's location, as specified in the 2025-03-26 revision of the Model Context Protocol specification. This exact shape is expected by bridge tools like mcp-remote.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ MCP</li><li style="color:#16a34a">✓ Resource Server</li><li style="color:#16a34a">✓ 2025-03-26</li><li style="color:#16a34a">✓ /.well-known/oauth-protected-resource</li><li style="color:#16a34a">✓ mcp-remote</li></ul>
+        </div>
+      </details><details><summary><strong>rn-05</strong> (research_note) — <span style="color:#ca8a04">⚠ 75%</span> — 719ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Quick read on Vectorize namespaces (Cloudflare). Title: Vectorize namespaces tenant isolation. From https://developers.cloudflare.com/vectorize/best-practices/namespaces/. Key fact — one global index with namespace per workspace beats one-index-per-workspace because of the 100-index-per-account cap. Engram v0.1 must follow this. Tags: cloudflare, vectorize, namespaces, multi-tenant.</p>
+          <p><strong>Summary:</strong> Cloudflare Vectorize recommends using one global index with a namespace per workspace for tenant isolation, as it avoids the 100-index-per-account cap, and this approach must be followed by Engram v0.1.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Vectorize</li><li style="color:#dc2626">✗ namespaces</li><li style="color:#16a34a">✓ 100-index-per-account</li><li style="color:#16a34a">✓ Engram v0.1</li></ul>
+        </div>
+      </details><details><summary><strong>rn-06</strong> (research_note) — <span style="color:#16a34a">✓ 100%</span> — 1293ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Working notes — bge-base-en-v1.5 embedding quality. Topic: text embeddings for retrieval. No URL handy. Summary: bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens. Tags: embeddings, bge, retrieval, rag.</p>
+          <p><strong>Summary:</strong> bge-base-en-v1.5 outputs 768-dimensional embeddings, typically using a cosine metric, and performs well on RAG retrieval benchmarks compared to e5-base, recommended for English-only workloads under 512 tokens.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ bge-base-en-v1.5</li><li style="color:#16a34a">✓ 768-dimensional</li><li style="color:#16a34a">✓ cosine</li><li style="color:#16a34a">✓ RAG</li></ul>
+        </div>
+      </details><details><summary><strong>rn-07</strong> (research_note) — <span style="color:#ca8a04">⚠ 80%</span> — 4032ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Read this on the train — Anthropic's prompt-cache 5-minute TTL. Title: Claude API prompt cache TTL. Source: https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime. Summary: cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request. Implication for Claude Code: keep wakeup intervals under 270s to stay in cache. Tags: anthropic, claude, prompt-cache, ttl, claude-code.</p>
+          <p><strong>Summary:</strong> Anthropic's Claude API prompt-cache has a 5-minute TTL from last read, which is refreshed with each read and expired blocks are recomputed on the next request. To stay in the cache, Claude Code should keep wakeup intervals under 270 seconds.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Anthropic</li><li style="color:#16a34a">✓ prompt cache</li><li style="color:#16a34a">✓ 5-minute TTL</li><li style="color:#16a34a">✓ Claude Code</li><li style="color:#dc2626">✗ 270s</li></ul>
+        </div>
+      </details><details><summary><strong>rn-08</strong> (research_note) — <span style="color:#dc2626">✗ 40%</span> — 575ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: @cloudflare/workers-oauth-provider README review. Title: workers-oauth-provider library. URL: https://github.com/cloudflare/workers-oauth-provider. Summary: ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native. Phase 3 D-02 adoption. Tags: cloudflare, oauth, mcp, workers.</p>
+          <p><strong>Summary:</strong> The workers-oauth-provider library, located at https://github.com/cloudflare/workers-oauth-provider, is a single dependency, MCP-native OAuth provider that ships several endpoints out of the box. It is part of Phase 3 D-02 adoption.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ @cloudflare/workers-oauth-provider</li><li style="color:#dc2626">✗ /authorize</li><li style="color:#dc2626">✗ /token</li><li style="color:#dc2626">✗ /jwks</li><li style="color:#16a34a">✓ Phase 3</li></ul>
+        </div>
+      </details><details><summary><strong>rn-09</strong> (research_note) — <span style="color:#16a34a">✓ 100%</span> — 481ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Title: Durable Objects SQLite migration footgun. Topic: Cloudflare DO storage. Source: https://developers.cloudflare.com/durable-objects/best-practices/migrations/. Summary: Once a DO class lands under new_sqlite_classes it CANNOT be moved back to new_classes — declaration is irreversible. Confirms Engram FND-08 CI lint rule. Tags: cloudflare, durable-objects, sqlite, migrations, irreversible.</p>
+          <p><strong>Summary:</strong> When migrating a Durable Objects class to SQLite storage under new_sqlite_classes, the declaration is irreversible and the class cannot be moved back to new_classes. This confirms the Engram FND-08 CI lint rule.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ Durable Objects</li><li style="color:#16a34a">✓ SQLite</li><li style="color:#16a34a">✓ new_sqlite_classes</li><li style="color:#16a34a">✓ new_classes</li><li style="color:#16a34a">✓ irreversible</li><li style="color:#16a34a">✓ FND-08</li></ul>
+        </div>
+      </details><details><summary><strong>rn-10</strong> (research_note) — <span style="color:#ca8a04">⚠ 75%</span> — 6810ms</summary>
+        <div style="padding:8px 16px;background:#f8fafc">
+          <p style="font-style:italic;color:#64748b">Input: Notes from the agents SDK source dive: getAgentByName(namespace, name) returns a Promise&lt;DurableObjectStub&lt;T&gt;&gt; that MUST be awaited. Missing the await yields a Promise where the user expected a stub — subtle bug. Title: agents SDK getAgentByName pitfall. Topic: agents SDK + Durable Object stubs. No public URL — pulled from node_modules/agents/dist. Tags: agents-sdk, durable-objects, async, pitfall.</p>
+          <p><strong>Summary:</strong> The `getAgentByName` function in the agents SDK returns a Promise that MUST be awaited, as missing the await can result in a Promise being returned instead of the expected stub, leading to a subtle bug.</p>
+          <p><strong>Load-bearing facts:</strong></p>
+          <ul><li style="color:#16a34a">✓ getAgentByName</li><li style="color:#dc2626">✗ DurableObjectStub</li><li style="color:#16a34a">✓ Promise</li><li style="color:#16a34a">✓ await</li></ul>
+        </div>
+      </details>
+</body></html>
