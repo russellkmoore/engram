@@ -94,7 +94,7 @@ Plans:
 - **Touches irreversible decision AI-1 / STO-04 (embedding columns from day 1)**: must land in P2's first migration even though AI doesn't activate until P5. (SUMMARY.md §7 #8.)
 - **Touches irreversible decision MT-1 / STO-07 (DO defense-in-depth)**: workspace_id check verified here so all later tool/RPC code inherits it. (SUMMARY.md §7 #4.)
 
-**Plans:** 1/9 plans executed
+**Plans:** 3/9 plans executed
 
 Plans:
 
@@ -104,7 +104,7 @@ Plans:
 
 **Wave 1** (schema + migrations + seeding — sequential within wave, can run after Wave 0)
 
-- [ ] 02-01-PLAN.md (Wave 1, autonomous) — Migration runner (_schema_migrations table, no PRAGMA user_version) + NotFoundError class [STO-02]
+- [x] 02-01-PLAN.md (Wave 1, autonomous) — Migration runner (_schema_migrations table, no PRAGMA user_version) + NotFoundError class [STO-02]
 - [ ] 02-02-PLAN.md (Wave 1, autonomous) — V1_SQL DDL string (7 tables + 10 indexes + STO-04 embedding columns) [STO-03, STO-04]
 - [ ] 02-03-PLAN.md (Wave 1, autonomous) — seedSystemTypes helper (INSERT OR IGNORE on SYSTEM_TYPES) [STO-05]
 
@@ -119,7 +119,7 @@ Plans:
 **Wave 4** (defense-in-depth + lint script — parallel)
 
 - [ ] 02-06-PLAN.md (Wave 4, autonomous) — assertOwnsWorkspace guard + per-method wiring + GREEN defense-in-depth test [STO-07]
-- [ ] 02-07-PLAN.md (Wave 4, autonomous) — scripts/lint-blockconcurrency.mjs + GREEN self-test [STO-10]
+- [x] 02-07-PLAN.md (Wave 4, autonomous) — scripts/lint-blockconcurrency.mjs + GREEN self-test [STO-10]
 
 **Wave 5** (CI + lint-staged wiring)
 
@@ -254,7 +254,7 @@ Plans:
 | Phase                    | Plans Complete | Status      | Completed |
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
-| 2. WorkspaceDO + SQLite  | 1/9 | In Progress|  |
+| 2. WorkspaceDO + SQLite  | 3/9 | In Progress|  |
 | 3. MCP Server Scaffold   | 0/0            | Not started | —         |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
