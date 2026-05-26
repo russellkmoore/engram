@@ -150,6 +150,31 @@ Plans:
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 **UI hint:** no
 
+**Plans:** 6 plans
+
+Plans:
+
+**Wave 0** (test infrastructure + dependency installs + EngramProps interface emit)
+
+- [ ] 03-01-PLAN.md (Wave 0, autonomous) — package.json deps (oauth-provider 0.7.0, zod ^4, vitest), EngramProps interface emit (no default-export swap), vitest.config.ts + wrangler.test.jsonc + 4 RED test files, scripts/kv-bootstrap.mjs + root npm script [MCP-01, MCP-06]
+
+**Wave 1** (pure-data/pure-function modules — parallel within wave)
+
+- [ ] 03-02-PLAN.md (Wave 1, autonomous) — schemas.ts (5 zod input schemas + 5 z.infer aliases, T-03-DD-IN structural invariant) + error-mapping.ts (mapToMcpError + sanitize for T-03-LEAK) + schemas.test.ts + error-mapping.test.ts GREEN [MCP-06]
+
+**Wave 2** (independent modules — parallel within wave; both depend on Wave 0+1)
+
+- [ ] 03-03-PLAN.md (Wave 2, autonomous) — tools.ts (registerTools + 5 MethodNotFound stubs with TOL pointers + Phase-4-ready comment block enforcing T-03-DD-RT) + tools.test.ts GREEN [MCP-05, MCP-06]
+- [ ] 03-04-PLAN.md (Wave 2, autonomous) — oauth.ts (defaultHandler: /, /health, /authorize with KV-only props per T-03-PROPS, sanitized 500 per T-03-PARSE, 403 with no KV-value leak per T-03-KV-LEAK) + oauth.test.ts GREEN [MCP-04]
+
+**Wave 3** (unifier — depends on all of Wave 1+2)
+
+- [ ] 03-05-PLAN.md (Wave 3, autonomous) — index.ts default-export swap to OAuthProvider wrapping EngramMcp + defaultHandler, EngramMcp.init wires registerTools, wrangler.jsonc v2 migration + KV bindings + JSDoc cleanup per D-09, worker-configuration.d.ts regen, wrangler deploy --dry-run gate per Pitfall 3, index.test.ts GREEN [MCP-01, MCP-02, MCP-03]
+
+**Wave 4** (docs + manual smoke — blocked on Wave 3)
+
+- [ ] 03-06-PLAN.md (Wave 4, checkpoint:human-verify) — DEP-05 README (OAuth flow, mcp-remote, Claude Desktop config, KV bootstrap, COOKIE_ENCRYPTION_KEY setup, MCP Inspector smoke procedure, troubleshooting) + MCP Inspector manual smoke against `wrangler dev` recorded in 03-MCP-INSPECTOR-SMOKE.md [MCP-09]
+
 ### Phase 4: Core Tools + Envelope
 
 **Goal:** The five v0.1 tools work end-to-end against the WorkspaceDO using the lexical (SQL `LIKE`) backing, every response is wrapped in the `EngramResponse` envelope, failures use `McpError` with proper JSON-RPC codes, response sizes stay under the 8K-token budget, `forget` is transactional and complete, and cross-workspace penetration testing confirms the JWT-to-DO defense holds.
@@ -255,7 +280,7 @@ Plans:
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
-| 3. MCP Server Scaffold   | 0/0            | Not started | —         |
+| 3. MCP Server Scaffold   | 0/6            | Not started | —         |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
