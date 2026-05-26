@@ -19,7 +19,7 @@
 
 - [x] **Phase 1: Foundation** — Monorepo, shared types, system memory type seeds, per-package `wrangler.jsonc`, license, CLAUDE.md corrections (completed 2026-05-25)
 - [x] **Phase 2: WorkspaceDO + SQLite** — Durable Object with idempotent schema migrations, all seven tables, system type seeding, typed query helpers, vitest coverage (completed 2026-05-26)
-- [ ] **Phase 3: MCP Server Scaffold** — `EngramMcp extends McpAgent`, JWT-to-`props` middleware, two-DO topology, empty tool registrations, MCP Inspector connectivity
+- [x] **Phase 3: MCP Server Scaffold** — `EngramMcp extends McpAgent`, JWT-to-`props` middleware, two-DO topology, empty tool registrations, MCP Inspector connectivity (completed 2026-05-26)
 - [ ] **Phase 4: Core Tools + Envelope** — `remember`/`recall`/`search`/`forget`/`ingest` with `EngramResponse` envelope, `McpError` shape, response-size budgets, transactional `forget`, cross-workspace penetration test
 - [ ] **Phase 5: AI Integration** — Vectorize index + namespaces, `bge-base-en-v1.5` embeddings on sync write, semantic recall, Triage-Worker AI (entity extraction, memorability), 429-aware retry, vector delete on forget
 - [ ] **Phase 6: Async Pipeline** — `engram-ingest` Queue, producer wiring with `ctx.waitUntil`, Triage Worker consumer with idempotency + DLQ, `blocks.ingest_status` tracking, RPC back into WorkspaceDO
@@ -150,7 +150,7 @@ Plans:
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 **UI hint:** no
 
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 
@@ -173,7 +173,7 @@ Plans:
 
 **Wave 4** (docs + manual smoke — blocked on Wave 3)
 
-- [ ] 03-06-PLAN.md (Wave 4, checkpoint:human-verify) — DEP-05 README (OAuth flow, mcp-remote, Claude Desktop config, KV bootstrap, COOKIE_ENCRYPTION_KEY setup, MCP Inspector smoke procedure, troubleshooting) + MCP Inspector manual smoke against `wrangler dev` recorded in 03-MCP-INSPECTOR-SMOKE.md [MCP-09]
+- [x] 03-06-PLAN.md (Wave 4, checkpoint:human-verify) — DEP-05 README (OAuth flow, mcp-remote, Claude Desktop config, KV bootstrap, COOKIE_ENCRYPTION_KEY setup, MCP Inspector smoke procedure, troubleshooting) + MCP Inspector manual smoke against `wrangler dev` recorded in 03-MCP-INSPECTOR-SMOKE.md [MCP-09]
 
 ### Phase 4: Core Tools + Envelope
 
@@ -280,7 +280,7 @@ Plans:
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
-| 3. MCP Server Scaffold   | 5/6 | In Progress|  |
+| 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
