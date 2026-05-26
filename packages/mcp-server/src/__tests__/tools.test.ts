@@ -1,78 +1,183 @@
 /**
- * RED stub — `packages/mcp-server/src/tools.ts` (5 v0.1 tool stubs).
+ * GREEN tests for `packages/mcp-server/src/tools.ts` (registerTools + 5 stubs).
  *
- * Wave 0 contract: this file declares 7 `it.skip` cases that document the
- * test surface Wave 2 will turn GREEN. Vitest collects skipped tests without
- * importing the (as-yet-nonexistent) `../tools.js` module.
+ * Wave 2 (Plan 03-03) turn of the Wave 0 RED stubs. Strategy:
+ *   1. Spy on `McpServer.prototype.registerTool` to capture every
+ *      (name, config, callback) tuple registerTools() writes. No real
+ *      JSON-RPC dispatch needed; we invoke each captured callback directly
+ *      and assert the thrown `McpError`.
+ *   2. The DD-RT structural assertion (T-03-DD-RT) reads `tools.ts` source
+ *      via Vite's `?raw` query — which inlines the file contents at
+ *      bundle time so no `node:fs` runtime call is required. This is the
+ *      workerd-pool-safe alternative to `fs.readFileSync` (which is not
+ *      available in workerd; verified against
+ *      `node_modules/@cloudflare/vitest-pool-workers/dist/worker/lib/cloudflare/snapshot.mjs.map`
+ *      where the team wrote a service-binding shim to avoid `node:fs`).
  *
- * Wave 2 plan (03-03 — tool stubs) will:
- *   1. Create `packages/mcp-server/src/tools.ts` exporting
- *      `registerTools(server, getProps, env)` that calls
- *      `server.registerTool(name, { inputSchema }, cb)` 5 times — each
- *      callback throws `McpError(ErrorCode.MethodNotFound)` with a message
- *      pinned to "Phase 3" + "Phase 4 (TOL-0N)" (D-05).
- *   2. Replace each `it.skip(...)` below with `it(...)` + real body using
- *      the canonical `try/catch + instanceof McpError + .code === ...` shape
- *      mirrored from `packages/workspace-do/src/__tests__/defense-in-depth.test.ts:180-197`.
- *
- * The Phase-pinned message contract (D-05) is asserted in every per-tool case:
- *   - error.message contains "Phase 3"
- *   - error.message contains "Phase 4 (TOL-01)" (etc. per tool)
- *
- * This is the canonical "assert McpError thrown" pattern in this repo —
- * `MethodNotFound` swapped in for Phase 2's `InvalidRequest`.
- *
- * Defense-in-depth contract (T-03-DD-RT, inherited from Phase 2 STO-07):
- * Case 7 (`no tool callback reads args.workspace_id`) is the structural
- * guard that fires on regression — if a future contributor passes
- * `args.workspace_id` from caller input instead of `this.props.workspace_id`
- * from the JWT, this case fails. Wave 2 implements this as a grep-style
- * source-code assertion (the production grep is documented in T-03-DD-RT).
+ * Defense-in-depth contracts asserted GREEN:
+ *   - T-03-DD-RT (Tampering / EoP): tools.ts production code does NOT
+ *     reference `args.workspace_id` outside comment lines. The sentinel
+ *     integrity anchor `SENTINEL-DD-RT-PHASE-03-TOOLS-TS` is asserted
+ *     FIRST — if it is missing, the structural test FAILS LOUDLY,
+ *     surfacing "the test couldn't locate the live source" instead of
+ *     silently passing the negative-token check on an empty read (checker
+ *     WARNING 2).
+ *   - D-05 phase-pinned message: every MethodNotFound message contains
+ *     "Phase 3" AND "Phase 4 (TOL-0N)" with the correct N per tool
+ *     (remember=01, recall=02, search=03, forget=04, ingest=05).
  *
  * @module @engram/mcp-server/__tests__/tools
  */
-import { describe, it } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
-describe("tools (Wave 2 RED — 03-03 GREEN)", () => {
-  // Cases 1-5: each of the 5 v0.1 tools throws McpError(MethodNotFound)
-  // with a message pinned to the Phase 3 → Phase 4 (TOL-0N) contract.
-  // Pattern source: `defense-in-depth.test.ts:180-197` (try/catch +
-  // instanceof McpError + .code === ErrorCode.MethodNotFound + message
-  // .toContain("Phase 3") + .toContain("Phase 4 (TOL-01)") shape).
+import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-  it.skip("remember throws McpError(MethodNotFound) with 'Phase 3 — ships in Phase 4 (TOL-01)' message", () => {
-    // Wave 2 imports `registerTools` from `../tools.js`, invokes the registered `remember`
-    // callback, and asserts the thrown McpError matches the contract.
+import { registerTools } from "../tools.js";
+
+// Vite's `?raw` query inlines the file content as a string at bundle time —
+// no runtime `node:fs` required (workerd does not implement `node:fs`).
+// The string IS the live `tools.ts` source the structural assertions need.
+// @ts-expect-error -- `?raw` is a Vite runtime feature; TS doesn't know
+//                    the module shape but bundling produces a string default
+//                    export typed at the consumption site below.
+import toolsSourceRaw from "../tools.ts?raw";
+const toolsSource: string = toolsSourceRaw as string;
+
+// ---------------------------------------------------------------------------
+// Helpers — bare McpServer + spy on registerTool to capture registrations
+// ---------------------------------------------------------------------------
+
+interface RegisteredToolCall {
+  name: string;
+  config: {
+    title?: string;
+    description?: string;
+    inputSchema?: unknown;
+    outputSchema?: unknown;
+  };
+  callback: (args: unknown, extra: unknown) => Promise<unknown>;
+}
+
+/**
+ * Run registerTools() against a fresh McpServer with the prototype spy in
+ * place. Returns the captured (name, config, callback) tuples for each of
+ * the 5 expected tools — ordered as registered.
+ */
+function captureRegistrations(): RegisteredToolCall[] {
+  const spy = vi.spyOn(McpServer.prototype, "registerTool");
+  try {
+    const server = new McpServer({ name: "engram-mcp-server-test", version: "0.0.1" });
+    registerTools(server, () => undefined, {} as unknown as Env);
+    const captured: RegisteredToolCall[] = spy.mock.calls.map((call) => {
+      const [name, config, callback] = call as unknown as [
+        string,
+        RegisteredToolCall["config"],
+        RegisteredToolCall["callback"],
+      ];
+      return { name, config, callback };
+    });
+    return captured;
+  } finally {
+    spy.mockRestore();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+describe("registerTools registration", () => {
+  it("registers exactly 5 tools by name: remember, recall, search, forget, ingest", () => {
+    const calls = captureRegistrations();
+    expect(calls).toHaveLength(5);
+    const names = calls.map((c) => c.name).sort();
+    expect(names).toEqual(["forget", "ingest", "recall", "remember", "search"]);
   });
 
-  it.skip("recall throws McpError(MethodNotFound) with 'Phase 3 — ships in Phase 4 (TOL-02)' message", () => {
-    // Wave 2 mirrors the `remember` case for `recall`.
+  it("every registration declares a non-empty description and an inputSchema", () => {
+    const calls = captureRegistrations();
+    for (const { name, config } of calls) {
+      expect(config.inputSchema, `${name} inputSchema`).toBeDefined();
+      expect(config.description, `${name} description`).toBeTypeOf("string");
+      expect((config.description ?? "").length, `${name} description non-empty`).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("MethodNotFound stubs (D-05 phase-pinned messages)", () => {
+  it.each([
+    ["remember", "TOL-01"],
+    ["recall", "TOL-02"],
+    ["search", "TOL-03"],
+    ["forget", "TOL-04"],
+    ["ingest", "TOL-05"],
+  ])(
+    "%s throws McpError(MethodNotFound) with 'Phase 3' + '%s' message",
+    async (toolName, tolId) => {
+      const calls = captureRegistrations();
+      const match = calls.find((c) => c.name === toolName);
+      if (match === undefined) {
+        throw new Error(
+          `${toolName} registration not captured — registerTools did not register it`,
+        );
+      }
+
+      let caught: unknown = undefined;
+      try {
+        await match.callback({}, {});
+      } catch (err) {
+        caught = err;
+      }
+      // SHAPE-LOCK assertions — mirror of defense-in-depth.test.ts:191-196.
+      expect(caught).toBeInstanceOf(McpError);
+      expect((caught as McpError).code).toBe(ErrorCode.MethodNotFound);
+      expect((caught as McpError).message).toContain("Phase 3");
+      expect((caught as McpError).message).toContain("Phase 4");
+      expect((caught as McpError).message).toContain(tolId);
+    },
+  );
+});
+
+describe("defense-in-depth structural T-03-DD-RT", () => {
+  // Read the live source ONCE for all assertions in this block. Vite's `?raw`
+  // import already inlined the bytes as a string at bundle time.
+  const src: string = toolsSource;
+
+  it("sentinel integrity anchor — proves test read the live tools.ts (checker WARNING 2)", () => {
+    // If THIS fails, the structural test below is meaningless (it would
+    // pass on an empty/wrong file). The sentinel must be present in
+    // tools.ts (Task 1 acceptance criteria enforce this).
+    expect(
+      src,
+      "DD-RT structural test could not locate sentinel in tools.ts — file may be empty, missing, or replaced",
+    ).toMatch(/SENTINEL-DD-RT-PHASE-03-TOOLS-TS/);
   });
 
-  it.skip("search throws McpError(MethodNotFound) with 'Phase 3 — ships in Phase 4 (TOL-03)' message", () => {
-    // Wave 2 mirrors the `remember` case for `search`.
+  it("source documents props.workspace_id contract", () => {
+    expect(src).toMatch(/props\.workspace_id/);
+    // Reference the anti-pattern phrase below so the test file itself
+    // contains `args.workspace_id` (so the negative-non-presence assertion
+    // can be written in the same describe block without needing a literal
+    // tested elsewhere).
+    expect(src).toMatch(/NEVER from args/);
   });
 
-  it.skip("forget throws McpError(MethodNotFound) with 'Phase 3 — ships in Phase 4 (TOL-04)' message", () => {
-    // Wave 2 mirrors the `remember` case for `forget`.
-  });
-
-  it.skip("ingest throws McpError(MethodNotFound) with 'Phase 3 — ships in Phase 4 (TOL-05)' message", () => {
-    // Wave 2 mirrors the `remember` case for `ingest`.
-  });
-
-  // Case 6: tool count assertion — registerTools must register exactly 5 tools
-  // by name (remember, recall, search, forget, ingest). Closes the surface.
-  it.skip("registerTools registers exactly 5 tools by name: remember, recall, search, forget, ingest", () => {
-    // Wave 2 imports `registerTools`, calls it against a fresh `new McpServer(...)`, and asserts
-    // `server.listTools()` returns the 5 expected names (sorted comparison).
-  });
-
-  // Case 7: defense-in-depth — no callback reads `args.workspace_id` (T-03-DD-RT)
-  // Wave 2 lands this as a source-code grep assertion: every tool callback in
-  // `tools.ts` references `this.props.workspace_id` (or `getProps().workspace_id`),
-  // NEVER `args.workspace_id`. This is the structural lock-in on STO-07 inheritance.
-  it.skip("no tool callback reads args.workspace_id (T-03-DD-RT defense-in-depth)", () => {
-    // Wave 2 reads `../tools.ts` source via fs and asserts `args.workspace_id` does NOT appear.
+  it("source does NOT reference args.workspace_id outside comment lines", () => {
+    // Strip lines that start with `//` or ` *` (JSDoc continuation) before
+    // searching. Mirrors the production grep in tools.ts:
+    //   grep -v -E "^[[:space:]]*(//|\*)" packages/mcp-server/src/tools.ts
+    const nonComment = src
+      .split("\n")
+      .filter((line) => {
+        const trimmed = line.trim();
+        // Drop pure // comment lines and JSDoc continuation lines (`*`).
+        // Keep code lines and lines with trailing inline comments — if
+        // someone embeds `args.workspace_id` after code on the same line,
+        // we want the test to catch it.
+        return !trimmed.startsWith("//") && !trimmed.startsWith("*");
+      })
+      .join("\n");
+    expect(nonComment).not.toMatch(/args\.workspace_id/);
   });
 });
