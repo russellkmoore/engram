@@ -163,81 +163,71 @@ export function registerTools(
      stub.<method>(...)). Keeping the keyword now means Phase 4 edits stay
      limited to the body. */
 
+  // The five `server.registerTool(...)` calls below use `// prettier-ignore`
+  // so the tool name stays on the SAME line as the opening paren — the
+  // plan's <verify> automation greps for `server.registerTool(\s*"<name>"`
+  // and `\s*` in ugrep/standard grep does NOT cross newlines.
+
   // remember(content, type?, project?, tags?, source?, expires?)
-  server.registerTool(
-    "remember",
-    {
-      description:
-        "Store a memory in the user's workspace. Returns the stored memory with classified type, extracted fields, and detected conflicts.",
-      inputSchema: RememberInputSchema.shape,
-    },
-    async () => {
-      throw new McpError(
-        ErrorCode.MethodNotFound,
-        "remember not implemented in Phase 3 — ships in Phase 4 (TOL-01)",
-      );
-    },
-  );
+  // prettier-ignore
+  server.registerTool("remember", {
+    description:
+      "Store a memory in the user's workspace. Returns the stored memory with classified type, extracted fields, and detected conflicts.",
+    inputSchema: RememberInputSchema.shape,
+  }, async () => {
+    throw new McpError(
+      ErrorCode.MethodNotFound,
+      "remember not implemented in Phase 3 — ships in Phase 4 (TOL-01)",
+    );
+  });
 
   // recall(query, types?, project?, scope?, limit?, since?, until?)
-  server.registerTool(
-    "recall",
-    {
-      description: "Semantic search of memories with synthesis and related context.",
-      inputSchema: RecallInputSchema.shape,
-    },
-    async () => {
-      throw new McpError(
-        ErrorCode.MethodNotFound,
-        "recall not implemented in Phase 3 — ships in Phase 4 (TOL-02)",
-      );
-    },
-  );
+  // prettier-ignore
+  server.registerTool("recall", {
+    description: "Semantic search of memories with synthesis and related context.",
+    inputSchema: RecallInputSchema.shape,
+  }, async () => {
+    throw new McpError(
+      ErrorCode.MethodNotFound,
+      "recall not implemented in Phase 3 — ships in Phase 4 (TOL-02)",
+    );
+  });
 
   // search(query, filters)
-  server.registerTool(
-    "search",
-    {
-      description: "Structured filter-based search of memories.",
-      inputSchema: SearchInputSchema.shape,
-    },
-    async () => {
-      throw new McpError(
-        ErrorCode.MethodNotFound,
-        "search not implemented in Phase 3 — ships in Phase 4 (TOL-03)",
-      );
-    },
-  );
+  // prettier-ignore
+  server.registerTool("search", {
+    description: "Structured filter-based search of memories.",
+    inputSchema: SearchInputSchema.shape,
+  }, async () => {
+    throw new McpError(
+      ErrorCode.MethodNotFound,
+      "search not implemented in Phase 3 — ships in Phase 4 (TOL-03)",
+    );
+  });
 
   // forget(id, cascade?)
-  server.registerTool(
-    "forget",
-    {
-      description: "Delete a memory and optionally its related memories.",
-      inputSchema: ForgetInputSchema.shape,
-    },
-    async () => {
-      throw new McpError(
-        ErrorCode.MethodNotFound,
-        "forget not implemented in Phase 3 — ships in Phase 4 (TOL-04)",
-      );
-    },
-  );
+  // prettier-ignore
+  server.registerTool("forget", {
+    description: "Delete a memory and optionally its related memories.",
+    inputSchema: ForgetInputSchema.shape,
+  }, async () => {
+    throw new McpError(
+      ErrorCode.MethodNotFound,
+      "forget not implemented in Phase 3 — ships in Phase 4 (TOL-04)",
+    );
+  });
 
   // ingest(source, type?, project?, priority?, threshold?)
-  server.registerTool(
-    "ingest",
-    {
-      description: "Queue an external content source for async enrichment.",
-      inputSchema: IngestInputSchema.shape,
-    },
-    async () => {
-      throw new McpError(
-        ErrorCode.MethodNotFound,
-        "ingest not implemented in Phase 3 — ships in Phase 4 (TOL-05)",
-      );
-    },
-  );
+  // prettier-ignore
+  server.registerTool("ingest", {
+    description: "Queue an external content source for async enrichment.",
+    inputSchema: IngestInputSchema.shape,
+  }, async () => {
+    throw new McpError(
+      ErrorCode.MethodNotFound,
+      "ingest not implemented in Phase 3 — ships in Phase 4 (TOL-05)",
+    );
+  });
 
   /* eslint-enable @typescript-eslint/require-await */
 
