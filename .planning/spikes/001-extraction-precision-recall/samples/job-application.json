@@ -1,0 +1,122 @@
+[
+  {
+    "id": "ja-01",
+    "content": "Senior Staff Engineer at Cloudflare. Remote (US). Salary range $260k-$310k + equity. Apply at https://www.cloudflare.com/careers/4827193 by 2026-06-15. Found via LinkedIn.",
+    "expected": {
+      "company": "Cloudflare",
+      "role": "Senior Staff Engineer",
+      "salary_range": "$260k-$310k",
+      "applied_date": null,
+      "source": "LinkedIn",
+      "url": "https://www.cloudflare.com/careers/4827193"
+    }
+  },
+  {
+    "id": "ja-02",
+    "content": "Anthropic is hiring a Member of Technical Staff — Inference. Hybrid SF, base $300k-$400k plus generous equity. Applied 2026-05-10 after Devon's referral. JD: https://www.anthropic.com/careers/inference-mts",
+    "expected": {
+      "company": "Anthropic",
+      "role": "Member of Technical Staff — Inference",
+      "salary_range": "$300k-$400k",
+      "applied_date": "2026-05-10",
+      "source": "referral (Devon)",
+      "url": "https://www.anthropic.com/careers/inference-mts"
+    }
+  },
+  {
+    "id": "ja-03",
+    "content": "Stripe Principal Engineer, Payments Platform. Office: Dublin. No salary disclosed. Posting from Hacker News Who's Hiring May 2026. https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349",
+    "expected": {
+      "company": "Stripe",
+      "role": "Principal Engineer, Payments Platform",
+      "salary_range": null,
+      "applied_date": null,
+      "source": "Hacker News",
+      "url": "https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349"
+    }
+  },
+  {
+    "id": "ja-04",
+    "content": "Just applied to Vercel for the Distributed Systems Engineer role. $240k-$290k base. Applied date 2026-05-22. Posted on their careers page directly. https://vercel.com/careers/dse-2026",
+    "expected": {
+      "company": "Vercel",
+      "role": "Distributed Systems Engineer",
+      "salary_range": "$240k-$290k",
+      "applied_date": "2026-05-22",
+      "source": "careers page",
+      "url": "https://vercel.com/careers/dse-2026"
+    }
+  },
+  {
+    "id": "ja-05",
+    "content": "Posting: \"Senior Software Engineer, AI Platform\" at Notion. SF or NYC. Base 220-260k. Submitted application 2026-04-18. Came from Wellfound listing. https://wellfound.com/jobs/notion-ai-platform-senior",
+    "expected": {
+      "company": "Notion",
+      "role": "Senior Software Engineer, AI Platform",
+      "salary_range": "$220k-$260k",
+      "applied_date": "2026-04-18",
+      "source": "Wellfound",
+      "url": "https://wellfound.com/jobs/notion-ai-platform-senior"
+    }
+  },
+  {
+    "id": "ja-06",
+    "content": "Linear is hiring for Engineer, Sync Infrastructure. Fully remote globally. They state $180,000-$220,000 USD. Found by Twitter post from their CEO. Submitting today, 2026-05-23. https://linear.app/careers/sync-infra",
+    "expected": {
+      "company": "Linear",
+      "role": "Engineer, Sync Infrastructure",
+      "salary_range": "$180,000-$220,000 USD",
+      "applied_date": "2026-05-23",
+      "source": "Twitter (CEO post)",
+      "url": "https://linear.app/careers/sync-infra"
+    }
+  },
+  {
+    "id": "ja-07",
+    "content": "Supabase — Staff Engineer, Postgres Tooling. Remote. Compensation TBD pending interview loop. Saw it on /r/cscareerquestions. Applied 2026-05-15. https://supabase.com/careers/staff-postgres",
+    "expected": {
+      "company": "Supabase",
+      "role": "Staff Engineer, Postgres Tooling",
+      "salary_range": null,
+      "applied_date": "2026-05-15",
+      "source": "Reddit (r/cscareerquestions)",
+      "url": "https://supabase.com/careers/staff-postgres"
+    }
+  },
+  {
+    "id": "ja-08",
+    "content": "Replit posting for Senior Engineer, Agents. SF on-site. They list 230k-280k base + equity. Posted on the company blog. Plan to apply this week (today is 2026-05-21). URL: https://replit.com/careers/senior-engineer-agents",
+    "expected": {
+      "company": "Replit",
+      "role": "Senior Engineer, Agents",
+      "salary_range": "230k-280k",
+      "applied_date": null,
+      "source": "company blog",
+      "url": "https://replit.com/careers/senior-engineer-agents"
+    }
+  },
+  {
+    "id": "ja-09",
+    "content": "Pulled this from a recruiter cold email. Render.com — Staff Platform Engineer. Remote (US or EU). $250k-$300k. Date: 2026-05-19. No URL — recruiter said they'd send the JD.",
+    "expected": {
+      "company": "Render.com",
+      "role": "Staff Platform Engineer",
+      "salary_range": "$250k-$300k",
+      "applied_date": "2026-05-19",
+      "source": "recruiter cold email",
+      "url": null
+    }
+  },
+  {
+    "id": "ja-10",
+    "content": "OpenAI — Forward Deployed Engineer, Enterprise. NYC office. Comp not disclosed in posting. Applied via the OpenAI careers page on 2026-05-08. https://openai.com/careers/forward-deployed-engineer",
+    "expected": {
+      "company": "OpenAI",
+      "role": "Forward Deployed Engineer, Enterprise",
+      "salary_range": null,
+      "applied_date": "2026-05-08",
+      "source": "OpenAI careers page",
+      "url": "https://openai.com/careers/forward-deployed-engineer"
+    }
+  }
+]

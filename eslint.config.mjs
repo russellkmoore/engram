@@ -11,6 +11,9 @@ export default tseslint.config(
       "**/dist/**",
       "**/.wrangler/**",
       "**/worker-configuration.d.ts",
+      // Throwaway spike code lives outside the tsconfig project and is exempt
+      // from the strict project lint rules — gsd-managed under .planning/spikes/.
+      ".planning/spikes/**",
     ],
   },
   js.configs.recommended,

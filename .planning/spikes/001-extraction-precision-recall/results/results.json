@@ -1,0 +1,1836 @@
+{
+  "spike": "001-extraction-precision-recall",
+  "endpoint": "http://127.0.0.1:8901/extract",
+  "timestamp": "2026-05-26T17:37:13.498Z",
+  "samples": [
+    {
+      "id": "ja-01",
+      "bucket": "job_application",
+      "content": "Senior Staff Engineer at Cloudflare. Remote (US). Salary range $260k-$310k + equity. Apply at https://www.cloudflare.com/careers/4827193 by 2026-06-15. Found via LinkedIn.",
+      "expected": {
+        "company": "Cloudflare",
+        "role": "Senior Staff Engineer",
+        "salary_range": "$260k-$310k",
+        "applied_date": null,
+        "source": "LinkedIn",
+        "url": "https://www.cloudflare.com/careers/4827193"
+      },
+      "extracted": {
+        "applied_date": "null",
+        "company": "Cloudflare",
+        "role": "Senior Staff Engineer",
+        "salary_range": "$260k-$310k + equity",
+        "source": "LinkedIn",
+        "url": "https://www.cloudflare.com/careers/4827193"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 1,
+        "fn": 0,
+        "tn": 0,
+        "precision": 0.8333333333333334,
+        "recall": 1,
+        "f1": 0.9090909090909091,
+        "fieldScores": {
+          "company": {
+            "expected": "Cloudflare",
+            "extracted": "Cloudflare",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Senior Staff Engineer",
+            "extracted": "Senior Staff Engineer",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": "$260k-$310k",
+            "extracted": "$260k-$310k + equity",
+            "verdict": "TP"
+          },
+          "applied_date": {
+            "expected": null,
+            "extracted": "null",
+            "verdict": "FP"
+          },
+          "source": {
+            "expected": "LinkedIn",
+            "extracted": "LinkedIn",
+            "verdict": "TP"
+          },
+          "url": {
+            "expected": "https://www.cloudflare.com/careers/4827193",
+            "extracted": "https://www.cloudflare.com/careers/4827193",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 1850,
+      "worker_elapsed_ms": 1822
+    },
+    {
+      "id": "ja-02",
+      "bucket": "job_application",
+      "content": "Anthropic is hiring a Member of Technical Staff — Inference. Hybrid SF, base $300k-$400k plus generous equity. Applied 2026-05-10 after Devon's referral. JD: https://www.anthropic.com/careers/inference-mts",
+      "expected": {
+        "company": "Anthropic",
+        "role": "Member of Technical Staff — Inference",
+        "salary_range": "$300k-$400k",
+        "applied_date": "2026-05-10",
+        "source": "referral (Devon)",
+        "url": "https://www.anthropic.com/careers/inference-mts"
+      },
+      "extracted": {
+        "applied_date": "2026-05-10",
+        "company": "Anthropic",
+        "role": "Member of Technical Staff — Inference",
+        "salary_range": "$300k-$400k plus generous equity",
+        "source": "Devon's referral",
+        "url": "https://www.anthropic.com/careers/inference-mts"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 1,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.8333333333333334,
+        "recall": 0.8333333333333334,
+        "f1": 0.8333333333333334,
+        "fieldScores": {
+          "company": {
+            "expected": "Anthropic",
+            "extracted": "Anthropic",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Member of Technical Staff — Inference",
+            "extracted": "Member of Technical Staff — Inference",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": "$300k-$400k",
+            "extracted": "$300k-$400k plus generous equity",
+            "verdict": "TP"
+          },
+          "applied_date": {
+            "expected": "2026-05-10",
+            "extracted": "2026-05-10",
+            "verdict": "TP"
+          },
+          "source": {
+            "expected": "referral (Devon)",
+            "extracted": "Devon's referral",
+            "verdict": "MISMATCH"
+          },
+          "url": {
+            "expected": "https://www.anthropic.com/careers/inference-mts",
+            "extracted": "https://www.anthropic.com/careers/inference-mts",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 4331,
+      "worker_elapsed_ms": 4322
+    },
+    {
+      "id": "ja-03",
+      "bucket": "job_application",
+      "content": "Stripe Principal Engineer, Payments Platform. Office: Dublin. No salary disclosed. Posting from Hacker News Who's Hiring May 2026. https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349",
+      "expected": {
+        "company": "Stripe",
+        "role": "Principal Engineer, Payments Platform",
+        "salary_range": null,
+        "applied_date": null,
+        "source": "Hacker News",
+        "url": "https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349"
+      },
+      "extracted": {
+        "applied_date": null,
+        "company": "Stripe",
+        "role": "Principal Engineer, Payments Platform",
+        "salary_range": null,
+        "source": "Hacker News Who's Hiring May 2026",
+        "url": "https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 2,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "company": {
+            "expected": "Stripe",
+            "extracted": "Stripe",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Principal Engineer, Payments Platform",
+            "extracted": "Principal Engineer, Payments Platform",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          },
+          "applied_date": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          },
+          "source": {
+            "expected": "Hacker News",
+            "extracted": "Hacker News Who's Hiring May 2026",
+            "verdict": "TP"
+          },
+          "url": {
+            "expected": "https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349",
+            "extracted": "https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 882,
+      "worker_elapsed_ms": 875
+    },
+    {
+      "id": "ja-04",
+      "bucket": "job_application",
+      "content": "Just applied to Vercel for the Distributed Systems Engineer role. $240k-$290k base. Applied date 2026-05-22. Posted on their careers page directly. https://vercel.com/careers/dse-2026",
+      "expected": {
+        "company": "Vercel",
+        "role": "Distributed Systems Engineer",
+        "salary_range": "$240k-$290k",
+        "applied_date": "2026-05-22",
+        "source": "careers page",
+        "url": "https://vercel.com/careers/dse-2026"
+      },
+      "extracted": {
+        "applied_date": "2026-05-22",
+        "company": "Vercel",
+        "role": "Distributed Systems Engineer",
+        "salary_range": "$240k-$290k base",
+        "source": "careers page directly",
+        "url": "https://vercel.com/careers/dse-2026"
+      },
+      "score": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "company": {
+            "expected": "Vercel",
+            "extracted": "Vercel",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Distributed Systems Engineer",
+            "extracted": "Distributed Systems Engineer",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": "$240k-$290k",
+            "extracted": "$240k-$290k base",
+            "verdict": "TP"
+          },
+          "applied_date": {
+            "expected": "2026-05-22",
+            "extracted": "2026-05-22",
+            "verdict": "TP"
+          },
+          "source": {
+            "expected": "careers page",
+            "extracted": "careers page directly",
+            "verdict": "TP"
+          },
+          "url": {
+            "expected": "https://vercel.com/careers/dse-2026",
+            "extracted": "https://vercel.com/careers/dse-2026",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 8646,
+      "worker_elapsed_ms": 8638
+    },
+    {
+      "id": "ja-05",
+      "bucket": "job_application",
+      "content": "Posting: \"Senior Software Engineer, AI Platform\" at Notion. SF or NYC. Base 220-260k. Submitted application 2026-04-18. Came from Wellfound listing. https://wellfound.com/jobs/notion-ai-platform-senior",
+      "expected": {
+        "company": "Notion",
+        "role": "Senior Software Engineer, AI Platform",
+        "salary_range": "$220k-$260k",
+        "applied_date": "2026-04-18",
+        "source": "Wellfound",
+        "url": "https://wellfound.com/jobs/notion-ai-platform-senior"
+      },
+      "extracted": {
+        "applied_date": "2026-04-18",
+        "company": "Notion",
+        "role": "Senior Software Engineer, AI Platform",
+        "salary_range": "220-260k",
+        "source": "Wellfound",
+        "url": "https://wellfound.com/jobs/notion-ai-platform-senior"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 1,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.8333333333333334,
+        "recall": 0.8333333333333334,
+        "f1": 0.8333333333333334,
+        "fieldScores": {
+          "company": {
+            "expected": "Notion",
+            "extracted": "Notion",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Senior Software Engineer, AI Platform",
+            "extracted": "Senior Software Engineer, AI Platform",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": "$220k-$260k",
+            "extracted": "220-260k",
+            "verdict": "MISMATCH"
+          },
+          "applied_date": {
+            "expected": "2026-04-18",
+            "extracted": "2026-04-18",
+            "verdict": "TP"
+          },
+          "source": {
+            "expected": "Wellfound",
+            "extracted": "Wellfound",
+            "verdict": "TP"
+          },
+          "url": {
+            "expected": "https://wellfound.com/jobs/notion-ai-platform-senior",
+            "extracted": "https://wellfound.com/jobs/notion-ai-platform-senior",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 9580,
+      "worker_elapsed_ms": 9571
+    },
+    {
+      "id": "ja-06",
+      "bucket": "job_application",
+      "content": "Linear is hiring for Engineer, Sync Infrastructure. Fully remote globally. They state $180,000-$220,000 USD. Found by Twitter post from their CEO. Submitting today, 2026-05-23. https://linear.app/careers/sync-infra",
+      "expected": {
+        "company": "Linear",
+        "role": "Engineer, Sync Infrastructure",
+        "salary_range": "$180,000-$220,000 USD",
+        "applied_date": "2026-05-23",
+        "source": "Twitter (CEO post)",
+        "url": "https://linear.app/careers/sync-infra"
+      },
+      "extracted": {
+        "applied_date": "2026-05-23",
+        "company": "Linear",
+        "role": "Engineer, Sync Infrastructure",
+        "salary_range": "$180,000-$220,000 USD",
+        "source": "Twitter post from CEO",
+        "url": "https://linear.app/careers/sync-infra"
+      },
+      "score": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "company": {
+            "expected": "Linear",
+            "extracted": "Linear",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Engineer, Sync Infrastructure",
+            "extracted": "Engineer, Sync Infrastructure",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": "$180,000-$220,000 USD",
+            "extracted": "$180,000-$220,000 USD",
+            "verdict": "TP"
+          },
+          "applied_date": {
+            "expected": "2026-05-23",
+            "extracted": "2026-05-23",
+            "verdict": "TP"
+          },
+          "source": {
+            "expected": "Twitter (CEO post)",
+            "extracted": "Twitter post from CEO",
+            "verdict": "TP"
+          },
+          "url": {
+            "expected": "https://linear.app/careers/sync-infra",
+            "extracted": "https://linear.app/careers/sync-infra",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 3480,
+      "worker_elapsed_ms": 3471
+    },
+    {
+      "id": "ja-07",
+      "bucket": "job_application",
+      "content": "Supabase — Staff Engineer, Postgres Tooling. Remote. Compensation TBD pending interview loop. Saw it on /r/cscareerquestions. Applied 2026-05-15. https://supabase.com/careers/staff-postgres",
+      "expected": {
+        "company": "Supabase",
+        "role": "Staff Engineer, Postgres Tooling",
+        "salary_range": null,
+        "applied_date": "2026-05-15",
+        "source": "Reddit (r/cscareerquestions)",
+        "url": "https://supabase.com/careers/staff-postgres"
+      },
+      "extracted": {
+        "applied_date": "2026-05-15",
+        "company": "Supabase",
+        "role": "Staff Engineer, Postgres Tooling",
+        "salary_range": "TBD",
+        "source": "/r/cscareerquestions",
+        "url": "https://supabase.com/careers/staff-postgres"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 2,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.6666666666666666,
+        "recall": 0.8,
+        "f1": 0.7272727272727272,
+        "fieldScores": {
+          "company": {
+            "expected": "Supabase",
+            "extracted": "Supabase",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Staff Engineer, Postgres Tooling",
+            "extracted": "Staff Engineer, Postgres Tooling",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": null,
+            "extracted": "TBD",
+            "verdict": "FP"
+          },
+          "applied_date": {
+            "expected": "2026-05-15",
+            "extracted": "2026-05-15",
+            "verdict": "TP"
+          },
+          "source": {
+            "expected": "Reddit (r/cscareerquestions)",
+            "extracted": "/r/cscareerquestions",
+            "verdict": "MISMATCH"
+          },
+          "url": {
+            "expected": "https://supabase.com/careers/staff-postgres",
+            "extracted": "https://supabase.com/careers/staff-postgres",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 773,
+      "worker_elapsed_ms": 766
+    },
+    {
+      "id": "ja-08",
+      "bucket": "job_application",
+      "content": "Replit posting for Senior Engineer, Agents. SF on-site. They list 230k-280k base + equity. Posted on the company blog. Plan to apply this week (today is 2026-05-21). URL: https://replit.com/careers/senior-engineer-agents",
+      "expected": {
+        "company": "Replit",
+        "role": "Senior Engineer, Agents",
+        "salary_range": "230k-280k",
+        "applied_date": null,
+        "source": "company blog",
+        "url": "https://replit.com/careers/senior-engineer-agents"
+      },
+      "extracted": {
+        "applied_date": "2026-05-21",
+        "company": "Replit",
+        "role": "Senior Engineer, Agents",
+        "salary_range": "230k-280k base + equity",
+        "source": "Company blog",
+        "url": "https://replit.com/careers/senior-engineer-agents"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 1,
+        "fn": 0,
+        "tn": 0,
+        "precision": 0.8333333333333334,
+        "recall": 1,
+        "f1": 0.9090909090909091,
+        "fieldScores": {
+          "company": {
+            "expected": "Replit",
+            "extracted": "Replit",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Senior Engineer, Agents",
+            "extracted": "Senior Engineer, Agents",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": "230k-280k",
+            "extracted": "230k-280k base + equity",
+            "verdict": "TP"
+          },
+          "applied_date": {
+            "expected": null,
+            "extracted": "2026-05-21",
+            "verdict": "FP"
+          },
+          "source": {
+            "expected": "company blog",
+            "extracted": "Company blog",
+            "verdict": "TP"
+          },
+          "url": {
+            "expected": "https://replit.com/careers/senior-engineer-agents",
+            "extracted": "https://replit.com/careers/senior-engineer-agents",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 763,
+      "worker_elapsed_ms": 755
+    },
+    {
+      "id": "ja-09",
+      "bucket": "job_application",
+      "content": "Pulled this from a recruiter cold email. Render.com — Staff Platform Engineer. Remote (US or EU). $250k-$300k. Date: 2026-05-19. No URL — recruiter said they'd send the JD.",
+      "expected": {
+        "company": "Render.com",
+        "role": "Staff Platform Engineer",
+        "salary_range": "$250k-$300k",
+        "applied_date": "2026-05-19",
+        "source": "recruiter cold email",
+        "url": null
+      },
+      "extracted": {
+        "applied_date": null,
+        "company": "Render.com",
+        "role": "Staff Platform Engineer",
+        "salary_range": "$250k-$300k",
+        "source": "Recruiter cold email",
+        "url": null
+      },
+      "score": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 1,
+        "tn": 1,
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889,
+        "fieldScores": {
+          "company": {
+            "expected": "Render.com",
+            "extracted": "Render.com",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Staff Platform Engineer",
+            "extracted": "Staff Platform Engineer",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": "$250k-$300k",
+            "extracted": "$250k-$300k",
+            "verdict": "TP"
+          },
+          "applied_date": {
+            "expected": "2026-05-19",
+            "extracted": null,
+            "verdict": "FN"
+          },
+          "source": {
+            "expected": "recruiter cold email",
+            "extracted": "Recruiter cold email",
+            "verdict": "TP"
+          },
+          "url": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          }
+        }
+      },
+      "elapsed_ms": 2765,
+      "worker_elapsed_ms": 2755
+    },
+    {
+      "id": "ja-10",
+      "bucket": "job_application",
+      "content": "OpenAI — Forward Deployed Engineer, Enterprise. NYC office. Comp not disclosed in posting. Applied via the OpenAI careers page on 2026-05-08. https://openai.com/careers/forward-deployed-engineer",
+      "expected": {
+        "company": "OpenAI",
+        "role": "Forward Deployed Engineer, Enterprise",
+        "salary_range": null,
+        "applied_date": "2026-05-08",
+        "source": "OpenAI careers page",
+        "url": "https://openai.com/careers/forward-deployed-engineer"
+      },
+      "extracted": {
+        "applied_date": "2026-05-08",
+        "company": "OpenAI",
+        "role": "Forward Deployed Engineer, Enterprise",
+        "salary_range": null,
+        "source": "OpenAI careers page",
+        "url": "https://openai.com/careers/forward-deployed-engineer"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "company": {
+            "expected": "OpenAI",
+            "extracted": "OpenAI",
+            "verdict": "TP"
+          },
+          "role": {
+            "expected": "Forward Deployed Engineer, Enterprise",
+            "extracted": "Forward Deployed Engineer, Enterprise",
+            "verdict": "TP"
+          },
+          "salary_range": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          },
+          "applied_date": {
+            "expected": "2026-05-08",
+            "extracted": "2026-05-08",
+            "verdict": "TP"
+          },
+          "source": {
+            "expected": "OpenAI careers page",
+            "extracted": "OpenAI careers page",
+            "verdict": "TP"
+          },
+          "url": {
+            "expected": "https://openai.com/careers/forward-deployed-engineer",
+            "extracted": "https://openai.com/careers/forward-deployed-engineer",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 1842,
+      "worker_elapsed_ms": 1835
+    },
+    {
+      "id": "dl-01",
+      "bucket": "decision_log",
+      "content": "Decision: Use Cloudflare Durable Objects per workspace rather than a shared D1 database. Rationale: workspace isolation by default, no sharding complexity, clean archive/delete semantics. Owner: Russell. Date: 2026-05-24. Project: Engram v0.1.",
+      "expected": {
+        "decision": "Use Cloudflare Durable Objects per workspace rather than a shared D1 database",
+        "rationale": "workspace isolation by default, no sharding complexity, clean archive/delete semantics",
+        "owner": "Russell",
+        "date": "2026-05-24",
+        "project": "Engram v0.1"
+      },
+      "extracted": {
+        "date": "2026-05-24",
+        "decision": "Use Cloudflare Durable Objects per workspace rather than a shared D1 database",
+        "owner": "Russell",
+        "project": "Engram v0.1",
+        "rationale": "workspace isolation by default, no sharding complexity, clean archive/delete semantics"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "decision": {
+            "expected": "Use Cloudflare Durable Objects per workspace rather than a shared D1 database",
+            "extracted": "Use Cloudflare Durable Objects per workspace rather than a shared D1 database",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": "workspace isolation by default, no sharding complexity, clean archive/delete semantics",
+            "extracted": "workspace isolation by default, no sharding complexity, clean archive/delete semantics",
+            "verdict": "TP"
+          },
+          "owner": {
+            "expected": "Russell",
+            "extracted": "Russell",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": "2026-05-24",
+            "extracted": "2026-05-24",
+            "verdict": "TP"
+          },
+          "project": {
+            "expected": "Engram v0.1",
+            "extracted": "Engram v0.1",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 829,
+      "worker_elapsed_ms": 824
+    },
+    {
+      "id": "dl-02",
+      "bucket": "decision_log",
+      "content": "Decided in today's 1:1 with Devon: we ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0. Reason — keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model. Devon owns the v1.0 license review.",
+      "expected": {
+        "decision": "Ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0",
+        "rationale": "keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model",
+        "owner": "Devon",
+        "date": null,
+        "project": null
+      },
+      "extracted": {
+        "date": "today",
+        "decision": "ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0",
+        "owner": "Devon",
+        "project": null,
+        "rationale": "keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model"
+      },
+      "score": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 0,
+        "tn": 1,
+        "precision": 0.75,
+        "recall": 1,
+        "f1": 0.8571428571428571,
+        "fieldScores": {
+          "decision": {
+            "expected": "Ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0",
+            "extracted": "ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": "keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model",
+            "extracted": "keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model",
+            "verdict": "TP"
+          },
+          "owner": {
+            "expected": "Devon",
+            "extracted": "Devon",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": null,
+            "extracted": "today",
+            "verdict": "FP"
+          },
+          "project": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          }
+        }
+      },
+      "elapsed_ms": 805,
+      "worker_elapsed_ms": 800
+    },
+    {
+      "id": "dl-03",
+      "bucket": "decision_log",
+      "content": "BMC website redesign — decision is to use Astro + Cloudflare Pages instead of Next.js + Vercel. Rationale: Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy we have. Owner: Devon. Decided 2026-04-12. Project tag: BMC-WEBSITE.",
+      "expected": {
+        "decision": "Use Astro + Cloudflare Pages instead of Next.js + Vercel",
+        "rationale": "Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy",
+        "owner": "Devon",
+        "date": "2026-04-12",
+        "project": "BMC-WEBSITE"
+      },
+      "extracted": {
+        "date": "2026-04-12",
+        "decision": "Use Astro + Cloudflare Pages instead of Next.js + Vercel",
+        "owner": "Devon",
+        "project": "BMC-WEBSITE",
+        "rationale": "Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy we have"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "decision": {
+            "expected": "Use Astro + Cloudflare Pages instead of Next.js + Vercel",
+            "extracted": "Use Astro + Cloudflare Pages instead of Next.js + Vercel",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": "Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy",
+            "extracted": "Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy we have",
+            "verdict": "TP"
+          },
+          "owner": {
+            "expected": "Devon",
+            "extracted": "Devon",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": "2026-04-12",
+            "extracted": "2026-04-12",
+            "verdict": "TP"
+          },
+          "project": {
+            "expected": "BMC-WEBSITE",
+            "extracted": "BMC-WEBSITE",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 922,
+      "worker_elapsed_ms": 917
+    },
+    {
+      "id": "dl-04",
+      "bucket": "decision_log",
+      "content": "We will NOT build a web UI for Engram in v0.1. Reasoning: MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right. Russell decided 2026-05-23. Phase target: any post-v0.4 milestone.",
+      "expected": {
+        "decision": "Not build a web UI for Engram in v0.1",
+        "rationale": "MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right",
+        "owner": "Russell",
+        "date": "2026-05-23",
+        "project": null
+      },
+      "extracted": {
+        "date": "2026-05-23",
+        "decision": "We will NOT build a web UI for Engram in v0.1.",
+        "owner": "Russell",
+        "project": "MCP-first",
+        "rationale": "MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right."
+      },
+      "score": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 0,
+        "tn": 0,
+        "precision": 0.8,
+        "recall": 1,
+        "f1": 0.888888888888889,
+        "fieldScores": {
+          "decision": {
+            "expected": "Not build a web UI for Engram in v0.1",
+            "extracted": "We will NOT build a web UI for Engram in v0.1.",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": "MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right",
+            "extracted": "MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right.",
+            "verdict": "TP"
+          },
+          "owner": {
+            "expected": "Russell",
+            "extracted": "Russell",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": "2026-05-23",
+            "extracted": "2026-05-23",
+            "verdict": "TP"
+          },
+          "project": {
+            "expected": null,
+            "extracted": "MCP-first",
+            "verdict": "FP"
+          }
+        }
+      },
+      "elapsed_ms": 1578,
+      "worker_elapsed_ms": 1571
+    },
+    {
+      "id": "dl-05",
+      "bucket": "decision_log",
+      "content": "On the job-search agent: keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships. Russell owns the cutover. Date of decision: 2026-05-20.",
+      "expected": {
+        "decision": "Keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships",
+        "rationale": null,
+        "owner": "Russell",
+        "date": "2026-05-20",
+        "project": null
+      },
+      "extracted": {
+        "date": "2026-05-20",
+        "decision": "On the job-search agent: keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships",
+        "owner": "Russell",
+        "project": null,
+        "rationale": null
+      },
+      "score": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0,
+        "tn": 2,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "decision": {
+            "expected": "Keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships",
+            "extracted": "On the job-search agent: keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          },
+          "owner": {
+            "expected": "Russell",
+            "extracted": "Russell",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": "2026-05-20",
+            "extracted": "2026-05-20",
+            "verdict": "TP"
+          },
+          "project": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          }
+        }
+      },
+      "elapsed_ms": 779,
+      "worker_elapsed_ms": 772
+    },
+    {
+      "id": "dl-06",
+      "bucket": "decision_log",
+      "content": "Decision (logged 2026-05-15, owner: Russell, project: Engram): Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus to measure against. Premature optimization risk outweighs the latency we'd save.",
+      "expected": {
+        "decision": "Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus",
+        "rationale": "Premature optimization risk outweighs the latency we'd save",
+        "owner": "Russell",
+        "date": "2026-05-15",
+        "project": "Engram"
+      },
+      "extracted": {
+        "date": "2026-05-15",
+        "decision": "Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus to measure against. Premature optimization risk outweighs the latency we'd save.",
+        "owner": "Russell",
+        "project": "Engram",
+        "rationale": "Premature optimization risk outweighs the latency we'd save."
+      },
+      "score": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "decision": {
+            "expected": "Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus",
+            "extracted": "Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus to measure against. Premature optimization risk outweighs the latency we'd save.",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": "Premature optimization risk outweighs the latency we'd save",
+            "extracted": "Premature optimization risk outweighs the latency we'd save.",
+            "verdict": "TP"
+          },
+          "owner": {
+            "expected": "Russell",
+            "extracted": "Russell",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": "2026-05-15",
+            "extracted": "2026-05-15",
+            "verdict": "TP"
+          },
+          "project": {
+            "expected": "Engram",
+            "extracted": "Engram",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 854,
+      "worker_elapsed_ms": 848
+    },
+    {
+      "id": "dl-07",
+      "bucket": "decision_log",
+      "content": "Picked GPT-tokenizer over tiktoken for MCP-08's 8K-token assertions. Why: pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric. Decided by Russell.",
+      "expected": {
+        "decision": "Picked GPT-tokenizer over tiktoken for MCP-08's 8K-token assertions",
+        "rationale": "pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric",
+        "owner": "Russell",
+        "date": null,
+        "project": null
+      },
+      "extracted": {
+        "date": null,
+        "decision": "Picked GPT-tokenizer over tiktoken",
+        "owner": "Russell",
+        "project": "MCP-08",
+        "rationale": "pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric"
+      },
+      "score": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 0,
+        "tn": 1,
+        "precision": 0.75,
+        "recall": 1,
+        "f1": 0.8571428571428571,
+        "fieldScores": {
+          "decision": {
+            "expected": "Picked GPT-tokenizer over tiktoken for MCP-08's 8K-token assertions",
+            "extracted": "Picked GPT-tokenizer over tiktoken",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": "pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric",
+            "extracted": "pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric",
+            "verdict": "TP"
+          },
+          "owner": {
+            "expected": "Russell",
+            "extracted": "Russell",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          },
+          "project": {
+            "expected": null,
+            "extracted": "MCP-08",
+            "verdict": "FP"
+          }
+        }
+      },
+      "elapsed_ms": 12167,
+      "worker_elapsed_ms": 12160
+    },
+    {
+      "id": "dl-08",
+      "bucket": "decision_log",
+      "content": "Decision from today's planning session — Engram v0.1 will ship honest envelope stubs rather than templated heuristics. Reasoning: Phase 5 should POPULATE rather than RESTRUCTURE. Owner: Russell, 2026-05-26, against the Phase 4 plan.",
+      "expected": {
+        "decision": "Engram v0.1 will ship honest envelope stubs rather than templated heuristics",
+        "rationale": "Phase 5 should POPULATE rather than RESTRUCTURE",
+        "owner": "Russell",
+        "date": "2026-05-26",
+        "project": "Engram v0.1 / Phase 4"
+      },
+      "extracted": {
+        "date": "2026-05-26",
+        "decision": "Engram v0.1 will ship honest envelope stubs rather than templated heuristics",
+        "owner": "Russell",
+        "project": "Phase 4",
+        "rationale": "Phase 5 should POPULATE rather than RESTRUCTURE"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "decision": {
+            "expected": "Engram v0.1 will ship honest envelope stubs rather than templated heuristics",
+            "extracted": "Engram v0.1 will ship honest envelope stubs rather than templated heuristics",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": "Phase 5 should POPULATE rather than RESTRUCTURE",
+            "extracted": "Phase 5 should POPULATE rather than RESTRUCTURE",
+            "verdict": "TP"
+          },
+          "owner": {
+            "expected": "Russell",
+            "extracted": "Russell",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": "2026-05-26",
+            "extracted": "2026-05-26",
+            "verdict": "TP"
+          },
+          "project": {
+            "expected": "Engram v0.1 / Phase 4",
+            "extracted": "Phase 4",
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 821,
+      "worker_elapsed_ms": 817
+    },
+    {
+      "id": "dl-09",
+      "bucket": "decision_log",
+      "content": "After the architecture review, we're keeping the two-DO topology (EngramMcp session + WorkspaceDO durable). The alternative (single-DO with discriminator column) would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy. Russell owns; date 2026-05-18.",
+      "expected": {
+        "decision": "Keep the two-DO topology (EngramMcp session + WorkspaceDO durable)",
+        "rationale": "Single-DO with discriminator column would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy",
+        "owner": "Russell",
+        "date": "2026-05-18",
+        "project": null
+      },
+      "extracted": {
+        "date": "2026-05-18",
+        "decision": "Keeping the two-DO topology (EngramMcp session + WorkspaceDO durable)",
+        "owner": "Russell",
+        "project": null,
+        "rationale": "The alternative (single-DO with discriminator column) would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy."
+      },
+      "score": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "decision": {
+            "expected": "Keep the two-DO topology (EngramMcp session + WorkspaceDO durable)",
+            "extracted": "Keeping the two-DO topology (EngramMcp session + WorkspaceDO durable)",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": "Single-DO with discriminator column would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy",
+            "extracted": "The alternative (single-DO with discriminator column) would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy.",
+            "verdict": "TP"
+          },
+          "owner": {
+            "expected": "Russell",
+            "extracted": "Russell",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": "2026-05-18",
+            "extracted": "2026-05-18",
+            "verdict": "TP"
+          },
+          "project": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          }
+        }
+      },
+      "elapsed_ms": 896,
+      "worker_elapsed_ms": 891
+    },
+    {
+      "id": "dl-10",
+      "bucket": "decision_log",
+      "content": "Devon and Russell agreed on a sync window. Mondays 9am PT for engagement check-ins. Owner of the cadence: Devon. No specific project; standing meeting.",
+      "expected": {
+        "decision": "Mondays 9am PT for engagement check-ins",
+        "rationale": null,
+        "owner": "Devon",
+        "date": null,
+        "project": null
+      },
+      "extracted": {
+        "date": null,
+        "decision": "Mondays 9am PT for engagement check-ins",
+        "owner": "Devon",
+        "project": null,
+        "rationale": "Devon and Russell agreed on a sync window. Standing meeting."
+      },
+      "score": {
+        "tp": 2,
+        "fp": 1,
+        "fn": 0,
+        "tn": 2,
+        "precision": 0.6666666666666666,
+        "recall": 1,
+        "f1": 0.8,
+        "fieldScores": {
+          "decision": {
+            "expected": "Mondays 9am PT for engagement check-ins",
+            "extracted": "Mondays 9am PT for engagement check-ins",
+            "verdict": "TP"
+          },
+          "rationale": {
+            "expected": null,
+            "extracted": "Devon and Russell agreed on a sync window. Standing meeting.",
+            "verdict": "FP"
+          },
+          "owner": {
+            "expected": "Devon",
+            "extracted": "Devon",
+            "verdict": "TP"
+          },
+          "date": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          },
+          "project": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          }
+        }
+      },
+      "elapsed_ms": 722,
+      "worker_elapsed_ms": 716
+    },
+    {
+      "id": "rn-01",
+      "bucket": "research_note",
+      "content": "Title: \"Cloudflare Workers AI llama-3.1-8b structured output\". Topic: Cloudflare AI / LLM JSON mode. Found at https://developers.cloudflare.com/workers-ai/features/json-mode/. Summary: Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer. Tags: cloudflare, workers-ai, llm, json-mode, structured-output.",
+      "expected": {
+        "title": "Cloudflare Workers AI llama-3.1-8b structured output",
+        "topic": "Cloudflare AI / LLM JSON mode",
+        "source_url": "https://developers.cloudflare.com/workers-ai/features/json-mode/",
+        "summary": "Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer.",
+        "tags": ["cloudflare", "workers-ai", "llm", "json-mode", "structured-output"]
+      },
+      "extracted": {
+        "source_url": "https://developers.cloudflare.com/workers-ai/features/json-mode/",
+        "summary": "Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer.",
+        "tags": ["cloudflare", "workers-ai", "llm", "json-mode", "structured-output"],
+        "title": "Cloudflare Workers AI llama-3.1-8b structured output",
+        "topic": "Cloudflare AI / LLM JSON mode"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "title": {
+            "expected": "Cloudflare Workers AI llama-3.1-8b structured output",
+            "extracted": "Cloudflare Workers AI llama-3.1-8b structured output",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "Cloudflare AI / LLM JSON mode",
+            "extracted": "Cloudflare AI / LLM JSON mode",
+            "verdict": "TP"
+          },
+          "source_url": {
+            "expected": "https://developers.cloudflare.com/workers-ai/features/json-mode/",
+            "extracted": "https://developers.cloudflare.com/workers-ai/features/json-mode/",
+            "verdict": "TP"
+          },
+          "summary": {
+            "expected": "Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer.",
+            "extracted": "Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer.",
+            "verdict": "TP"
+          },
+          "tags": {
+            "expected": ["cloudflare", "workers-ai", "llm", "json-mode", "structured-output"],
+            "extracted": ["cloudflare", "workers-ai", "llm", "json-mode", "structured-output"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 2267,
+      "worker_elapsed_ms": 2260
+    },
+    {
+      "id": "rn-02",
+      "bucket": "research_note",
+      "content": "Research on mem0 conflict resolution: their LLM-resolver maps to four ops — ADD / UPDATE / DELETE / NOOP. Source: https://docs.mem0.ai/conflict-resolution. Key takeaway: keeping conflict resolution in the LLM (not pre-computed rules) trades determinism for adaptability. Engram should consider this for v0.2 conflict detection. Tags: mem0, conflict-resolution, llm, memory.",
+      "expected": {
+        "title": "mem0 conflict resolution",
+        "topic": "conflict resolution in memory systems",
+        "source_url": "https://docs.mem0.ai/conflict-resolution",
+        "summary": "mem0's LLM-resolver maps to four ops — ADD / UPDATE / DELETE / NOOP. Keeping conflict resolution in the LLM trades determinism for adaptability.",
+        "tags": ["mem0", "conflict-resolution", "llm", "memory"]
+      },
+      "extracted": {
+        "source_url": "https://docs.mem0.ai/conflict-resolution",
+        "summary": "Keeping conflict resolution in the LLM trades determinism for adaptability.",
+        "tags": ["mem0", "conflict-resolution", "llm", "memory"],
+        "title": "Mem0 Conflict Resolution",
+        "topic": "mem0"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "fieldScores": {
+          "title": {
+            "expected": "mem0 conflict resolution",
+            "extracted": "Mem0 Conflict Resolution",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "conflict resolution in memory systems",
+            "extracted": "mem0",
+            "verdict": "MISMATCH"
+          },
+          "source_url": {
+            "expected": "https://docs.mem0.ai/conflict-resolution",
+            "extracted": "https://docs.mem0.ai/conflict-resolution",
+            "verdict": "TP"
+          },
+          "summary": {
+            "expected": "mem0's LLM-resolver maps to four ops — ADD / UPDATE / DELETE / NOOP. Keeping conflict resolution in the LLM trades determinism for adaptability.",
+            "extracted": "Keeping conflict resolution in the LLM trades determinism for adaptability.",
+            "verdict": "TP"
+          },
+          "tags": {
+            "expected": ["mem0", "conflict-resolution", "llm", "memory"],
+            "extracted": ["mem0", "conflict-resolution", "llm", "memory"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 802,
+      "worker_elapsed_ms": 796
+    },
+    {
+      "id": "rn-03",
+      "bucket": "research_note",
+      "content": "Letta (formerly MemGPT) — self-edit memory mode. Title: Letta self-edit. URL: https://letta.com/blog/self-editing-memory. Summary: agents can call tools that rewrite their own memory blocks via patch operations. Risk: ungated self-edit becomes hallucination amplifier; Letta gates with a separate 'archival memory' tier. Engram should NOT adopt before v0.3 reflect ships. Tags: letta, memgpt, self-edit, agent-memory.",
+      "expected": {
+        "title": "Letta self-edit",
+        "topic": "agent self-editing memory",
+        "source_url": "https://letta.com/blog/self-editing-memory",
+        "summary": "Letta agents can call tools that rewrite their own memory blocks via patch operations. Ungated self-edit becomes a hallucination amplifier; Letta gates with a separate 'archival memory' tier.",
+        "tags": ["letta", "memgpt", "self-edit", "agent-memory"]
+      },
+      "extracted": {
+        "source_url": "https://letta.com/blog/self-editing-memory",
+        "summary": "agents can call tools that rewrite their own memory blocks via patch operations",
+        "tags": ["letta", "memgpt", "self-edit", "agent-memory"],
+        "title": "Letta self-edit",
+        "topic": "Letta (formerly MemGPT) — self-edit memory mode"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "fieldScores": {
+          "title": {
+            "expected": "Letta self-edit",
+            "extracted": "Letta self-edit",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "agent self-editing memory",
+            "extracted": "Letta (formerly MemGPT) — self-edit memory mode",
+            "verdict": "MISMATCH"
+          },
+          "source_url": {
+            "expected": "https://letta.com/blog/self-editing-memory",
+            "extracted": "https://letta.com/blog/self-editing-memory",
+            "verdict": "TP"
+          },
+          "summary": {
+            "expected": "Letta agents can call tools that rewrite their own memory blocks via patch operations. Ungated self-edit becomes a hallucination amplifier; Letta gates with a separate 'archival memory' tier.",
+            "extracted": "agents can call tools that rewrite their own memory blocks via patch operations",
+            "verdict": "TP"
+          },
+          "tags": {
+            "expected": ["letta", "memgpt", "self-edit", "agent-memory"],
+            "extracted": ["letta", "memgpt", "self-edit", "agent-memory"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 862,
+      "worker_elapsed_ms": 857
+    },
+    {
+      "id": "rn-04",
+      "bucket": "research_note",
+      "content": "Notes on the MCP Resource Server pattern (2025-03-26 spec revision). The pattern uses /.well-known/oauth-protected-resource to advertise the Authorization Server's location. Bridge tools like mcp-remote expect this exact shape. Read at https://modelcontextprotocol.io/specification/2025-03-26/oauth. Tags: mcp, oauth, resource-server, mcp-remote.",
+      "expected": {
+        "title": "MCP Resource Server pattern (2025-03-26 spec revision)",
+        "topic": "MCP OAuth resource server",
+        "source_url": "https://modelcontextprotocol.io/specification/2025-03-26/oauth",
+        "summary": "The pattern uses /.well-known/oauth-protected-resource to advertise the Authorization Server's location. Bridge tools like mcp-remote expect this exact shape.",
+        "tags": ["mcp", "oauth", "resource-server", "mcp-remote"]
+      },
+      "extracted": {
+        "source_url": "https://modelcontextprotocol.io/specification/2025-03-26/oauth",
+        "summary": "Notes on the MCP Resource Server pattern",
+        "tags": ["mcp", "oauth", "resource-server", "mcp-remote"],
+        "title": "MCP Resource Server pattern",
+        "topic": "MCP Resource Server"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "fieldScores": {
+          "title": {
+            "expected": "MCP Resource Server pattern (2025-03-26 spec revision)",
+            "extracted": "MCP Resource Server pattern",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "MCP OAuth resource server",
+            "extracted": "MCP Resource Server",
+            "verdict": "TP"
+          },
+          "source_url": {
+            "expected": "https://modelcontextprotocol.io/specification/2025-03-26/oauth",
+            "extracted": "https://modelcontextprotocol.io/specification/2025-03-26/oauth",
+            "verdict": "TP"
+          },
+          "summary": {
+            "expected": "The pattern uses /.well-known/oauth-protected-resource to advertise the Authorization Server's location. Bridge tools like mcp-remote expect this exact shape.",
+            "extracted": "Notes on the MCP Resource Server pattern",
+            "verdict": "MISMATCH"
+          },
+          "tags": {
+            "expected": ["mcp", "oauth", "resource-server", "mcp-remote"],
+            "extracted": ["mcp", "oauth", "resource-server", "mcp-remote"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 829,
+      "worker_elapsed_ms": 823
+    },
+    {
+      "id": "rn-05",
+      "bucket": "research_note",
+      "content": "Quick read on Vectorize namespaces (Cloudflare). Title: Vectorize namespaces tenant isolation. From https://developers.cloudflare.com/vectorize/best-practices/namespaces/. Key fact — one global index with namespace per workspace beats one-index-per-workspace because of the 100-index-per-account cap. Engram v0.1 must follow this. Tags: cloudflare, vectorize, namespaces, multi-tenant.",
+      "expected": {
+        "title": "Vectorize namespaces tenant isolation",
+        "topic": "Cloudflare Vectorize multi-tenant",
+        "source_url": "https://developers.cloudflare.com/vectorize/best-practices/namespaces/",
+        "summary": "One global index with namespace per workspace beats one-index-per-workspace because of the 100-index-per-account cap. Engram v0.1 must follow this.",
+        "tags": ["cloudflare", "vectorize", "namespaces", "multi-tenant"]
+      },
+      "extracted": {
+        "source_url": "https://developers.cloudflare.com/vectorize/best-practices/namespaces/",
+        "summary": "One global index with namespace per workspace is more efficient than one-index-per-workspace due to the 100-index-per-account cap.",
+        "tags": ["cloudflare", "vectorize", "namespaces", "multi-tenant"],
+        "title": "Vectorize namespaces tenant isolation",
+        "topic": "Cloudflare"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "fieldScores": {
+          "title": {
+            "expected": "Vectorize namespaces tenant isolation",
+            "extracted": "Vectorize namespaces tenant isolation",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "Cloudflare Vectorize multi-tenant",
+            "extracted": "Cloudflare",
+            "verdict": "TP"
+          },
+          "source_url": {
+            "expected": "https://developers.cloudflare.com/vectorize/best-practices/namespaces/",
+            "extracted": "https://developers.cloudflare.com/vectorize/best-practices/namespaces/",
+            "verdict": "TP"
+          },
+          "summary": {
+            "expected": "One global index with namespace per workspace beats one-index-per-workspace because of the 100-index-per-account cap. Engram v0.1 must follow this.",
+            "extracted": "One global index with namespace per workspace is more efficient than one-index-per-workspace due to the 100-index-per-account cap.",
+            "verdict": "MISMATCH"
+          },
+          "tags": {
+            "expected": ["cloudflare", "vectorize", "namespaces", "multi-tenant"],
+            "extracted": ["cloudflare", "vectorize", "namespaces", "multi-tenant"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 963,
+      "worker_elapsed_ms": 958
+    },
+    {
+      "id": "rn-06",
+      "bucket": "research_note",
+      "content": "Working notes — bge-base-en-v1.5 embedding quality. Topic: text embeddings for retrieval. No URL handy. Summary: bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens. Tags: embeddings, bge, retrieval, rag.",
+      "expected": {
+        "title": "bge-base-en-v1.5 embedding quality",
+        "topic": "text embeddings for retrieval",
+        "source_url": null,
+        "summary": "bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens.",
+        "tags": ["embeddings", "bge", "retrieval", "rag"]
+      },
+      "extracted": {
+        "source_url": null,
+        "summary": "bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens.",
+        "tags": ["embeddings", "bge", "retrieval", "rag"],
+        "title": "Working notes — bge-base-en-v1.5 embedding quality",
+        "topic": "text embeddings for retrieval"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "tn": 1,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "title": {
+            "expected": "bge-base-en-v1.5 embedding quality",
+            "extracted": "Working notes — bge-base-en-v1.5 embedding quality",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "text embeddings for retrieval",
+            "extracted": "text embeddings for retrieval",
+            "verdict": "TP"
+          },
+          "source_url": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          },
+          "summary": {
+            "expected": "bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens.",
+            "extracted": "bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens.",
+            "verdict": "TP"
+          },
+          "tags": {
+            "expected": ["embeddings", "bge", "retrieval", "rag"],
+            "extracted": ["embeddings", "bge", "retrieval", "rag"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 4680,
+      "worker_elapsed_ms": 4675
+    },
+    {
+      "id": "rn-07",
+      "bucket": "research_note",
+      "content": "Read this on the train — Anthropic's prompt-cache 5-minute TTL. Title: Claude API prompt cache TTL. Source: https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime. Summary: cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request. Implication for Claude Code: keep wakeup intervals under 270s to stay in cache. Tags: anthropic, claude, prompt-cache, ttl, claude-code.",
+      "expected": {
+        "title": "Claude API prompt cache TTL",
+        "topic": "Anthropic prompt caching",
+        "source_url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime",
+        "summary": "Cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request. Implication for Claude Code: keep wakeup intervals under 270s to stay in cache.",
+        "tags": ["anthropic", "claude", "prompt-cache", "ttl", "claude-code"]
+      },
+      "extracted": {
+        "source_url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime",
+        "summary": "cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request.",
+        "tags": ["anthropic", "claude", "prompt-cache", "ttl", "claude-code"],
+        "title": "Claude API prompt cache TTL",
+        "topic": "Anthropic's prompt-cache 5-minute TTL"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "fieldScores": {
+          "title": {
+            "expected": "Claude API prompt cache TTL",
+            "extracted": "Claude API prompt cache TTL",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "Anthropic prompt caching",
+            "extracted": "Anthropic's prompt-cache 5-minute TTL",
+            "verdict": "MISMATCH"
+          },
+          "source_url": {
+            "expected": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime",
+            "extracted": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime",
+            "verdict": "TP"
+          },
+          "summary": {
+            "expected": "Cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request. Implication for Claude Code: keep wakeup intervals under 270s to stay in cache.",
+            "extracted": "cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request.",
+            "verdict": "TP"
+          },
+          "tags": {
+            "expected": ["anthropic", "claude", "prompt-cache", "ttl", "claude-code"],
+            "extracted": ["anthropic", "claude", "prompt-cache", "ttl", "claude-code"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 1267,
+      "worker_elapsed_ms": 1261
+    },
+    {
+      "id": "rn-08",
+      "bucket": "research_note",
+      "content": "@cloudflare/workers-oauth-provider README review. Title: workers-oauth-provider library. URL: https://github.com/cloudflare/workers-oauth-provider. Summary: ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native. Phase 3 D-02 adoption. Tags: cloudflare, oauth, mcp, workers.",
+      "expected": {
+        "title": "workers-oauth-provider library",
+        "topic": "Cloudflare OAuth provider for Workers",
+        "source_url": "https://github.com/cloudflare/workers-oauth-provider",
+        "summary": "Ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native.",
+        "tags": ["cloudflare", "oauth", "mcp", "workers"]
+      },
+      "extracted": {
+        "source_url": "https://github.com/cloudflare/workers-oauth-provider",
+        "summary": "ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native.",
+        "tags": ["cloudflare", "oauth", "mcp", "workers"],
+        "title": "workers-oauth-provider library",
+        "topic": "Phase 3 D-02 adoption"
+      },
+      "score": {
+        "tp": 4,
+        "fp": 1,
+        "fn": 1,
+        "tn": 0,
+        "precision": 0.8,
+        "recall": 0.8,
+        "f1": 0.8000000000000002,
+        "fieldScores": {
+          "title": {
+            "expected": "workers-oauth-provider library",
+            "extracted": "workers-oauth-provider library",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "Cloudflare OAuth provider for Workers",
+            "extracted": "Phase 3 D-02 adoption",
+            "verdict": "MISMATCH"
+          },
+          "source_url": {
+            "expected": "https://github.com/cloudflare/workers-oauth-provider",
+            "extracted": "https://github.com/cloudflare/workers-oauth-provider",
+            "verdict": "TP"
+          },
+          "summary": {
+            "expected": "Ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native.",
+            "extracted": "ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native.",
+            "verdict": "TP"
+          },
+          "tags": {
+            "expected": ["cloudflare", "oauth", "mcp", "workers"],
+            "extracted": ["cloudflare", "oauth", "mcp", "workers"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 13617,
+      "worker_elapsed_ms": 13611
+    },
+    {
+      "id": "rn-09",
+      "bucket": "research_note",
+      "content": "Title: Durable Objects SQLite migration footgun. Topic: Cloudflare DO storage. Source: https://developers.cloudflare.com/durable-objects/best-practices/migrations/. Summary: Once a DO class lands under new_sqlite_classes it CANNOT be moved back to new_classes — declaration is irreversible. Confirms Engram FND-08 CI lint rule. Tags: cloudflare, durable-objects, sqlite, migrations, irreversible.",
+      "expected": {
+        "title": "Durable Objects SQLite migration footgun",
+        "topic": "Cloudflare DO storage",
+        "source_url": "https://developers.cloudflare.com/durable-objects/best-practices/migrations/",
+        "summary": "Once a DO class lands under new_sqlite_classes it cannot be moved back to new_classes — declaration is irreversible. Confirms Engram FND-08 CI lint rule.",
+        "tags": ["cloudflare", "durable-objects", "sqlite", "migrations", "irreversible"]
+      },
+      "extracted": {
+        "source_url": "https://developers.cloudflare.com/durable-objects/best-practices/migrations/",
+        "summary": "Once a DO class lands under new_sqlite_classes it CANNOT be moved back to new_classes — declaration is irreversible.",
+        "tags": ["cloudflare", "durable-objects", "sqlite", "migrations", "irreversible"],
+        "title": "Durable Objects SQLite migration footgun",
+        "topic": "Cloudflare DO storage"
+      },
+      "score": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0,
+        "tn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "fieldScores": {
+          "title": {
+            "expected": "Durable Objects SQLite migration footgun",
+            "extracted": "Durable Objects SQLite migration footgun",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "Cloudflare DO storage",
+            "extracted": "Cloudflare DO storage",
+            "verdict": "TP"
+          },
+          "source_url": {
+            "expected": "https://developers.cloudflare.com/durable-objects/best-practices/migrations/",
+            "extracted": "https://developers.cloudflare.com/durable-objects/best-practices/migrations/",
+            "verdict": "TP"
+          },
+          "summary": {
+            "expected": "Once a DO class lands under new_sqlite_classes it cannot be moved back to new_classes — declaration is irreversible. Confirms Engram FND-08 CI lint rule.",
+            "extracted": "Once a DO class lands under new_sqlite_classes it CANNOT be moved back to new_classes — declaration is irreversible.",
+            "verdict": "TP"
+          },
+          "tags": {
+            "expected": ["cloudflare", "durable-objects", "sqlite", "migrations", "irreversible"],
+            "extracted": ["cloudflare", "durable-objects", "sqlite", "migrations", "irreversible"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 987,
+      "worker_elapsed_ms": 980
+    },
+    {
+      "id": "rn-10",
+      "bucket": "research_note",
+      "content": "Notes from the agents SDK source dive: getAgentByName(namespace, name) returns a Promise<DurableObjectStub<T>> that MUST be awaited. Missing the await yields a Promise where the user expected a stub — subtle bug. Title: agents SDK getAgentByName pitfall. Topic: agents SDK + Durable Object stubs. No public URL — pulled from node_modules/agents/dist. Tags: agents-sdk, durable-objects, async, pitfall.",
+      "expected": {
+        "title": "agents SDK getAgentByName pitfall",
+        "topic": "agents SDK + Durable Object stubs",
+        "source_url": null,
+        "summary": "getAgentByName(namespace, name) returns a Promise<DurableObjectStub<T>> that MUST be awaited. Missing the await yields a Promise where the user expected a stub — subtle bug.",
+        "tags": ["agents-sdk", "durable-objects", "async", "pitfall"]
+      },
+      "extracted": {
+        "source_url": null,
+        "summary": "Missing await in getAgentByName function can cause a subtle bug where a Promise is returned instead of a stub.",
+        "tags": ["agents-sdk", "durable-objects", "async", "pitfall"],
+        "title": "agents SDK getAgentByName pitfall",
+        "topic": "agents SDK + Durable Object stubs"
+      },
+      "score": {
+        "tp": 3,
+        "fp": 1,
+        "fn": 1,
+        "tn": 1,
+        "precision": 0.75,
+        "recall": 0.75,
+        "f1": 0.75,
+        "fieldScores": {
+          "title": {
+            "expected": "agents SDK getAgentByName pitfall",
+            "extracted": "agents SDK getAgentByName pitfall",
+            "verdict": "TP"
+          },
+          "topic": {
+            "expected": "agents SDK + Durable Object stubs",
+            "extracted": "agents SDK + Durable Object stubs",
+            "verdict": "TP"
+          },
+          "source_url": {
+            "expected": null,
+            "extracted": null,
+            "verdict": "TN"
+          },
+          "summary": {
+            "expected": "getAgentByName(namespace, name) returns a Promise<DurableObjectStub<T>> that MUST be awaited. Missing the await yields a Promise where the user expected a stub — subtle bug.",
+            "extracted": "Missing await in getAgentByName function can cause a subtle bug where a Promise is returned instead of a stub.",
+            "verdict": "MISMATCH"
+          },
+          "tags": {
+            "expected": ["agents-sdk", "durable-objects", "async", "pitfall"],
+            "extracted": ["agents-sdk", "durable-objects", "async", "pitfall"],
+            "verdict": "TP"
+          }
+        }
+      },
+      "elapsed_ms": 857,
+      "worker_elapsed_ms": 852
+    }
+  ],
+  "aggregate": {
+    "byBucket": {
+      "job_application": {
+        "tp": 49,
+        "fp": 6,
+        "fn": 4,
+        "tn": 4,
+        "n": 10,
+        "precision": 0.8909090909090909,
+        "recall": 0.9245283018867925,
+        "f1": 0.9074074074074073
+      },
+      "decision_log": {
+        "tp": 39,
+        "fp": 4,
+        "fn": 0,
+        "tn": 7,
+        "n": 10,
+        "precision": 0.9069767441860465,
+        "recall": 1,
+        "f1": 0.951219512195122
+      },
+      "research_note": {
+        "tp": 41,
+        "fp": 7,
+        "fn": 7,
+        "tn": 2,
+        "n": 10,
+        "precision": 0.8541666666666666,
+        "recall": 0.8541666666666666,
+        "f1": 0.8541666666666666
+      }
+    },
+    "overall": {
+      "tp": 129,
+      "fp": 17,
+      "fn": 11,
+      "tn": 13,
+      "errored": 0,
+      "precision": 0.8835616438356164,
+      "recall": 0.9214285714285714,
+      "f1": 0.902097902097902
+    }
+  },
+  "gate": {
+    "gate": "PASS",
+    "verdict": "VALIDATED",
+    "message": "Synthetic-recalibrated gate met (≥90%). Synthesis-only envelope contract survives; verbosity default stays 'synthesis'."
+  }
+}
