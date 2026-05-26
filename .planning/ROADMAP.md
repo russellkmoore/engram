@@ -150,7 +150,7 @@ Plans:
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 **UI hint:** no
 
-**Plans:** 4/6 plans executed
+**Plans:** 5/6 plans executed
 
 Plans:
 
@@ -169,7 +169,7 @@ Plans:
 
 **Wave 3** (unifier — depends on all of Wave 1+2)
 
-- [ ] 03-05-PLAN.md (Wave 3, autonomous) — index.ts default-export swap to OAuthProvider wrapping EngramMcp + defaultHandler, EngramMcp.init wires registerTools, wrangler.jsonc v2 migration + KV bindings + JSDoc cleanup per D-09, worker-configuration.d.ts regen, wrangler deploy --dry-run gate per Pitfall 3, index.test.ts GREEN [MCP-01, MCP-02, MCP-03]
+- [x] 03-05-PLAN.md (Wave 3, autonomous) — index.ts default-export swap to OAuthProvider wrapping EngramMcp + defaultHandler, EngramMcp.init wires registerTools, wrangler.jsonc v2 migration + KV bindings + JSDoc cleanup per D-09, worker-configuration.d.ts regen, wrangler deploy --dry-run gate per Pitfall 3, index.test.ts GREEN [MCP-01, MCP-02, MCP-03]
 
 **Wave 4** (docs + manual smoke — blocked on Wave 3)
 
@@ -280,7 +280,7 @@ Plans:
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
-| 3. MCP Server Scaffold   | 4/6 | In Progress|  |
+| 3. MCP Server Scaffold   | 5/6 | In Progress|  |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
