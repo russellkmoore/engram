@@ -1,0 +1,3696 @@
+{
+  "spike": "003-embedding-sensibility",
+  "endpoint": "http://127.0.0.1:8903/embed",
+  "timestamp": "2026-05-26T17:48:00.727Z",
+  "dim": 768,
+  "samples": [
+    {
+      "id": "ja-01",
+      "bucket": "job_application",
+      "content": "Senior Staff Engineer at Cloudflare. Remote (US). Salary range $260k-$310k + equity. Apply at https://www.cloudflare.com/careers/4827193 by 2026-06-15. Found via LinkedIn."
+    },
+    {
+      "id": "ja-02",
+      "bucket": "job_application",
+      "content": "Anthropic is hiring a Member of Technical Staff — Inference. Hybrid SF, base $300k-$400k plus generous equity. Applied 2026-05-10 after Devon's referral. JD: https://www.anthropic.com/careers/inference-mts"
+    },
+    {
+      "id": "ja-03",
+      "bucket": "job_application",
+      "content": "Stripe Principal Engineer, Payments Platform. Office: Dublin. No salary disclosed. Posting from Hacker News Who's Hiring May 2026. https://stripe.com/jobs/listing/principal-engineer-payments-platform/6112349"
+    },
+    {
+      "id": "ja-04",
+      "bucket": "job_application",
+      "content": "Just applied to Vercel for the Distributed Systems Engineer role. $240k-$290k base. Applied date 2026-05-22. Posted on their careers page directly. https://vercel.com/careers/dse-2026"
+    },
+    {
+      "id": "ja-05",
+      "bucket": "job_application",
+      "content": "Posting: \"Senior Software Engineer, AI Platform\" at Notion. SF or NYC. Base 220-260k. Submitted application 2026-04-18. Came from Wellfound listing. https://wellfound.com/jobs/notion-ai-platform-senior"
+    },
+    {
+      "id": "ja-06",
+      "bucket": "job_application",
+      "content": "Linear is hiring for Engineer, Sync Infrastructure. Fully remote globally. They state $180,000-$220,000 USD. Found by Twitter post from their CEO. Submitting today, 2026-05-23. https://linear.app/careers/sync-infra"
+    },
+    {
+      "id": "ja-07",
+      "bucket": "job_application",
+      "content": "Supabase — Staff Engineer, Postgres Tooling. Remote. Compensation TBD pending interview loop. Saw it on /r/cscareerquestions. Applied 2026-05-15. https://supabase.com/careers/staff-postgres"
+    },
+    {
+      "id": "ja-08",
+      "bucket": "job_application",
+      "content": "Replit posting for Senior Engineer, Agents. SF on-site. They list 230k-280k base + equity. Posted on the company blog. Plan to apply this week (today is 2026-05-21). URL: https://replit.com/careers/senior-engineer-agents"
+    },
+    {
+      "id": "ja-09",
+      "bucket": "job_application",
+      "content": "Pulled this from a recruiter cold email. Render.com — Staff Platform Engineer. Remote (US or EU). $250k-$300k. Date: 2026-05-19. No URL — recruiter said they'd send the JD."
+    },
+    {
+      "id": "ja-10",
+      "bucket": "job_application",
+      "content": "OpenAI — Forward Deployed Engineer, Enterprise. NYC office. Comp not disclosed in posting. Applied via the OpenAI careers page on 2026-05-08. https://openai.com/careers/forward-deployed-engineer"
+    },
+    {
+      "id": "dl-01",
+      "bucket": "decision_log",
+      "content": "Decision: Use Cloudflare Durable Objects per workspace rather than a shared D1 database. Rationale: workspace isolation by default, no sharding complexity, clean archive/delete semantics. Owner: Russell. Date: 2026-05-24. Project: Engram v0.1."
+    },
+    {
+      "id": "dl-02",
+      "bucket": "decision_log",
+      "content": "Decided in today's 1:1 with Devon: we ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0. Reason — keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model. Devon owns the v1.0 license review."
+    },
+    {
+      "id": "dl-03",
+      "bucket": "decision_log",
+      "content": "BMC website redesign — decision is to use Astro + Cloudflare Pages instead of Next.js + Vercel. Rationale: Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy we have. Owner: Devon. Decided 2026-04-12. Project tag: BMC-WEBSITE."
+    },
+    {
+      "id": "dl-04",
+      "bucket": "decision_log",
+      "content": "We will NOT build a web UI for Engram in v0.1. Reasoning: MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right. Russell decided 2026-05-23. Phase target: any post-v0.4 milestone."
+    },
+    {
+      "id": "dl-05",
+      "bucket": "decision_log",
+      "content": "On the job-search agent: keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships. Russell owns the cutover. Date of decision: 2026-05-20."
+    },
+    {
+      "id": "dl-06",
+      "bucket": "decision_log",
+      "content": "Decision (logged 2026-05-15, owner: Russell, project: Engram): Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus to measure against. Premature optimization risk outweighs the latency we'd save."
+    },
+    {
+      "id": "dl-07",
+      "bucket": "decision_log",
+      "content": "Picked GPT-tokenizer over tiktoken for MCP-08's 8K-token assertions. Why: pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric. Decided by Russell."
+    },
+    {
+      "id": "dl-08",
+      "bucket": "decision_log",
+      "content": "Decision from today's planning session — Engram v0.1 will ship honest envelope stubs rather than templated heuristics. Reasoning: Phase 5 should POPULATE rather than RESTRUCTURE. Owner: Russell, 2026-05-26, against the Phase 4 plan."
+    },
+    {
+      "id": "dl-09",
+      "bucket": "decision_log",
+      "content": "After the architecture review, we're keeping the two-DO topology (EngramMcp session + WorkspaceDO durable). The alternative (single-DO with discriminator column) would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy. Russell owns; date 2026-05-18."
+    },
+    {
+      "id": "dl-10",
+      "bucket": "decision_log",
+      "content": "Devon and Russell agreed on a sync window. Mondays 9am PT for engagement check-ins. Owner of the cadence: Devon. No specific project; standing meeting."
+    },
+    {
+      "id": "rn-01",
+      "bucket": "research_note",
+      "content": "Title: \"Cloudflare Workers AI llama-3.1-8b structured output\". Topic: Cloudflare AI / LLM JSON mode. Found at https://developers.cloudflare.com/workers-ai/features/json-mode/. Summary: Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer. Tags: cloudflare, workers-ai, llm, json-mode, structured-output."
+    },
+    {
+      "id": "rn-02",
+      "bucket": "research_note",
+      "content": "Research on mem0 conflict resolution: their LLM-resolver maps to four ops — ADD / UPDATE / DELETE / NOOP. Source: https://docs.mem0.ai/conflict-resolution. Key takeaway: keeping conflict resolution in the LLM (not pre-computed rules) trades determinism for adaptability. Engram should consider this for v0.2 conflict detection. Tags: mem0, conflict-resolution, llm, memory."
+    },
+    {
+      "id": "rn-03",
+      "bucket": "research_note",
+      "content": "Letta (formerly MemGPT) — self-edit memory mode. Title: Letta self-edit. URL: https://letta.com/blog/self-editing-memory. Summary: agents can call tools that rewrite their own memory blocks via patch operations. Risk: ungated self-edit becomes hallucination amplifier; Letta gates with a separate 'archival memory' tier. Engram should NOT adopt before v0.3 reflect ships. Tags: letta, memgpt, self-edit, agent-memory."
+    },
+    {
+      "id": "rn-04",
+      "bucket": "research_note",
+      "content": "Notes on the MCP Resource Server pattern (2025-03-26 spec revision). The pattern uses /.well-known/oauth-protected-resource to advertise the Authorization Server's location. Bridge tools like mcp-remote expect this exact shape. Read at https://modelcontextprotocol.io/specification/2025-03-26/oauth. Tags: mcp, oauth, resource-server, mcp-remote."
+    },
+    {
+      "id": "rn-05",
+      "bucket": "research_note",
+      "content": "Quick read on Vectorize namespaces (Cloudflare). Title: Vectorize namespaces tenant isolation. From https://developers.cloudflare.com/vectorize/best-practices/namespaces/. Key fact — one global index with namespace per workspace beats one-index-per-workspace because of the 100-index-per-account cap. Engram v0.1 must follow this. Tags: cloudflare, vectorize, namespaces, multi-tenant."
+    },
+    {
+      "id": "rn-06",
+      "bucket": "research_note",
+      "content": "Working notes — bge-base-en-v1.5 embedding quality. Topic: text embeddings for retrieval. No URL handy. Summary: bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens. Tags: embeddings, bge, retrieval, rag."
+    },
+    {
+      "id": "rn-07",
+      "bucket": "research_note",
+      "content": "Read this on the train — Anthropic's prompt-cache 5-minute TTL. Title: Claude API prompt cache TTL. Source: https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime. Summary: cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request. Implication for Claude Code: keep wakeup intervals under 270s to stay in cache. Tags: anthropic, claude, prompt-cache, ttl, claude-code."
+    },
+    {
+      "id": "rn-08",
+      "bucket": "research_note",
+      "content": "@cloudflare/workers-oauth-provider README review. Title: workers-oauth-provider library. URL: https://github.com/cloudflare/workers-oauth-provider. Summary: ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native. Phase 3 D-02 adoption. Tags: cloudflare, oauth, mcp, workers."
+    },
+    {
+      "id": "rn-09",
+      "bucket": "research_note",
+      "content": "Title: Durable Objects SQLite migration footgun. Topic: Cloudflare DO storage. Source: https://developers.cloudflare.com/durable-objects/best-practices/migrations/. Summary: Once a DO class lands under new_sqlite_classes it CANNOT be moved back to new_classes — declaration is irreversible. Confirms Engram FND-08 CI lint rule. Tags: cloudflare, durable-objects, sqlite, migrations, irreversible."
+    },
+    {
+      "id": "rn-10",
+      "bucket": "research_note",
+      "content": "Notes from the agents SDK source dive: getAgentByName(namespace, name) returns a Promise<DurableObjectStub<T>> that MUST be awaited. Missing the await yields a Promise where the user expected a stub — subtle bug. Title: agents SDK getAgentByName pitfall. Topic: agents SDK + Durable Object stubs. No public URL — pulled from node_modules/agents/dist. Tags: agents-sdk, durable-objects, async, pitfall."
+    }
+  ],
+  "pairs": [
+    {
+      "a": "ja-01",
+      "b": "ja-02",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6597896601812098
+    },
+    {
+      "a": "ja-01",
+      "b": "ja-03",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6261551220405461
+    },
+    {
+      "a": "ja-01",
+      "b": "ja-04",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7294344765132665
+    },
+    {
+      "a": "ja-01",
+      "b": "ja-05",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7114998932192869
+    },
+    {
+      "a": "ja-01",
+      "b": "ja-06",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7332409827801327
+    },
+    {
+      "a": "ja-01",
+      "b": "ja-07",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6186812385822815
+    },
+    {
+      "a": "ja-01",
+      "b": "ja-08",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7383522876431171
+    },
+    {
+      "a": "ja-01",
+      "b": "ja-09",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7788897393231512
+    },
+    {
+      "a": "ja-01",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.5926094268193395
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5932073341200973
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.516628769236376
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5671303004360266
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.4652612462569994
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5061526098867422
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5097594633515166
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5435300743792927
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.4912770145417952
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.494546788834255
+    },
+    {
+      "a": "ja-01",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.49471836226808297
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5667614523341706
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.428867444481049
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.4347233605308536
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.48958263487971093
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5677547007758686
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.49928903528648694
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.46292739226747937
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5478993142605001
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5740986278934653
+    },
+    {
+      "a": "ja-01",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.4535726048820292
+    },
+    {
+      "a": "ja-02",
+      "b": "ja-03",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6080240257039042
+    },
+    {
+      "a": "ja-02",
+      "b": "ja-04",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6827313469430891
+    },
+    {
+      "a": "ja-02",
+      "b": "ja-05",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.727007321301574
+    },
+    {
+      "a": "ja-02",
+      "b": "ja-06",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6621471322720364
+    },
+    {
+      "a": "ja-02",
+      "b": "ja-07",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.644581004675475
+    },
+    {
+      "a": "ja-02",
+      "b": "ja-08",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7062990245950377
+    },
+    {
+      "a": "ja-02",
+      "b": "ja-09",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6867620001688449
+    },
+    {
+      "a": "ja-02",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.5859895863807675
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.564767055345653
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5616079949651102
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5464685183301858
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5275829087897519
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5577405114589292
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5739596338420254
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6094439646796393
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5886970981860287
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5880045497541034
+    },
+    {
+      "a": "ja-02",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5368618129095498
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6171617558641357
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5047163982308647
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5537947262759848
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5104316808063113
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.545839376453683
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5527621619380685
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6215577857603815
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5442769958697733
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5487661096840047
+    },
+    {
+      "a": "ja-02",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5395288172496572
+    },
+    {
+      "a": "ja-03",
+      "b": "ja-04",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6572470948881314
+    },
+    {
+      "a": "ja-03",
+      "b": "ja-05",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7033547407044235
+    },
+    {
+      "a": "ja-03",
+      "b": "ja-06",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6532089301288095
+    },
+    {
+      "a": "ja-03",
+      "b": "ja-07",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6663844640127502
+    },
+    {
+      "a": "ja-03",
+      "b": "ja-08",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6711441229986171
+    },
+    {
+      "a": "ja-03",
+      "b": "ja-09",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6929293859410158
+    },
+    {
+      "a": "ja-03",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6620975590330954
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5482513270616088
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5236663535201159
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5441443959492747
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5811208203789725
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6397779280683502
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5552716966064003
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6060841555165777
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5878810718533131
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5916065333205451
+    },
+    {
+      "a": "ja-03",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5646254127030269
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6005407198281935
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5301468224892506
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5230600962695922
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5597557765697082
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5260392057829494
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5355221240338092
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5218158339428198
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5799324661146612
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5628287704709262
+    },
+    {
+      "a": "ja-03",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5224259017113806
+    },
+    {
+      "a": "ja-04",
+      "b": "ja-05",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7150906755277188
+    },
+    {
+      "a": "ja-04",
+      "b": "ja-06",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7316526134576178
+    },
+    {
+      "a": "ja-04",
+      "b": "ja-07",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6265660300711133
+    },
+    {
+      "a": "ja-04",
+      "b": "ja-08",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.719049529313274
+    },
+    {
+      "a": "ja-04",
+      "b": "ja-09",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7618441934607008
+    },
+    {
+      "a": "ja-04",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6157818436795569
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6016511044060818
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5704676666872056
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5703647076769265
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5576184039134428
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.606581420326843
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6029553098526422
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.598555083735524
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5959088142535004
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6164334681342308
+    },
+    {
+      "a": "ja-04",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5337110479105296
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5757787475765687
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5255582899724862
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5137244752992969
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5383299172074256
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5602434149324671
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.568939468395457
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5076890897280538
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5228232444371655
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5673169942902964
+    },
+    {
+      "a": "ja-04",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5271772526131452
+    },
+    {
+      "a": "ja-05",
+      "b": "ja-06",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6729607894652082
+    },
+    {
+      "a": "ja-05",
+      "b": "ja-07",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6910722324583848
+    },
+    {
+      "a": "ja-05",
+      "b": "ja-08",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7584544328032843
+    },
+    {
+      "a": "ja-05",
+      "b": "ja-09",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7580869824092057
+    },
+    {
+      "a": "ja-05",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7245698925747889
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6126411840155929
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5715082647595532
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.552212141508892
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5797778458201782
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6283842859192373
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6343541777678616
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6391520178083712
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.613460645994976
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6356279475877047
+    },
+    {
+      "a": "ja-05",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5510264698115394
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6507426543063937
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5394187167978964
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5900329371199904
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5655747113089463
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5654130835424664
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5812424257697467
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5499636860480958
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5691628899377548
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5995053226799707
+    },
+    {
+      "a": "ja-05",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5658982817635733
+    },
+    {
+      "a": "ja-06",
+      "b": "ja-07",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6264308164069612
+    },
+    {
+      "a": "ja-06",
+      "b": "ja-08",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6984927131105565
+    },
+    {
+      "a": "ja-06",
+      "b": "ja-09",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7598122267221036
+    },
+    {
+      "a": "ja-06",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.5891359109503095
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5454418073790827
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.4950986000467777
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.4763718444196101
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5007647895054465
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5214198665380013
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5547309923181336
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5731376682219101
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.514792448562549
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.535524939507568
+    },
+    {
+      "a": "ja-06",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5870908190027401
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5609216444565082
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.4859416199185641
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.4916337726276782
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.507126438506382
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5371992995552923
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5297960493120428
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5322143400436627
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5199506100345572
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5378423044494315
+    },
+    {
+      "a": "ja-06",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.48962566163292215
+    },
+    {
+      "a": "ja-07",
+      "b": "ja-08",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6471313606237632
+    },
+    {
+      "a": "ja-07",
+      "b": "ja-09",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.674560860685313
+    },
+    {
+      "a": "ja-07",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6589534852660603
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.600469676428456
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5568887539246142
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5130820780308846
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.545115624175689
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6190475252474039
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5848968810035107
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6183122978639453
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5495052956130025
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6310814817899001
+    },
+    {
+      "a": "ja-07",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5452814503190369
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6442384893353899
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5207220024191526
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5929037275336252
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5855068646443103
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5397793008719723
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5976521561152994
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5632273237093782
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6093620482694416
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6191770137828132
+    },
+    {
+      "a": "ja-07",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5636532394885397
+    },
+    {
+      "a": "ja-08",
+      "b": "ja-09",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.7274368728436372
+    },
+    {
+      "a": "ja-08",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6845661855719449
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6016969021194919
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5847944516364074
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5490408093773416
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.573639069080295
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6206402508529064
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5960112776180223
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.588973265493329
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6418788291324333
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5991419520803055
+    },
+    {
+      "a": "ja-08",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.561389835933381
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6052915091921326
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5720083334516122
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5675179822797757
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.542389812976511
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5969231057428704
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5843990016960932
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.548539403436123
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.553348777711151
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6126968235194585
+    },
+    {
+      "a": "ja-08",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5570500317417899
+    },
+    {
+      "a": "ja-09",
+      "b": "ja-10",
+      "bucketA": "job_application",
+      "bucketB": "job_application",
+      "sameBucket": true,
+      "cosine": 0.6305587827110131
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5724733803720231
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5373226383503121
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5366185696352401
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5928814163168226
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5956335453867233
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5713860555538179
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6249574233079508
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.599753601630885
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.576407125828158
+    },
+    {
+      "a": "ja-09",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5037150977606242
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5930255920958375
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.49036466230289966
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.500741566891111
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5362439966619912
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5263158464223756
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5517565940727398
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5064621923650093
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.556612082234393
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5668155818717471
+    },
+    {
+      "a": "ja-09",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5421118206642188
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-01",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5985734206684488
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-02",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5603480491520166
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-03",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5365080869841194
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-04",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6076268939781366
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-05",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.6564957294551085
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-06",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5858417025311304
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-07",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.568786456065003
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-08",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5750886242492137
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-09",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5996991189196673
+    },
+    {
+      "a": "ja-10",
+      "b": "dl-10",
+      "bucketA": "job_application",
+      "bucketB": "decision_log",
+      "sameBucket": false,
+      "cosine": 0.5343538673634934
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-01",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6696938552521562
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-02",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5292695773725048
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-03",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5671477626365404
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-04",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.573668039289229
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-05",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5494463909547734
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-06",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5400765348957076
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-07",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5211896511087051
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-08",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5977632636946212
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-09",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6190375727306415
+    },
+    {
+      "a": "ja-10",
+      "b": "rn-10",
+      "bucketA": "job_application",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5394999964571661
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-02",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6440762167574544
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-03",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.704260664197862
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-04",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.697075262505854
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-05",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.7126233900181701
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-06",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.7074806107060805
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-07",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6709283858473295
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-08",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6824814679413435
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-09",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.7839415911772764
+    },
+    {
+      "a": "dl-01",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5806685655495619
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.7315818497004141
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6582239655301102
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5999174295515416
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6069817111773472
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.8059118633458837
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6530799622898555
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5993269024824968
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6703392402405464
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.8250722203293923
+    },
+    {
+      "a": "dl-01",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6481909613946449
+    },
+    {
+      "a": "dl-02",
+      "b": "dl-03",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6506385389851227
+    },
+    {
+      "a": "dl-02",
+      "b": "dl-04",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6102050740913749
+    },
+    {
+      "a": "dl-02",
+      "b": "dl-05",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6060566619997495
+    },
+    {
+      "a": "dl-02",
+      "b": "dl-06",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5377203854419359
+    },
+    {
+      "a": "dl-02",
+      "b": "dl-07",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5863454924601137
+    },
+    {
+      "a": "dl-02",
+      "b": "dl-08",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6245828492457407
+    },
+    {
+      "a": "dl-02",
+      "b": "dl-09",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.642389879394162
+    },
+    {
+      "a": "dl-02",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5641219978442488
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6109217303132299
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5781706990301578
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5572746881435007
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6217356945901956
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5699306236436292
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5460804049672523
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5063752877563286
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5945455651660895
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6497867006619018
+    },
+    {
+      "a": "dl-02",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5901113729533185
+    },
+    {
+      "a": "dl-03",
+      "b": "dl-04",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6506903439008369
+    },
+    {
+      "a": "dl-03",
+      "b": "dl-05",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6284536223861288
+    },
+    {
+      "a": "dl-03",
+      "b": "dl-06",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6060268990591704
+    },
+    {
+      "a": "dl-03",
+      "b": "dl-07",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6090743017180001
+    },
+    {
+      "a": "dl-03",
+      "b": "dl-08",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.626163842997562
+    },
+    {
+      "a": "dl-03",
+      "b": "dl-09",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6178320376316254
+    },
+    {
+      "a": "dl-03",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5448333065490203
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6399731261774531
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5748038581978537
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5567062803378161
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5853231908246893
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6723253957221456
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6012665520099791
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5601745870969916
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6312154410392193
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6552258652593356
+    },
+    {
+      "a": "dl-03",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5418377013070371
+    },
+    {
+      "a": "dl-04",
+      "b": "dl-05",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.7425944870536576
+    },
+    {
+      "a": "dl-04",
+      "b": "dl-06",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6842434958654567
+    },
+    {
+      "a": "dl-04",
+      "b": "dl-07",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6601363859937902
+    },
+    {
+      "a": "dl-04",
+      "b": "dl-08",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.7551368511769913
+    },
+    {
+      "a": "dl-04",
+      "b": "dl-09",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.7360440481465745
+    },
+    {
+      "a": "dl-04",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5829022748622344
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6389639720730219
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6725608215795619
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.607244189791355
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6275684227382505
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6150620465738652
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6179974685672428
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5938900865175039
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6403920614731798
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6411098770158435
+    },
+    {
+      "a": "dl-04",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5373135500283087
+    },
+    {
+      "a": "dl-05",
+      "b": "dl-06",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6960852850642583
+    },
+    {
+      "a": "dl-05",
+      "b": "dl-07",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5857707650407267
+    },
+    {
+      "a": "dl-05",
+      "b": "dl-08",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.7343468178815248
+    },
+    {
+      "a": "dl-05",
+      "b": "dl-09",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6871032850206575
+    },
+    {
+      "a": "dl-05",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5809101897593218
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6354223976727218
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.681990363020091
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6546979460811199
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5556321817073437
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6185562913540507
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5964527098749844
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6042235244979897
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5738552369256321
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6668923462421278
+    },
+    {
+      "a": "dl-05",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5855157014579067
+    },
+    {
+      "a": "dl-06",
+      "b": "dl-07",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6581751078936138
+    },
+    {
+      "a": "dl-06",
+      "b": "dl-08",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6574703253534305
+    },
+    {
+      "a": "dl-06",
+      "b": "dl-09",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6894063143258086
+    },
+    {
+      "a": "dl-06",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.560128014073206
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6606314343434778
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6519136960846965
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.625636948356564
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.530596932075968
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6950293455086684
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6912366941527974
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6321228790642004
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6022371977396105
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6442318306413165
+    },
+    {
+      "a": "dl-06",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5882247893398498
+    },
+    {
+      "a": "dl-07",
+      "b": "dl-08",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6073451199013759
+    },
+    {
+      "a": "dl-07",
+      "b": "dl-09",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6776313871538471
+    },
+    {
+      "a": "dl-07",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.5612852770865732
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6747720371504957
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5807840010193616
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6049924675008862
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6124478684382895
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6112141038043675
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.66135514314905
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6074032551218197
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6907657232366822
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6318861011612282
+    },
+    {
+      "a": "dl-07",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6007229446075293
+    },
+    {
+      "a": "dl-08",
+      "b": "dl-09",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6998321257818887
+    },
+    {
+      "a": "dl-08",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.54129972963161
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6304562843462106
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6550229499920819
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.593827908112054
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5574359898445483
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5963193957421274
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.609621762371724
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5665804813629789
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5451366233819062
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6282014016715238
+    },
+    {
+      "a": "dl-08",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5493804198617197
+    },
+    {
+      "a": "dl-09",
+      "b": "dl-10",
+      "bucketA": "decision_log",
+      "bucketB": "decision_log",
+      "sameBucket": true,
+      "cosine": 0.6013867678618382
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6848881329385956
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.7014815492756974
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6687102354456821
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6561257245991428
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6796806963701847
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6564878740369814
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.595877856058564
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6232571009346464
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.7026416961531226
+    },
+    {
+      "a": "dl-09",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.6331673036848229
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-01",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5436020018451665
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-02",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.49965680862181105
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-03",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5035189031585816
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-04",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.47501945629889786
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-05",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5151744410131567
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-06",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.4575320278566823
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-07",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5261968542297623
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-08",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5565178047072162
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-09",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5331769769572844
+    },
+    {
+      "a": "dl-10",
+      "b": "rn-10",
+      "bucketA": "decision_log",
+      "bucketB": "research_note",
+      "sameBucket": false,
+      "cosine": 0.5066484733767392
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-02",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6479174052448444
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-03",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6728140263823829
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-04",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6289619921556312
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-05",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6760439500128015
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-06",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6872336358147758
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-07",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6163258886385388
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-08",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.7663124520359266
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-09",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.7179995282211072
+    },
+    {
+      "a": "rn-01",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6270195259367825
+    },
+    {
+      "a": "rn-02",
+      "b": "rn-03",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6907761844299174
+    },
+    {
+      "a": "rn-02",
+      "b": "rn-04",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5452650420155061
+    },
+    {
+      "a": "rn-02",
+      "b": "rn-05",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6333380999464453
+    },
+    {
+      "a": "rn-02",
+      "b": "rn-06",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6135200995432131
+    },
+    {
+      "a": "rn-02",
+      "b": "rn-07",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5751151261513832
+    },
+    {
+      "a": "rn-02",
+      "b": "rn-08",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5440125681852473
+    },
+    {
+      "a": "rn-02",
+      "b": "rn-09",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6461299198882093
+    },
+    {
+      "a": "rn-02",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5429245000104657
+    },
+    {
+      "a": "rn-03",
+      "b": "rn-04",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5746319731832995
+    },
+    {
+      "a": "rn-03",
+      "b": "rn-05",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5740118004302189
+    },
+    {
+      "a": "rn-03",
+      "b": "rn-06",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5819297551254589
+    },
+    {
+      "a": "rn-03",
+      "b": "rn-07",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6130548311484536
+    },
+    {
+      "a": "rn-03",
+      "b": "rn-08",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.568029639121128
+    },
+    {
+      "a": "rn-03",
+      "b": "rn-09",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6265563621050089
+    },
+    {
+      "a": "rn-03",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5840089345426974
+    },
+    {
+      "a": "rn-04",
+      "b": "rn-05",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6036102910772936
+    },
+    {
+      "a": "rn-04",
+      "b": "rn-06",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5626699969140208
+    },
+    {
+      "a": "rn-04",
+      "b": "rn-07",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5418738220555381
+    },
+    {
+      "a": "rn-04",
+      "b": "rn-08",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.70916189391053
+    },
+    {
+      "a": "rn-04",
+      "b": "rn-09",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6059212323660366
+    },
+    {
+      "a": "rn-04",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5292746060916611
+    },
+    {
+      "a": "rn-05",
+      "b": "rn-06",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6919340147097021
+    },
+    {
+      "a": "rn-05",
+      "b": "rn-07",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5715766888177841
+    },
+    {
+      "a": "rn-05",
+      "b": "rn-08",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6502587460386956
+    },
+    {
+      "a": "rn-05",
+      "b": "rn-09",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6855847652272021
+    },
+    {
+      "a": "rn-05",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5995918637274281
+    },
+    {
+      "a": "rn-06",
+      "b": "rn-07",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5746559899651935
+    },
+    {
+      "a": "rn-06",
+      "b": "rn-08",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6038424784997405
+    },
+    {
+      "a": "rn-06",
+      "b": "rn-09",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6271259173662401
+    },
+    {
+      "a": "rn-06",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5515088304737685
+    },
+    {
+      "a": "rn-07",
+      "b": "rn-08",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.5914481816338153
+    },
+    {
+      "a": "rn-07",
+      "b": "rn-09",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6106570553458005
+    },
+    {
+      "a": "rn-07",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.548673350668655
+    },
+    {
+      "a": "rn-08",
+      "b": "rn-09",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6593881100050063
+    },
+    {
+      "a": "rn-08",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.586925647321084
+    },
+    {
+      "a": "rn-09",
+      "b": "rn-10",
+      "bucketA": "research_note",
+      "bucketB": "research_note",
+      "sameBucket": true,
+      "cosine": 0.6537145612138289
+    }
+  ],
+  "aggregate": {
+    "intra": {
+      "n": 135,
+      "mean": 0.6472000423999632,
+      "min": 0.5292746060916611,
+      "p25": 0.602498529469566,
+      "median": 0.6479174052448444,
+      "p75": 0.6915031235840434,
+      "max": 0.7839415911772764
+    },
+    "inter": {
+      "n": 300,
+      "mean": 0.5776199985314833,
+      "min": 0.428867444481049,
+      "p25": 0.5400022263897738,
+      "median": 0.5728055242969666,
+      "p75": 0.6094884141026605,
+      "max": 0.8250722203293923
+    },
+    "delta": 0.06958004386847993,
+    "iqrOverlap": true,
+    "byBucket": {
+      "job_application": {
+        "n": 45,
+        "mean": 0.6815726443769428,
+        "min": 0.5859895863807675,
+        "p25": 0.6471313606237632,
+        "median": 0.6827313469430891,
+        "p75": 0.7245698925747889,
+        "max": 0.7788897393231512
+      },
+      "decision_log": {
+        "n": 45,
+        "mean": 0.6441756765185359,
+        "min": 0.5377203854419359,
+        "p25": 0.6013867678618382,
+        "median": 0.6440762167574544,
+        "p75": 0.6894063143258086,
+        "max": 0.7839415911772764
+      },
+      "research_note": {
+        "n": 45,
+        "mean": 0.6158518063044104,
+        "min": 0.5292746060916611,
+        "p25": 0.5746319731832995,
+        "median": 0.6106570553458005,
+        "p75": 0.6502587460386956,
+        "max": 0.7663124520359266
+      }
+    }
+  },
+  "gate": {
+    "gate": "BORDERLINE",
+    "verdict": "PARTIAL",
+    "message": "Mean delta 0.0696 (0.05-0.10). Embeddings discriminate buckets but signal is weaker than expected — hybrid ranking required."
+  }
+}

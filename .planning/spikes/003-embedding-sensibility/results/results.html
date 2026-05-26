@@ -1,0 +1,36 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Spike 003 results</title>
+<style>body{font-family:system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#0f172a}
+.gate{padding:1rem;border-radius:8px;margin:1rem 0}
+.PASS{background:#dcfce7;border:1px solid #16a34a}
+.BORDERLINE{background:#fef9c3;border:1px solid #ca8a04}
+.FAIL{background:#fee2e2;border:1px solid #dc2626}
+table{border-collapse:collapse;margin:1rem 0;width:100%}
+th,td{border:1px solid #e2e8f0;padding:6px 12px;font-size:14px;text-align:left}</style></head><body>
+<h1>Spike 003 — Embedding Sensibility</h1>
+<p style="color:#64748b">Workers AI <code>@cf/baai/bge-base-en-v1.5</code> (768d, cosine) · 2026-05-26T17:48:00.727Z</p>
+<div class="gate BORDERLINE">
+  <strong>BORDERLINE — PARTIAL</strong>
+  <p>Delta (intra.mean − inter.mean): <code>0.0696</code> · IQR overlap: yes</p>
+  <p>Mean delta 0.0696 (0.05-0.10). Embeddings discriminate buckets but signal is weaker than expected — hybrid ranking required.</p>
+</div>
+<h2>Distribution stats</h2>
+<table><thead><tr><th>Population</th><th>N</th><th>Mean</th><th>Median</th><th>IQR</th><th>Range</th></tr></thead><tbody><tr style="color:#16a34a">
+      <td>Intra-bucket (same bucket)</td><td>135</td>
+      <td>0.6472</td>
+      <td>0.6479</td>
+      <td>[0.602, 0.692]</td>
+      <td>[0.529, 0.784]</td>
+    </tr><tr style="color:#dc2626">
+      <td>Inter-bucket (different bucket)</td><td>300</td>
+      <td>0.5776</td>
+      <td>0.5728</td>
+      <td>[0.540, 0.609]</td>
+      <td>[0.429, 0.825]</td>
+    </tr></tbody></table>
+<h2>Per-bucket intra-cosine</h2>
+<table><thead><tr><th>Bucket</th><th>N pairs</th><th>Mean</th><th>Median</th><th>IQR</th></tr></thead><tbody><tr><td>job_application</td><td>45</td><td>0.6816</td><td>0.6827</td><td>[0.647, 0.725]</td></tr><tr><td>decision_log</td><td>45</td><td>0.6442</td><td>0.6441</td><td>[0.601, 0.689]</td></tr><tr><td>research_note</td><td>45</td><td>0.6159</td><td>0.6107</td><td>[0.575, 0.650]</td></tr></tbody></table>
+<h2>Top-10 closest cross-bucket pairs (the false-positive risk surface)</h2>
+<table><thead><tr><th>Sample A</th><th>Sample B</th><th>Cosine</th></tr></thead><tbody><tr><td>dl-01 (decision_log)</td><td>rn-09 (research_note)</td><td>0.8251</td></tr><tr><td>dl-01 (decision_log)</td><td>rn-05 (research_note)</td><td>0.8059</td></tr><tr><td>dl-01 (decision_log)</td><td>rn-01 (research_note)</td><td>0.7316</td></tr><tr><td>dl-09 (decision_log)</td><td>rn-09 (research_note)</td><td>0.7026</td></tr><tr><td>dl-09 (decision_log)</td><td>rn-02 (research_note)</td><td>0.7015</td></tr><tr><td>dl-06 (decision_log)</td><td>rn-05 (research_note)</td><td>0.6950</td></tr><tr><td>dl-06 (decision_log)</td><td>rn-06 (research_note)</td><td>0.6912</td></tr><tr><td>dl-07 (decision_log)</td><td>rn-08 (research_note)</td><td>0.6908</td></tr><tr><td>dl-09 (decision_log)</td><td>rn-01 (research_note)</td><td>0.6849</td></tr><tr><td>dl-05 (decision_log)</td><td>rn-02 (research_note)</td><td>0.6820</td></tr></tbody></table>
+<h2>Bottom-10 weakest intra-bucket pairs (the false-negative risk surface)</h2>
+<table><thead><tr><th>Sample A</th><th>Sample B</th><th>Bucket</th><th>Cosine</th></tr></thead><tbody><tr><td>rn-04</td><td>rn-10</td><td>research_note</td><td>0.5293</td></tr><tr><td>dl-02</td><td>dl-06</td><td>decision_log</td><td>0.5377</td></tr><tr><td>dl-08</td><td>dl-10</td><td>decision_log</td><td>0.5413</td></tr><tr><td>rn-04</td><td>rn-07</td><td>research_note</td><td>0.5419</td></tr><tr><td>rn-02</td><td>rn-10</td><td>research_note</td><td>0.5429</td></tr><tr><td>rn-02</td><td>rn-08</td><td>research_note</td><td>0.5440</td></tr><tr><td>dl-03</td><td>dl-10</td><td>decision_log</td><td>0.5448</td></tr><tr><td>rn-02</td><td>rn-04</td><td>research_note</td><td>0.5453</td></tr><tr><td>rn-07</td><td>rn-10</td><td>research_note</td><td>0.5487</td></tr><tr><td>rn-06</td><td>rn-10</td><td>research_note</td><td>0.5515</td></tr></tbody></table>
+</body></html>
