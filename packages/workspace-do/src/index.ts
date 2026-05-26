@@ -64,19 +64,29 @@
  */
 import { DurableObject } from "cloudflare:workers";
 
+import type { Memory, Conflict } from "@engram/types";
+
 import { runMigrations } from "./migrations.js";
 import { seedSystemTypes } from "./seeding.js";
+import {
+  insertBlock as insertBlockQuery,
+  getBlock as getBlockQuery,
+  lexicalSearchBlocks as lexicalSearchBlocksQuery,
+  deleteBlock as deleteBlockQuery,
+  listMemoryTypes as listMemoryTypesQuery,
+  createInboxEntry as createInboxEntryQuery,
+  listConflicts as listConflictsQuery,
+} from "./queries.js";
+import type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
 
-// Re-export the NotFoundError class from the package barrel so consumers can
-// `import { WorkspaceDO, NotFoundError } from "@engram/workspace-do"` once
-// Plan 02-05's typed query helpers (which throw it on single-row miss per
-// D-02) land. The errors.ts module itself is created by Plan 02-05; this
-// re-export is forward-staged here so the barrel surface is stable across
-// the Plan 02-05 transition.
-// NOTE (Plan 02-04): the `./errors.js` module does not yet exist; Plan 02-05
-// will create it AND uncomment this re-export. Keeping it commented for now
-// keeps the package barrel typecheck-clean.
-// export { NotFoundError } from "./errors.js";
+// Plan 02-05 lands the typed query helpers (./queries.js + ./types.js +
+// ./errors.js) and exposes them as instance methods on WorkspaceDO. The
+// re-exports below give consumers a single barrel for the public surface:
+// `import { WorkspaceDO, NotFoundError, type Memory, type Conflict,
+// type MemoryType, type InboxEntry, type LexicalSearchHit } from
+// "@engram/workspace-do"`.
+export { NotFoundError } from "./errors.js";
+export type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
 
 export class WorkspaceDO extends DurableObject<unknown> {
   constructor(ctx: DurableObjectState, env: unknown) {
@@ -97,9 +107,74 @@ export class WorkspaceDO extends DurableObject<unknown> {
     });
     /* eslint-enable @typescript-eslint/require-await */
   }
-  // Plan 02-05 adds the typed query helpers as instance methods on this class
-  // (insertBlock, getBlock, lexicalSearchBlocks, deleteBlock, listMemoryTypes,
-  // createInboxEntry, listConflicts).
+
+  // -------------------------------------------------------------------------
+  // STO-06 typed query helpers (Plan 02-05) exposed as instance methods.
+  //
+  // Every method takes its first arg as an object whose first field is
+  // `workspace_id: string`. The uniform shape is the contract Plan 02-06
+  // depends on — its guard wiring will prepend
+  // `this.assertOwnsWorkspace(args.workspace_id)` as the first executable
+  // line of every method below. The `// TODO Plan 06` markers are the
+  // explicit insertion points.
+  //
+  // Method bodies delegate to the corresponding `./queries.js` function
+  // (renamed on import to avoid shadowing). The methods themselves do not
+  // touch SQL directly — keeping the data-plane logic in `queries.ts` and
+  // the authorization/orchestration logic here.
+  // -------------------------------------------------------------------------
+
+  insertBlock(args: { workspace_id: string; block: Memory }): void {
+    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    insertBlockQuery(this.ctx.storage.sql, args.block);
+  }
+
+  getBlock(args: { workspace_id: string; id: string }): Memory {
+    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    return getBlockQuery(this.ctx.storage.sql, args.id);
+  }
+
+  // prettier-ignore -- keep `args: { workspace_id: string` on the signature line so Plan 06's grep verifier matches all 7 methods uniformly.
+  lexicalSearchBlocks(args: {
+    workspace_id: string;
+    query: string;
+    limit?: number;
+  }): LexicalSearchHit[] {
+    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    return lexicalSearchBlocksQuery(this.ctx.storage.sql, args.query, args.limit);
+  }
+
+  deleteBlock(args: { workspace_id: string; id: string; cascade?: boolean }): {
+    blocks_deleted: number;
+    relations_deleted: number;
+  } {
+    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    return deleteBlockQuery(this.ctx.storage.sql, args.id, args.cascade ?? true);
+  }
+
+  listMemoryTypes(args: { workspace_id: string }): MemoryType[] {
+    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    void args;
+    return listMemoryTypesQuery(this.ctx.storage.sql);
+  }
+
+  createInboxEntry(args: { workspace_id: string; entry: InboxEntry }): void {
+    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    createInboxEntryQuery(this.ctx.storage.sql, args.entry);
+  }
+
+  // prettier-ignore -- keep `args: { workspace_id: string` on the signature line so Plan 06's grep verifier matches all 7 methods uniformly.
+  listConflicts(args: { workspace_id: string; resolved?: boolean; limit?: number }): Conflict[] {
+    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    // Build opts conditionally so we only pass defined keys — strict
+    // exactOptionalPropertyTypes forbids `{ key: undefined }` literals.
+    const opts: { resolved?: boolean; limit?: number } = {};
+    if (args.resolved !== undefined) opts.resolved = args.resolved;
+    if (args.limit !== undefined) opts.limit = args.limit;
+    return listConflictsQuery(this.ctx.storage.sql, opts);
+  }
+
   // Plan 02-06 adds the `assertOwnsWorkspace(workspaceId)` defense-in-depth
-  // helper that every public method calls first.
+  // helper. Each method above will prepend a call to it as the first
+  // executable line.
 }

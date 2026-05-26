@@ -1,58 +1,271 @@
 /**
- * STO-06 test stubs — typed query helpers (one `it` per helper).
+ * STO-06 — typed query helpers GREEN tests (one `it` per helper).
  *
- * RED scaffold for Plan 02-04 (query helpers). Seven distinct cases — exactly
- * one per helper. Plan 02-04 fills in each body; the count is verified by the
- * Wave-0 acceptance criteria (helpers.test.ts must contain exactly 7 `it`s).
+ * Each test exercises one of the 7 helpers Plan 02-05 adds to `WorkspaceDO`
+ * via the live workerd runtime (`@cloudflare/vitest-pool-workers`). No mocks
+ * — `runInDurableObject` returns a real instance + state and the assertions
+ * run against the actual SQLite store.
  *
- * Helper list (locked from STO-06 + D-01/D-02/D-03):
- *   1. insertBlock(block)         — write path, JSON-stringify properties.
- *   2. getBlock(id)               — single-row read, throws NotFoundError on miss.
- *   3. lexicalSearchBlocks(query) — LIKE-based search returning LexicalSearchHit[].
- *   4. deleteBlock(id)            — cascade delete to relations table.
- *   5. listMemoryTypes()          — list helper returning MemoryType[].
- *   6. createInboxEntry(entry)    — write path for low-confidence captures.
- *   7. listConflicts()            — list helper returning Conflict[].
+ * Plan 02-06 guard compatibility: every test's `args.workspace_id` value
+ * EQUALS the `idFromName` string used to obtain the DO. Plan 02-06's guard
+ * fires on a workspace-id mismatch, so this convention keeps the tests
+ * passing once the guard wires in (the orchestration note from the plan
+ * frontmatter — verified by grep before commit).
+ *
+ * Cursor conventions per 02-PATTERNS.md Shared Pattern A:
+ * - `.toArray()` for list reads; `.one()` for COUNT queries.
+ * - Never mix with `.next()` (Pitfall 7).
  *
  * @module @engram/workspace-do/__tests__/helpers
  */
+import { runInDurableObject } from "cloudflare:test";
+import { env } from "cloudflare:workers";
 import { describe, it, expect } from "vitest";
 
-// Wave-0 NOTE: implementation imports resolved in Plan 02-04.
-//   import { runInDurableObject } from "cloudflare:test";
-//   import { env } from "cloudflare:workers";
-//   import { WorkspaceDO } from "../index.js";
-//   import { NotFoundError } from "../errors.js";
+import type { Memory } from "@engram/types";
 
-describe("query helpers (STO-06)", () => {
-  it.skip("insertBlock writes a block + round-trips JSON properties (STO-06 — Plan 02-04)", () => {
-    expect.fail("not yet implemented — Plan 02-04");
+import { NotFoundError } from "../errors.js";
+import type { WorkspaceDO } from "../index.js";
+import type { InboxEntry } from "../types.js";
+
+// Type-coercion shim: the `runInDurableObject` callback parameter is typed as
+// the constraint upper bound `DurableObject | Rpc.DurableObject` rather than
+// our concrete `WorkspaceDO` subclass (the constraint widens because the base
+// class's `env: Env` parameter is invariant and our `extends DurableObject<unknown>`
+// instantiates Env = unknown, not Cloudflare.Env). At runtime the instance IS
+// a `WorkspaceDO`; this cast is a TS-level narrowing only. Centralizing in
+// one helper keeps the workaround visible and easy to remove if a future
+// `cloudflare:test` release relaxes the constraint.
+function asWorkspaceDO(instance: unknown): WorkspaceDO {
+  return instance as WorkspaceDO;
+}
+
+// Helper: construct a fully-populated `Memory` fixture with deterministic
+// timestamps so deep-equal assertions across the JSON round-trip are stable.
+function makeBlock(overrides: Partial<Memory> & Pick<Memory, "id">): Memory {
+  const now = 1_700_000_000_000;
+  return {
+    id: overrides.id,
+    type: overrides.type ?? "research_note",
+    content: overrides.content ?? "test content",
+    summary: overrides.summary ?? "test summary",
+    properties: overrides.properties === undefined ? { foo: "bar", n: 42 } : overrides.properties,
+    embedding_id: overrides.embedding_id ?? null,
+    scope: overrides.scope ?? "personal",
+    project_id: overrides.project_id ?? null,
+    source: overrides.source ?? "mcp:test",
+    confidence: overrides.confidence ?? 0.95,
+    created_at: overrides.created_at ?? now,
+    updated_at: overrides.updated_at ?? now,
+  };
+}
+
+describe("WorkspaceDO typed query helpers (STO-06)", () => {
+  it("insertBlock writes a row and getBlock returns it (JSON round-trip)", async () => {
+    const workspace_id = "ws-helpers-insert-get";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance) => {
+      const ws = asWorkspaceDO(instance);
+      const block = makeBlock({
+        id: "blk-insert-001",
+        properties: { company: "Acme", role: "Eng", nested: { k: "v" } },
+      });
+      ws.insertBlock({ workspace_id, block });
+
+      const fetched = ws.getBlock({ workspace_id, id: block.id });
+      // Deep-equal asserts the JSON round-trip on properties survived.
+      expect(fetched).toEqual(block);
+      // Belt-and-braces: properties is a parsed object, not a JSON string.
+      expect(typeof fetched.properties).toBe("object");
+      expect(fetched.properties).toEqual({
+        company: "Acme",
+        role: "Eng",
+        nested: { k: "v" },
+      });
+    });
   });
 
-  it.skip("getBlock(id) returns the typed Memory shape (STO-06 — Plan 02-04)", () => {
-    // Also: getBlock(missing_id) throws `NotFoundError` (resource='block', id=missing_id).
-    expect.fail("not yet implemented — Plan 02-04");
+  it("getBlock throws NotFoundError on miss with resource='block'", async () => {
+    const workspace_id = "ws-helpers-notfound";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance) => {
+      const ws = asWorkspaceDO(instance);
+      let caught: unknown = undefined;
+      try {
+        ws.getBlock({ workspace_id, id: "does-not-exist" });
+      } catch (err) {
+        caught = err;
+      }
+      expect(caught).toBeInstanceOf(NotFoundError);
+      expect((caught as NotFoundError).resource).toBe("block");
+      expect((caught as NotFoundError).id).toBe("does-not-exist");
+    });
   });
 
-  it.skip("lexicalSearchBlocks(query) returns LexicalSearchHit[] ranked by recency (STO-06 — Plan 02-04)", () => {
-    expect.fail("not yet implemented — Plan 02-04");
+  it("lexicalSearchBlocks returns LIKE matches and [] on no match", async () => {
+    const workspace_id = "ws-helpers-lexical";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance) => {
+      const ws = asWorkspaceDO(instance);
+      ws.insertBlock({
+        workspace_id,
+        block: makeBlock({ id: "blk-lex-001", content: "the needle is here", summary: null }),
+      });
+      ws.insertBlock({
+        workspace_id,
+        block: makeBlock({ id: "blk-lex-002", content: "totally unrelated", summary: null }),
+      });
+
+      const hits = ws.lexicalSearchBlocks({ workspace_id, query: "needle" });
+      expect(hits.length).toBe(1);
+      expect(hits[0]?.id).toBe("blk-lex-001");
+      // v0.1 snippet contract: always null until Phase 4.
+      expect(hits[0]?.snippet).toBeNull();
+
+      const empty = ws.lexicalSearchBlocks({ workspace_id, query: "zzz-no-match-zzz" });
+      expect(empty).toEqual([]);
+    });
   });
 
-  it.skip("deleteBlock(id) cascades to relations.from_id and relations.to_id (STO-06 — Plan 02-04)", () => {
-    // Insert block + 2 relations referencing it; deleteBlock removes the block
-    // AND both relations. COUNT(*) FROM relations WHERE from_id=? OR to_id=? = 0.
-    expect.fail("not yet implemented — Plan 02-04");
+  it("deleteBlock cascades to relations when cascade=true (default)", async () => {
+    const workspace_id = "ws-helpers-delete";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      const blockId = "blk-del-001";
+      ws.insertBlock({ workspace_id, block: makeBlock({ id: blockId }) });
+      // Insert a relation row directly so we can assert cascade.
+      state.storage.sql.exec(
+        "INSERT INTO relations (from_id, to_id, relationship, created_at) VALUES (?, ?, ?, ?)",
+        blockId,
+        "other-block",
+        "knows",
+        Date.now(),
+      );
+
+      const result = ws.deleteBlock({ workspace_id, id: blockId });
+      expect(result.blocks_deleted).toBe(1);
+      expect(result.relations_deleted).toBe(1);
+
+      // Block is gone: getBlock now throws.
+      let caught: unknown = undefined;
+      try {
+        ws.getBlock({ workspace_id, id: blockId });
+      } catch (err) {
+        caught = err;
+      }
+      expect(caught).toBeInstanceOf(NotFoundError);
+
+      // Cascade left zero rows in relations.
+      const relCount = state.storage.sql
+        .exec(
+          "SELECT COUNT(*) AS n FROM relations WHERE from_id = ? OR to_id = ?",
+          blockId,
+          blockId,
+        )
+        .one();
+      expect(relCount.n).toBe(0);
+    });
   });
 
-  it.skip("listMemoryTypes() returns 7 system types post-seed (STO-06 — Plan 02-04)", () => {
-    expect.fail("not yet implemented — Plan 02-04");
+  it("listMemoryTypes returns the 7 system types post-seed", async () => {
+    const workspace_id = "ws-helpers-list-types";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance) => {
+      const ws = asWorkspaceDO(instance);
+      const types = ws.listMemoryTypes({ workspace_id });
+      expect(types.length).toBe(7);
+      // job_application is the first system type per CLAUDE.md §"Memory Types".
+      const ids = types.map((t) => t.id);
+      expect(ids).toContain("job_application");
+      // Every system type's fields was parsed from JSON (not a raw string).
+      for (const t of types) {
+        expect(typeof t.fields).toBe("object");
+        expect(t.source).toBe("system");
+        expect(t.workspace_id).toBeNull();
+      }
+    });
   });
 
-  it.skip("createInboxEntry(entry) writes a low-confidence capture (STO-06 — Plan 02-04)", () => {
-    expect.fail("not yet implemented — Plan 02-04");
+  it("createInboxEntry writes a row that survives readback (JSON round-trip)", async () => {
+    const workspace_id = "ws-helpers-inbox";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      const entry: InboxEntry = {
+        id: "inbox-001",
+        content: "saw an interesting role posted",
+        proposed_type: "job_application",
+        proposed_properties: { company: "Acme", role: "Eng" },
+        memorability_score: 0.55,
+        source: "mcp:test",
+        created_at: 1_700_000_000_000,
+      };
+      ws.createInboxEntry({ workspace_id, entry });
+
+      // Read back via raw SQL — Phase 2 has no getInboxEntry helper (Phase 3
+      // inbox-management tools own that surface).
+      const row = state.storage.sql
+        .exec("SELECT id, proposed_properties FROM inbox WHERE id = ?", entry.id)
+        .one();
+      expect(row.id).toBe(entry.id);
+      expect(typeof row.proposed_properties).toBe("string");
+      const parsed = JSON.parse(row.proposed_properties as string) as Record<string, unknown>;
+      expect(parsed).toEqual({ company: "Acme", role: "Eng" });
+    });
   });
 
-  it.skip("listConflicts() returns Conflict[] sorted by detected_at (STO-06 — Plan 02-04)", () => {
-    expect.fail("not yet implemented — Plan 02-04");
+  it("listConflicts returns rows ordered by detected_at DESC and supports resolved filter", async () => {
+    const workspace_id = "ws-helpers-conflicts";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      // Insert two conflicts directly: one unresolved (resolved_at = NULL),
+      // one resolved (resolved_at = a timestamp). Use distinct detected_at
+      // values so ORDER BY DESC is deterministic.
+      state.storage.sql.exec(
+        "INSERT INTO conflicts (id, memory_a_id, memory_b_id, description, severity, detected_at, resolved_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "cnf-open",
+        "mem-a",
+        "mem-b",
+        "open conflict",
+        "high",
+        2_000,
+        null,
+      );
+      state.storage.sql.exec(
+        "INSERT INTO conflicts (id, memory_a_id, memory_b_id, description, severity, detected_at, resolved_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "cnf-resolved",
+        "mem-c",
+        "mem-d",
+        "resolved conflict",
+        "low",
+        1_000,
+        1_500,
+      );
+
+      const all = ws.listConflicts({ workspace_id });
+      expect(all.length).toBe(2);
+      // DESC ordering: cnf-open (detected_at=2000) before cnf-resolved (1000).
+      expect(all[0]?.id).toBe("cnf-open");
+      expect(all[1]?.id).toBe("cnf-resolved");
+
+      const unresolved = ws.listConflicts({ workspace_id, resolved: false });
+      expect(unresolved.length).toBe(1);
+      expect(unresolved[0]?.id).toBe("cnf-open");
+      expect(unresolved[0]?.resolved_at).toBeNull();
+
+      const resolved = ws.listConflicts({ workspace_id, resolved: true });
+      expect(resolved.length).toBe(1);
+      expect(resolved[0]?.id).toBe("cnf-resolved");
+      expect(resolved[0]?.resolved_at).toBe(1_500);
+    });
   });
 });
