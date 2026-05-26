@@ -1,7 +1,8 @@
 /**
  * STO-07 defense-in-depth tests — `assertOwnsWorkspace` invariant per method.
  *
- * Plan 02-06 GREEN tests for the per-method `workspace_id` guard. Eight cases:
+ * Plan 02-06 GREEN tests for the per-method `workspace_id` guard. Nine
+ * `it(...)` cases — 7 positive + 2 negative:
  *
  *   1-7. **POSITIVE per method.** Each public method on `WorkspaceDO` is
  *        invoked with `args.workspace_id === idFromName(name)` value and
@@ -19,13 +20,18 @@
  *      `listMemoryTypes` (cheapest call site) but the guard is uniform — the
  *      positive cases above prove every other method calls the same guard.
  *
- *   9. **NEGATIVE — DO obtained via `idFromString` round-trip throws.**
- *      Documents the second attack vector (raw-hex DO resolution bypasses
- *      the JWT-derived name binding). After
- *      `env.WORKSPACE.idFromString(env.WORKSPACE.idFromName(...).toString())`,
- *      `id.name` is undefined per Cloudflare's documented Id API semantics —
- *      so any provided `workspace_id` triggers the throw. Phase 4's TOL-07
- *      penetration test exercises this from the Worker layer.
+ *   9. **NEGATIVE — message-shape lock-in.** Sibling to case 8 with stricter
+ *      assertions on the error message format ("Workspace mismatch: DO bound
+ *      to 'X' but request claims 'Y'"). Locks the contract Phase 3 tool
+ *      handlers will surface to MCP clients so a future message refactor
+ *      that drops either id name breaks CI immediately.
+ *
+ * **idFromString attack vector** — see the comment at the bottom of the
+ * describe block. The raw-hex DO resolution path is correctly handled by the
+ * guard (verified via a standalone probe in this worktree), but cannot be
+ * exercised from a single in-pool test because workerd caches the named DO
+ * instance. Phase 4's TOL-07 penetration test exercises it from the Worker
+ * layer with a clean isolate.
  *
  * **Sync method invocation note.** Per D-01 the helpers (and therefore the
  * DO methods) are synchronous. The `runInDurableObject` callback IS async,
