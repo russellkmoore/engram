@@ -4,22 +4,21 @@ plan: 06
 task: 2
 artifact: smoke-test-record
 requirement: MCP-09
-status: deferred
-deferred_at: 2026-05-26
-deferred_by: russell (user)
-defer_reason: "User elected to defer the live MCP Inspector smoke against `wrangler dev`; the smoke gate stays open until performed."
-target_unblock: "Before /gsd:ship for Phase 03 (must close MCP-09 acceptance criterion before the phase can be PR'd and merged toward the v0.1 milestone)."
+status: resolved
+resolved_at: 2026-05-26
 ---
 
-# MCP Inspector Smoke Test — Plan 03-06 Task 2 (DEFERRED)
+# MCP Inspector Smoke Test — Plan 03-06 Task 2 (RESOLVED)
 
 ## Status
 
-**DEFERRED — not yet performed.** Russell elected to defer the live smoke test during the
-`/gsd:execute-phase 3` checkpoint on 2026-05-26. Plan 03-06 is being closed with Task 1
-(README documentation) complete and Task 2 (smoke test) tracked as an open UAT item.
+**RESOLVED — smoke completed 2026-05-26.** The live MCP Inspector smoke was performed
+against `wrangler dev` (pure local mode) on 2026-05-26 after an earlier same-day deferral
+during `/gsd:execute-phase 3`. All 7 acceptance criteria passed. See `## Smoke Run` below
+for outcome detail and `Deviations` for two documentation/script defects that fold into the
+CR-01 follow-up.
 
-## What needs to happen before this becomes RESOLVED
+## Procedure (followed — minor deviations noted below in ## Smoke Run)
 
 Follow the procedure in [`packages/mcp-server/README.md`](../../../packages/mcp-server/README.md)
 §"Smoke Test: MCP Inspector" (committed in `1ad8abd`). Quick reference:
@@ -90,6 +89,23 @@ capturing:
    Any unexpected behavior from the OAuth library?).
 
 Then commit with `test(03-06): record MCP Inspector smoke outcome (resolves MCP-09)`.
+## Smoke Run
+
+- **Date:** 2026-05-26
+- **Mode:** `wrangler dev` (pure local mode — see Deviation 1)
+- **Observed OAuth `sub`:** `rJkmmoWYMRb5fW6Q` (resolves RESEARCH Open Question 3 — `mcp-remote`'s dynamic-registered Inspector client uses a short opaque token, not a JWT-shaped value)
+- **OAuth dance:** completed (after local KV bootstrap; see Deviation 2)
+- **Tools listed:** 5 (`remember`, `recall`, `search`, `forget`, `ingest`) — exact count, exact names
+- **Per-tool error shape (all verified by clicking each tool in Inspector):**
+  - `remember` → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-01)`
+  - `recall`   → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-02)`
+  - `search`   → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-03)`
+  - `forget`   → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-04)`
+  - `ingest`   → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-05)`
+- **Deviations from README procedure** (both fold into CR-01 fix queue):
+  1. **README's `wrangler dev --remote` recommendation breaks Inspector smoke.** The OAuth Protected Resource Metadata endpoint (RFC 9728 `/.well-known/oauth-protected-resource`) returns the edge hostname as the `resource` field when running `--remote` (because the Worker sees `request.url` as the Cloudflare edge URL `https://engram-mcp-server.russellkmoore.workers.dev/mcp`, not `http://localhost:8787/mcp`). MCP Inspector rejects with `Failed to start OAuth flow: Protected resource ... does not match expected http://localhost:8787/mcp (or origin)`. Switched to pure local `wrangler dev` (no `--remote`) — the OAuth metadata then advertises `http://localhost:8787` as resource, matching Inspector's connect URL. README needs the `--remote` recommendation removed from the smoke section and replaced with pure-local + local KV bootstrap.
+  2. **`scripts/kv-bootstrap.mjs` lacks a `--local` flag.** Forwarding `--local` to the script errors with `unknown argument: --local` because the script only knows the remote-write path (`npx wrangler kv key put ... --remote`). For the local-mode smoke we had to bypass the script and call wrangler directly: `npx wrangler kv key put --binding=ENGRAM_IDENTITIES --local '<sub>' '<json>'` from `packages/mcp-server/`. The script should accept `--local` and propagate it to its subprocess invocation.
+
 
 ## Cross-references
 
@@ -102,12 +118,12 @@ Then commit with `test(03-06): record MCP Inspector smoke outcome (resolves MCP-
 
 ## Effect on Phase 03 closure
 
-Phase 03 (`mcp-server-scaffold`) closes with **MCP-09 open** as a documented UAT/deferral.
-All structural verification gates pass (build, lint, typecheck, all 4 RED test files GREEN
-totaling 48/48 mcp-server tests, no Phase 2 regression). The smoke is a runtime-behavior
-gate against a real workerd instance — required before `/gsd:ship` packages Phase 03 into a
-PR for the v0.1 milestone.
+Phase 03 (`mcp-server-scaffold`) is **fully closed as of 2026-05-26** — MCP-09 RESOLVED,
+all 7 acceptance criteria GREEN against a real workerd instance. Structural gates already
+passed at end-of-execute (build, lint, typecheck, 48/48 mcp-server tests, no Phase 2
+regression); this smoke closes the runtime-behavior gate.
 
-Recommended unblock path: Russell runs the smoke at his next session start and updates this
-file in place. No new phase or executor agent is required for the unblock — it's a 10-minute
-manual step + a frontmatter edit + a single commit.
+The two README/script defects surfaced by the smoke (Deviation 1 + Deviation 2 above) are
+queued for the CR-01 follow-up via `/gsd:code-review 3 --fix` and do not block `/gsd:ship`
+— they are documentation and script ergonomics improvements, not correctness defects in the
+shipped Worker.
