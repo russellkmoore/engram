@@ -6,13 +6,21 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "types:gen": "wrangler types"
+    "types:gen": "wrangler types",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "agents": "^0.13.2",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@cloudflare/workers-oauth-provider": "0.7.0",
+    "zod": "^4.0.0",
     "@engram/types": "*",
     "@engram/schema": "*",
     "@engram/workspace-do": "*"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.16.9",
+    "vitest": "^4.1.7"
   }
 }
