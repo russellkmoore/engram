@@ -1,5 +1,6 @@
 {
   "*.{ts,mts,cts,js,mjs,cjs}": ["eslint --fix", "prettier --write"],
   "*.{json,jsonc,md,yaml,yml}": ["prettier --write"],
-  "**/wrangler.jsonc": ["node scripts/lint-wrangler.mjs"]
+  "**/wrangler.jsonc": ["node scripts/lint-wrangler.mjs"],
+  "packages/workspace-do/src/**/*.ts": ["node scripts/lint-blockconcurrency.mjs"]
 }
