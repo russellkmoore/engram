@@ -4,11 +4,8 @@ plan: 06
 task: 2
 artifact: smoke-test-record
 requirement: MCP-09
-status: deferred
-deferred_at: 2026-05-26
-deferred_by: russell (user)
-defer_reason: "User elected to defer the live MCP Inspector smoke against `wrangler dev`; the smoke gate stays open until performed."
-target_unblock: "Before /gsd:ship for Phase 03 (must close MCP-09 acceptance criterion before the phase can be PR'd and merged toward the v0.1 milestone)."
+status: resolved
+resolved_ao: 2026-05-26
 ---
 
 # MCP Inspector Smoke Test — Plan 03-06 Task 2 (DEFERRED)
@@ -90,6 +87,21 @@ capturing:
    Any unexpected behavior from the OAuth library?).
 
 Then commit with `test(03-06): record MCP Inspector smoke outcome (resolves MCP-09)`.
+## Smoke Run
+
+- **Date:** 2026-05-26
+- **Mode:** `wrangler dev --remote`
+- **Observed OAuth `sub`:** `<paste the sub value you copied from the 403>` (resolves RESEARCH Open Question 3)
+- **OAuth dance:** completed / failed [pick one]
+- **Tools listed:** 5 (`remember`, `recall`, `search`, `forget`, `ingest`)
+- **Per-tool error shape:**
+  - `remember` → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-01)`
+  - `recall`   → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-02)`
+  - `search`   → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-03)`
+  - `forget`  → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-04)`
+  - `ingest`  → ✓ `-32601 MethodNotFound`, msg contains `Phase 4 (TOL-05)`
+- **Deviations:** [none / describe anything unexpected — e.g. did Pitfall 5 chicken-and-egg fire as documented? Any OAuth library quirks?]
+
 
 ## Cross-references
 
