@@ -18,7 +18,7 @@
 ## Phases
 
 - [x] **Phase 1: Foundation** — Monorepo, shared types, system memory type seeds, per-package `wrangler.jsonc`, license, CLAUDE.md corrections (completed 2026-05-25)
-- [ ] **Phase 2: WorkspaceDO + SQLite** — Durable Object with idempotent schema migrations, all seven tables, system type seeding, typed query helpers, vitest coverage
+- [x] **Phase 2: WorkspaceDO + SQLite** — Durable Object with idempotent schema migrations, all seven tables, system type seeding, typed query helpers, vitest coverage (completed 2026-05-26)
 - [ ] **Phase 3: MCP Server Scaffold** — `EngramMcp extends McpAgent`, JWT-to-`props` middleware, two-DO topology, empty tool registrations, MCP Inspector connectivity
 - [ ] **Phase 4: Core Tools + Envelope** — `remember`/`recall`/`search`/`forget`/`ingest` with `EngramResponse` envelope, `McpError` shape, response-size budgets, transactional `forget`, cross-workspace penetration test
 - [ ] **Phase 5: AI Integration** — Vectorize index + namespaces, `bge-base-en-v1.5` embeddings on sync write, semantic recall, Triage-Worker AI (entity extraction, memorability), 429-aware retry, vector delete on forget
@@ -94,7 +94,7 @@ Plans:
 - **Touches irreversible decision AI-1 / STO-04 (embedding columns from day 1)**: must land in P2's first migration even though AI doesn't activate until P5. (SUMMARY.md §7 #8.)
 - **Touches irreversible decision MT-1 / STO-07 (DO defense-in-depth)**: workspace_id check verified here so all later tool/RPC code inherits it. (SUMMARY.md §7 #4.)
 
-**Plans:** 8/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 
@@ -123,7 +123,7 @@ Plans:
 
 **Wave 5** (CI + lint-staged wiring)
 
-- [ ] 02-08-PLAN.md (Wave 5, autonomous) — CI workflow patch (3-step lint block + Vitest step) + lint-staged rule [STO-08, STO-10]
+- [x] 02-08-PLAN.md (Wave 5, autonomous) — CI workflow patch (3-step lint block + Vitest step) + lint-staged rule [STO-08, STO-10]
 
 
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
@@ -254,7 +254,7 @@ Plans:
 | Phase                    | Plans Complete | Status      | Completed |
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
-| 2. WorkspaceDO + SQLite  | 8/9 | In Progress|  |
+| 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
 | 3. MCP Server Scaffold   | 0/0            | Not started | —         |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
