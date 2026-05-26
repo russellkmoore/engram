@@ -16,15 +16,19 @@
       { "name": "WORKSPACE", "class_name": "WorkspaceDO" },
     ],
   },
+  "kv_namespaces": [
+    // Placeholder IDs — Russell runs `wrangler kv namespace create OAUTH_KV`
+    // and `wrangler kv namespace create ENGRAM_IDENTITIES` at deploy time and
+    // swaps the real IDs in. Plan 06 README documents the swap procedure.
+    // KV namespace IDs are NOT secrets (T-03-KV-PLACEHOLDER); safe to commit.
+    // The OAuth cookie-encryption secret is NEVER declared here — it is set
+    // via `wrangler secret put` at deploy time (T-03-COOKIE). The literal
+    // secret-binding name is documented in Plan 06 README, NOT here.
+    { "binding": "OAUTH_KV", "id": "<id-from-wrangler-kv-namespace-create>" },
+    { "binding": "ENGRAM_IDENTITIES", "id": "<id-from-wrangler-kv-namespace-create>" },
+  ],
   "migrations": [
-    {
-      "tag": "v1",
-      // WorkspaceDO is re-exported from @engram/workspace-do — see src/index.ts:30.
-      // EngramMcp is intentionally NOT in v1: it is a Phase 1 stub. DO migrations
-      // are append-only (cannot retract `new_sqlite_classes` once committed), so
-      // we defer EngramMcp to a v2 migration that Phase 3 will add once the
-      // McpAgent persistence semantics are real (see REVIEW-FIX WR-06).
-      "new_sqlite_classes": ["WorkspaceDO"],
-    },
+    { "tag": "v1", "new_sqlite_classes": ["WorkspaceDO"] },
+    { "tag": "v2", "new_sqlite_classes": ["EngramMcp"] }, // v2 added EngramMcp (Phase 3)
   ],
 }
