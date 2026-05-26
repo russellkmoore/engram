@@ -24,8 +24,8 @@
     // The OAuth cookie-encryption secret is NEVER declared here — it is set
     // via `wrangler secret put` at deploy time (T-03-COOKIE). The literal
     // secret-binding name is documented in Plan 06 README, NOT here.
-    { "binding": "OAUTH_KV", "id": "<id-from-wrangler-kv-namespace-create>" },
-    { "binding": "ENGRAM_IDENTITIES", "id": "<id-from-wrangler-kv-namespace-create>" },
+    { "binding": "OAUTH_KV", "id": "81c76a033ce6491e8e89532625d50bc4" },
+    { "binding": "ENGRAM_IDENTITIES", "id": "97f6ecf0d35c420bb33ef4e32fa989bf" },
   ],
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["WorkspaceDO"] },
