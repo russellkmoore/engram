@@ -63,6 +63,7 @@
  * @module @engram/mcp-server/oauth
  */
 import type { OAuthHelpers } from "@cloudflare/workers-oauth-provider";
+import { z } from "zod";
 
 /**
  * Parsed shape of an `ENGRAM_IDENTITIES` KV value.
@@ -70,11 +71,17 @@ import type { OAuthHelpers } from "@cloudflare/workers-oauth-provider";
  * The KV value is written ONLY by `scripts/kv-bootstrap.mjs` (D-04, Plan 01)
  * via `wrangler kv key put`. Key = OAuth `sub` claim. Value = JSON-serialized
  * `{ workspace_id, user_id }` record.
+ *
+ * Validated at runtime by `IdentityRecordSchema` below (WR-01). The schema
+ * is the single source of truth; `IdentityRecord` is derived via `z.infer`
+ * so a future schema change cannot drift from the TypeScript shape.
  */
-interface IdentityRecord {
-  workspace_id: string;
-  user_id: string;
-}
+const IdentityRecordSchema = z.object({
+  workspace_id: z.string().min(1),
+  user_id: z.string().min(1),
+});
+
+type IdentityRecord = z.infer<typeof IdentityRecordSchema>;
 
 /**
  * Environment augmentation for the OAuth `defaultHandler`.
@@ -160,7 +167,21 @@ export const defaultHandler: ExportedHandler<EngramOAuthEnv> = {
       // is only responsible for the consent-step semantics (KV lookup +
       // completeAuthorization).
       const oauthReqInfo = await env.OAUTH_PROVIDER.parseAuthRequest(request);
-      await env.OAUTH_PROVIDER.lookupClient(oauthReqInfo.clientId);
+
+      // T-03-PROPS / WR-04: assert the client is registered BEFORE the KV
+      // identity lookup. Without this check, an unknown `client_id` falls
+      // through to the `ENGRAM_IDENTITIES` lookup and surfaces as
+      // "Unknown OAuth subject" (403) — misleading, because the real
+      // failure is "Unknown OAuth client" (400). Short-circuiting here
+      // gives the operator the precise error class. `lookupClient` returns
+      // `Promise<ClientInfo | null>` (oauth-provider.d.ts:634); null means
+      // the client was never registered via /register.
+      const clientInfo = await env.OAUTH_PROVIDER.lookupClient(oauthReqInfo.clientId);
+      if (clientInfo === null) {
+        return new Response(`Unknown OAuth client: ${oauthReqInfo.clientId}`, {
+          status: 400,
+        });
+      }
 
       // v0.1 simplification (RESEARCH Open Question 3 — RESOLVED):
       // for the single-user auto-approve flow, the OAuth `sub` claim equals
@@ -187,9 +208,17 @@ export const defaultHandler: ExportedHandler<EngramOAuthEnv> = {
       // attacker-controlled JSON fragments) or the parser's error message
       // (which echoes the malformed input). The literal below is the only
       // text emitted on the failure path.
+      //
+      // WR-01: shape validation runs inside the SAME try/catch so any
+      // payload that parses successfully but does not satisfy
+      // `IdentityRecordSchema` (`{ workspace_id: string >= 1, user_id:
+      // string >= 1 }`) takes the same sanitized failure branch. Without
+      // this, `JSON.parse("null")` would TypeError on field access, and
+      // `JSON.parse("{}")` would pass `undefined` to `completeAuthorization` —
+      // both bypassing the T-03-PARSE invariant.
       let identity: IdentityRecord;
       try {
-        identity = JSON.parse(raw) as IdentityRecord;
+        identity = IdentityRecordSchema.parse(JSON.parse(raw));
       } catch {
         return new Response("Internal error: corrupt identity record", {
           status: 500,

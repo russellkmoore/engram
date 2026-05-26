@@ -75,7 +75,17 @@ function makeMockEnv(
     OAUTH_PROVIDER: {
       parseAuthRequest:
         overrides.parseAuthRequest ?? vi.fn().mockResolvedValue({ clientId: "test-sub" }),
-      lookupClient: overrides.lookupClient ?? vi.fn().mockResolvedValue(undefined),
+      // Default: client is registered. The handler now short-circuits with a
+      // 400 when `lookupClient` returns null (WR-04), so the default must
+      // satisfy the `ClientInfo`-shape contract (anything non-null passes the
+      // `=== null` check). Individual tests override with `vi.fn().mockResolvedValue(null)`
+      // to exercise the "unknown OAuth client" path.
+      lookupClient:
+        overrides.lookupClient ??
+        vi.fn().mockResolvedValue({
+          clientId: "test-sub",
+          redirectUris: ["https://example.dev/cb"],
+        }),
       completeAuthorization:
         overrides.completeAuthorization ??
         vi.fn().mockResolvedValue({ redirectTo: "https://example.dev/cb?code=x" }),
@@ -217,6 +227,58 @@ describe("oauth defaultHandler — /authorize flow (T-03-PROPS / T-03-KV-LEAK / 
     expect(text).not.toContain("workspace_id");
     expect(text).not.toContain("user_id");
 
+    expect(completeAuthorization).not.toHaveBeenCalled();
+  });
+
+  it("with unknown OAuth client (lookupClient returns null): returns 400 — short-circuits BEFORE KV lookup (WR-04)", async () => {
+    // T-03-PROPS / WR-04: an unregistered client_id must surface as a 400
+    // "Unknown OAuth client", NOT a 403 "Unknown OAuth subject". The error
+    // class is the actionable signal — operator should re-run /register,
+    // not bootstrap KV.
+    const lookupClient = vi.fn().mockResolvedValue(null);
+    const identityGet = vi.fn();
+    const completeAuthorization = vi.fn();
+    const env = makeMockEnv({ lookupClient, identityGet, completeAuthorization });
+
+    const response = await callFetch(
+      new Request("https://example.dev/authorize?client_id=unregistered-client"),
+      env,
+    );
+
+    expect(response.status).toBe(400);
+    const text = await response.text();
+    expect(text).toContain("Unknown OAuth client");
+    // The clientId IS echoed (it's the requester's own value, not a secret).
+    expect(text).toContain("test-sub"); // mock parseAuthRequest returns clientId: "test-sub"
+
+    // CRITICAL: must short-circuit BEFORE the KV identity lookup. The whole
+    // point of WR-04 is to distinguish "unknown client" from "unknown
+    // subject"; if KV were consulted here the error would be misleading.
+    expect(identityGet).not.toHaveBeenCalled();
+    expect(completeAuthorization).not.toHaveBeenCalled();
+  });
+
+  it("with valid KV value but wrong shape (JSON.parse succeeds, schema fails): returns 500 with SANITIZED message (WR-01)", async () => {
+    // T-03-PARSE / WR-01: `JSON.parse` accepts any valid JSON, but the
+    // IdentityRecord shape MUST be `{ workspace_id: string, user_id: string }`.
+    // A bare `{}`, `null`, or wrong-typed value parses successfully but
+    // would otherwise reach `completeAuthorization` with `undefined`
+    // fields. Zod validation inside the same try/catch produces the
+    // identical sanitized 500 the parse-failure path uses.
+    const identityGet = vi.fn().mockResolvedValue(JSON.stringify({})); // valid JSON, wrong shape
+    const completeAuthorization = vi.fn();
+    const env = makeMockEnv({ identityGet, completeAuthorization });
+
+    const response = await callFetch(
+      new Request("https://example.dev/authorize?client_id=test-sub"),
+      env,
+    );
+
+    expect(response.status).toBe(500);
+    const text = await response.text();
+    expect(text).toBe("Internal error: corrupt identity record");
+
+    // completeAuthorization must NOT be called with undefined fields.
     expect(completeAuthorization).not.toHaveBeenCalled();
   });
 
