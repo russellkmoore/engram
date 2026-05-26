@@ -1,45 +1,123 @@
 /**
- * STO-02 / STO-03 / STO-04 test stubs — schema migrations + introspection.
+ * STO-02 / STO-03 / STO-04 — schema migrations + introspection (GREEN).
  *
- * RED scaffold for Plans 02-01 (migration runner) and 02-02 (schema).
- * All `it.skip` placeholders fill in when the implementation plans land. The
- * suite is wired up now so each task's `<verify>` block can reference a real
- * `vitest run schema.test.ts` command from the start.
+ * Plan 02-04 fills in the Wave 0 RED stubs (it.skip + expect.fail) with real
+ * assertions against the live `WorkspaceDO` running inside workerd via
+ * `@cloudflare/vitest-pool-workers`. Each describe block scopes a single
+ * STO requirement and uses a distinct `idFromName(...)` value so test
+ * isolation is explicit (even though `isolatedStorage` is the pool default).
+ *
+ * Assertion sources:
+ * - STO-02 — verbatim from 02-RESEARCH.md §1 (migration runner stamps a row
+ *   into `_schema_migrations` with `{version: 1, name: "v1_initial_schema",
+ *   applied_at: <number>}` after first cold start).
+ * - STO-03 — 7 user tables from CLAUDE.md §"SQLite Schema (inside
+ *   WorkspaceDO)": `blocks`, `relations`, `tags`, `members`, `memory_types`,
+ *   `inbox`, `conflicts`. The `_schema_migrations` tracker and any `sqlite_*`
+ *   meta tables are filtered out before counting (per 02-PATTERNS.md §11
+ *   "ignore sqlite_* and _schema_migrations meta tables").
+ * - STO-04 — `PRAGMA table_info(blocks)` introspects for `embedding_model`
+ *   (TEXT) + `embedding_version` (INTEGER) columns from v1 so the Phase 5
+ *   Vectorize model lock-in mitigation is in place from day one.
+ *
+ * Import convention (verified against
+ * node_modules/@cloudflare/vitest-pool-workers/types/cloudflare-test.d.ts):
+ * - `runInDurableObject` comes from `cloudflare:test` (test-pool module).
+ * - `env` comes from `cloudflare:workers` (the `env` re-export in
+ *   `cloudflare:test` is `@deprecated` per the type definitions; the modern
+ *   replacement is the runtime module).
+ *
+ * Cursor conventions per 02-PATTERNS.md Shared Pattern A:
+ * - `.toArray()` for list reads. Never mix with `.next()` (Pitfall 7).
+ * - Cast row column values via `as <type>` ONLY in test code (production
+ *   helpers use narrowing helpers per Pitfall 6 — but introspection tests
+ *   read raw `Record<string, SqlStorageValue>` and don't need to satisfy a
+ *   strict domain contract).
  *
  * @module @engram/workspace-do/__tests__/schema
  */
+import { runInDurableObject } from "cloudflare:test";
+import { env } from "cloudflare:workers";
 import { describe, it, expect } from "vitest";
 
-// Wave-0 NOTE: these imports will resolve once the implementation plans land.
-// For now we keep them as references in comments so the test file structure
-// matches PATTERNS.md §11 exactly — the cold-start cost of Task 3 is just the
-// describe/it scaffolding; the body of each `it` is filled in by 02-01/02-02.
-//
-//   import { runInDurableObject } from "cloudflare:test";
-//   import { env } from "cloudflare:workers";
-//   import { WorkspaceDO } from "../index.js";
+// EXPECTED_TABLES — the 7 user tables CLAUDE.md spec mandates. Sorted for
+// deterministic comparison against the `sqlite_master`-derived list (also
+// sorted before assertion).
+const EXPECTED_TABLES = [
+  "blocks",
+  "conflicts",
+  "inbox",
+  "members",
+  "memory_types",
+  "relations",
+  "tags",
+] as const;
 
-describe("schema migrations (STO-02 / STO-03 / STO-04)", () => {
-  // STO-02 — _schema_migrations table tracks applied migrations.
-  it.skip("creates _schema_migrations table on cold start (STO-02 — Plan 02-01)", () => {
-    // expect(runInDurableObject ...): SELECT name FROM sqlite_master
-    //   WHERE type='table' AND name='_schema_migrations' returns one row.
-    expect.fail("not yet implemented — Plan 02-01");
+describe("_schema_migrations table (STO-02)", () => {
+  it("contains exactly one row for v1_initial_schema after first init", async () => {
+    const id = env.WORKSPACE.idFromName("ws-schema-migrations-test");
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (_inst, state) => {
+      const rows = state.storage.sql
+        .exec("SELECT version, name, applied_at FROM _schema_migrations")
+        .toArray();
+      expect(rows.length).toBe(1);
+      const row = rows[0];
+      expect(row).toBeDefined();
+      expect(row?.version).toBe(1);
+      expect(row?.name).toBe("v1_initial_schema");
+      expect(typeof row?.applied_at).toBe("number");
+    });
   });
+});
 
-  // STO-03 — all 7 tables present.
-  it.skip("creates all 7 application tables on cold start (STO-03 — Plan 02-02)", () => {
-    // PRAGMA table_info(blocks|relations|tags|members|memory_types|inbox|conflicts)
-    // returns column lists matching CLAUDE.md §"SQLite Schema (inside WorkspaceDO)".
-    expect.fail("not yet implemented — Plan 02-02");
+describe("table presence (STO-03)", () => {
+  it("creates all 7 expected user tables", async () => {
+    const id = env.WORKSPACE.idFromName("ws-schema-tables-test");
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (_inst, state) => {
+      // sqlite_master is the canonical SQLite introspection table. We filter
+      // out the `_schema_migrations` meta table (Phase 2 framework tracker)
+      // and any `sqlite_*` internal tables (autoindex, sequence, etc.) before
+      // comparing against the expected user-table set.
+      const allNames = state.storage.sql
+        .exec("SELECT name FROM sqlite_master WHERE type = 'table'")
+        .toArray()
+        .map((r) => r.name as string);
+      const userTables = allNames
+        .filter((n) => n !== "_schema_migrations" && !n.startsWith("sqlite_"))
+        .sort();
+      // Compare against the sorted EXPECTED_TABLES set — order-independent.
+      expect(userTables).toEqual([...EXPECTED_TABLES]);
+    });
   });
+});
 
-  // STO-04 — blocks table includes embedding_model + embedding_version columns
-  // from v1 so the Phase 5 Vectorize model lock-in mitigation is in place from
-  // day one (rather than added later as a migration).
-  it.skip("blocks has embedding_model + embedding_version columns (STO-04 — Plan 02-02)", () => {
-    // PRAGMA table_info(blocks) includes a row with name='embedding_model' type='TEXT'
-    // and a row with name='embedding_version' type='INTEGER'.
-    expect.fail("not yet implemented — Plan 02-02");
+describe("blocks embedding columns (STO-04)", () => {
+  it("includes embedding_model TEXT and embedding_version INTEGER from v1", async () => {
+    const id = env.WORKSPACE.idFromName("ws-schema-embedding-test");
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (_inst, state) => {
+      // PRAGMA table_info(<name>) is supported via .exec() per Cloudflare's
+      // seat-booking tutorial (02-RESEARCH.md §B). Returns one row per
+      // column: { cid, name, type, notnull, dflt_value, pk }.
+      const cols = state.storage.sql
+        .exec("PRAGMA table_info(blocks)")
+        .toArray()
+        .map((c) => ({ name: c.name as string, type: c.type as string }));
+
+      const embeddingModel = cols.find((c) => c.name === "embedding_model");
+      const embeddingVersion = cols.find((c) => c.name === "embedding_version");
+
+      expect(embeddingModel).toBeDefined();
+      // PRAGMA table_info reports the type token verbatim from the DDL.
+      // Use case-insensitive comparison defensively: workerd's SQLite mirrors
+      // the spec but version drift on type-affinity normalization is a
+      // documented soft edge (02-RESEARCH.md §B "type tokens").
+      expect(embeddingModel?.type.toUpperCase()).toBe("TEXT");
+
+      expect(embeddingVersion).toBeDefined();
+      expect(embeddingVersion?.type.toUpperCase()).toBe("INTEGER");
+    });
   });
 });
