@@ -13,7 +13,10 @@ export default tseslint.config(
       "**/worker-configuration.d.ts",
       // Throwaway spike code lives outside the tsconfig project and is exempt
       // from the strict project lint rules — gsd-managed under .planning/spikes/.
+      // The wrap-up workflow also copies spike sources under .claude/skills/
+      // for future builds to reference; same exemption applies.
       ".planning/spikes/**",
+      ".claude/skills/spike-findings-*/sources/**",
     ],
   },
   js.configs.recommended,

@@ -1,0 +1,112 @@
+[
+  {
+    "id": "rn-01",
+    "content": "Title: \"Cloudflare Workers AI llama-3.1-8b structured output\". Topic: Cloudflare AI / LLM JSON mode. Found at https://developers.cloudflare.com/workers-ai/features/json-mode/. Summary: Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer. Tags: cloudflare, workers-ai, llm, json-mode, structured-output.",
+    "expected": {
+      "title": "Cloudflare Workers AI llama-3.1-8b structured output",
+      "topic": "Cloudflare AI / LLM JSON mode",
+      "source_url": "https://developers.cloudflare.com/workers-ai/features/json-mode/",
+      "summary": "Workers AI now supports response_format with type 'json_schema'; pass the schema in the request payload and the model conforms to it. Saves a parsing layer.",
+      "tags": ["cloudflare", "workers-ai", "llm", "json-mode", "structured-output"]
+    }
+  },
+  {
+    "id": "rn-02",
+    "content": "Research on mem0 conflict resolution: their LLM-resolver maps to four ops — ADD / UPDATE / DELETE / NOOP. Source: https://docs.mem0.ai/conflict-resolution. Key takeaway: keeping conflict resolution in the LLM (not pre-computed rules) trades determinism for adaptability. Engram should consider this for v0.2 conflict detection. Tags: mem0, conflict-resolution, llm, memory.",
+    "expected": {
+      "title": "mem0 conflict resolution",
+      "topic": "conflict resolution in memory systems",
+      "source_url": "https://docs.mem0.ai/conflict-resolution",
+      "summary": "mem0's LLM-resolver maps to four ops — ADD / UPDATE / DELETE / NOOP. Keeping conflict resolution in the LLM trades determinism for adaptability.",
+      "tags": ["mem0", "conflict-resolution", "llm", "memory"]
+    }
+  },
+  {
+    "id": "rn-03",
+    "content": "Letta (formerly MemGPT) — self-edit memory mode. Title: Letta self-edit. URL: https://letta.com/blog/self-editing-memory. Summary: agents can call tools that rewrite their own memory blocks via patch operations. Risk: ungated self-edit becomes hallucination amplifier; Letta gates with a separate 'archival memory' tier. Engram should NOT adopt before v0.3 reflect ships. Tags: letta, memgpt, self-edit, agent-memory.",
+    "expected": {
+      "title": "Letta self-edit",
+      "topic": "agent self-editing memory",
+      "source_url": "https://letta.com/blog/self-editing-memory",
+      "summary": "Letta agents can call tools that rewrite their own memory blocks via patch operations. Ungated self-edit becomes a hallucination amplifier; Letta gates with a separate 'archival memory' tier.",
+      "tags": ["letta", "memgpt", "self-edit", "agent-memory"]
+    }
+  },
+  {
+    "id": "rn-04",
+    "content": "Notes on the MCP Resource Server pattern (2025-03-26 spec revision). The pattern uses /.well-known/oauth-protected-resource to advertise the Authorization Server's location. Bridge tools like mcp-remote expect this exact shape. Read at https://modelcontextprotocol.io/specification/2025-03-26/oauth. Tags: mcp, oauth, resource-server, mcp-remote.",
+    "expected": {
+      "title": "MCP Resource Server pattern (2025-03-26 spec revision)",
+      "topic": "MCP OAuth resource server",
+      "source_url": "https://modelcontextprotocol.io/specification/2025-03-26/oauth",
+      "summary": "The pattern uses /.well-known/oauth-protected-resource to advertise the Authorization Server's location. Bridge tools like mcp-remote expect this exact shape.",
+      "tags": ["mcp", "oauth", "resource-server", "mcp-remote"]
+    }
+  },
+  {
+    "id": "rn-05",
+    "content": "Quick read on Vectorize namespaces (Cloudflare). Title: Vectorize namespaces tenant isolation. From https://developers.cloudflare.com/vectorize/best-practices/namespaces/. Key fact — one global index with namespace per workspace beats one-index-per-workspace because of the 100-index-per-account cap. Engram v0.1 must follow this. Tags: cloudflare, vectorize, namespaces, multi-tenant.",
+    "expected": {
+      "title": "Vectorize namespaces tenant isolation",
+      "topic": "Cloudflare Vectorize multi-tenant",
+      "source_url": "https://developers.cloudflare.com/vectorize/best-practices/namespaces/",
+      "summary": "One global index with namespace per workspace beats one-index-per-workspace because of the 100-index-per-account cap. Engram v0.1 must follow this.",
+      "tags": ["cloudflare", "vectorize", "namespaces", "multi-tenant"]
+    }
+  },
+  {
+    "id": "rn-06",
+    "content": "Working notes — bge-base-en-v1.5 embedding quality. Topic: text embeddings for retrieval. No URL handy. Summary: bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens. Tags: embeddings, bge, retrieval, rag.",
+    "expected": {
+      "title": "bge-base-en-v1.5 embedding quality",
+      "topic": "text embeddings for retrieval",
+      "source_url": null,
+      "summary": "bge-base-en-v1.5 outputs 768-dimensional embeddings; cosine metric typical; performs well on RAG retrieval benchmarks vs. e5-base. Recommended for English-only workloads under 512 tokens.",
+      "tags": ["embeddings", "bge", "retrieval", "rag"]
+    }
+  },
+  {
+    "id": "rn-07",
+    "content": "Read this on the train — Anthropic's prompt-cache 5-minute TTL. Title: Claude API prompt cache TTL. Source: https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime. Summary: cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request. Implication for Claude Code: keep wakeup intervals under 270s to stay in cache. Tags: anthropic, claude, prompt-cache, ttl, claude-code.",
+    "expected": {
+      "title": "Claude API prompt cache TTL",
+      "topic": "Anthropic prompt caching",
+      "source_url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching#cache-lifetime",
+      "summary": "Cache TTL is 5 minutes from last read; reads refresh it; expired blocks recompute on next request. Implication for Claude Code: keep wakeup intervals under 270s to stay in cache.",
+      "tags": ["anthropic", "claude", "prompt-cache", "ttl", "claude-code"]
+    }
+  },
+  {
+    "id": "rn-08",
+    "content": "@cloudflare/workers-oauth-provider README review. Title: workers-oauth-provider library. URL: https://github.com/cloudflare/workers-oauth-provider. Summary: ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native. Phase 3 D-02 adoption. Tags: cloudflare, oauth, mcp, workers.",
+    "expected": {
+      "title": "workers-oauth-provider library",
+      "topic": "Cloudflare OAuth provider for Workers",
+      "source_url": "https://github.com/cloudflare/workers-oauth-provider",
+      "summary": "Ships /authorize, /token, /jwks, /register, /.well-known/oauth-protected-resource endpoints out of the box. Single dependency, no external provider, fully MCP-native.",
+      "tags": ["cloudflare", "oauth", "mcp", "workers"]
+    }
+  },
+  {
+    "id": "rn-09",
+    "content": "Title: Durable Objects SQLite migration footgun. Topic: Cloudflare DO storage. Source: https://developers.cloudflare.com/durable-objects/best-practices/migrations/. Summary: Once a DO class lands under new_sqlite_classes it CANNOT be moved back to new_classes — declaration is irreversible. Confirms Engram FND-08 CI lint rule. Tags: cloudflare, durable-objects, sqlite, migrations, irreversible.",
+    "expected": {
+      "title": "Durable Objects SQLite migration footgun",
+      "topic": "Cloudflare DO storage",
+      "source_url": "https://developers.cloudflare.com/durable-objects/best-practices/migrations/",
+      "summary": "Once a DO class lands under new_sqlite_classes it cannot be moved back to new_classes — declaration is irreversible. Confirms Engram FND-08 CI lint rule.",
+      "tags": ["cloudflare", "durable-objects", "sqlite", "migrations", "irreversible"]
+    }
+  },
+  {
+    "id": "rn-10",
+    "content": "Notes from the agents SDK source dive: getAgentByName(namespace, name) returns a Promise<DurableObjectStub<T>> that MUST be awaited. Missing the await yields a Promise where the user expected a stub — subtle bug. Title: agents SDK getAgentByName pitfall. Topic: agents SDK + Durable Object stubs. No public URL — pulled from node_modules/agents/dist. Tags: agents-sdk, durable-objects, async, pitfall.",
+    "expected": {
+      "title": "agents SDK getAgentByName pitfall",
+      "topic": "agents SDK + Durable Object stubs",
+      "source_url": null,
+      "summary": "getAgentByName(namespace, name) returns a Promise<DurableObjectStub<T>> that MUST be awaited. Missing the await yields a Promise where the user expected a stub — subtle bug.",
+      "tags": ["agents-sdk", "durable-objects", "async", "pitfall"]
+    }
+  }
+]

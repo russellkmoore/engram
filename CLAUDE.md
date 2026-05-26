@@ -4,6 +4,10 @@
 > Linear project: <https://linear.app/blackmagicconsulting/project/engram-3cebc9097d0e>
 > Linear team: ENG
 
+## Auto-Load Routing
+
+- **Spike findings for engram** (Workers AI quality, EngramResponse synthesis contract, Phase 5 ranking strategy) → `Skill("spike-findings-engram")`
+
 ---
 
 ## What Is Engram

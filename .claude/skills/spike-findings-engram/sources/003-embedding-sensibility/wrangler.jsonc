@@ -1,0 +1,17 @@
+{
+  // Spike 003 — embedding sensibility for @cf/baai/bge-base-en-v1.5 (768d).
+  // Cluster intra-bucket sample pairs vs inter-bucket pairs and check that
+  // mean(intra-cosine) − mean(inter-cosine) ≥ 0.10 with no IQR overlap.
+  // Lives under .planning/spikes/. wrangler dev calls REAL Workers AI.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "engram-spike-003-embedding",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-05-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": {
+    "binding": "AI",
+  },
+  "dev": {
+    "port": 8903,
+  },
+}

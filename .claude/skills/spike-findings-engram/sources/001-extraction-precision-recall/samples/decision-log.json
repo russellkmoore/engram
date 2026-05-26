@@ -1,0 +1,112 @@
+[
+  {
+    "id": "dl-01",
+    "content": "Decision: Use Cloudflare Durable Objects per workspace rather than a shared D1 database. Rationale: workspace isolation by default, no sharding complexity, clean archive/delete semantics. Owner: Russell. Date: 2026-05-24. Project: Engram v0.1.",
+    "expected": {
+      "decision": "Use Cloudflare Durable Objects per workspace rather than a shared D1 database",
+      "rationale": "workspace isolation by default, no sharding complexity, clean archive/delete semantics",
+      "owner": "Russell",
+      "date": "2026-05-24",
+      "project": "Engram v0.1"
+    }
+  },
+  {
+    "id": "dl-02",
+    "content": "Decided in today's 1:1 with Devon: we ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0. Reason — keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model. Devon owns the v1.0 license review.",
+    "expected": {
+      "decision": "Ship Apache-2.0 as a placeholder license, subject to final confirmation at v1.0",
+      "rationale": "keeps us OSS-credible without committing to AGPL terms before we understand the managed-cloud business model",
+      "owner": "Devon",
+      "date": null,
+      "project": null
+    }
+  },
+  {
+    "id": "dl-03",
+    "content": "BMC website redesign — decision is to use Astro + Cloudflare Pages instead of Next.js + Vercel. Rationale: Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy we have. Owner: Devon. Decided 2026-04-12. Project tag: BMC-WEBSITE.",
+    "expected": {
+      "decision": "Use Astro + Cloudflare Pages instead of Next.js + Vercel",
+      "rationale": "Cloudflare bill stays under one vendor; Astro's content collections suit the marketing copy",
+      "owner": "Devon",
+      "date": "2026-04-12",
+      "project": "BMC-WEBSITE"
+    }
+  },
+  {
+    "id": "dl-04",
+    "content": "We will NOT build a web UI for Engram in v0.1. Reasoning: MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right. Russell decided 2026-05-23. Phase target: any post-v0.4 milestone.",
+    "expected": {
+      "decision": "Not build a web UI for Engram in v0.1",
+      "rationale": "MCP-first is the thesis; building UI now would burn time on a second-class surface before we know the MCP surface is right",
+      "owner": "Russell",
+      "date": "2026-05-23",
+      "project": null
+    }
+  },
+  {
+    "id": "dl-05",
+    "content": "On the job-search agent: keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships. Russell owns the cutover. Date of decision: 2026-05-20.",
+    "expected": {
+      "decision": "Keep using the existing memory backend through May; cut over to Engram for daily use after Phase 7 ships",
+      "rationale": null,
+      "owner": "Russell",
+      "date": "2026-05-20",
+      "project": null
+    }
+  },
+  {
+    "id": "dl-06",
+    "content": "Decision (logged 2026-05-15, owner: Russell, project: Engram): Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus to measure against. Premature optimization risk outweighs the latency we'd save.",
+    "expected": {
+      "decision": "Defer Vectorize indexing optimization (HNSW tuning, ef search params) until we have a real-world recall corpus",
+      "rationale": "Premature optimization risk outweighs the latency we'd save",
+      "owner": "Russell",
+      "date": "2026-05-15",
+      "project": "Engram"
+    }
+  },
+  {
+    "id": "dl-07",
+    "content": "Picked GPT-tokenizer over tiktoken for MCP-08's 8K-token assertions. Why: pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric. Decided by Russell.",
+    "expected": {
+      "decision": "Picked GPT-tokenizer over tiktoken for MCP-08's 8K-token assertions",
+      "rationale": "pure-JS bundles cleanly into workerd; tiktoken's WASM init cost on cold starts isn't worth the Claude-fidelity for what is a safety ceiling, not a precision metric",
+      "owner": "Russell",
+      "date": null,
+      "project": null
+    }
+  },
+  {
+    "id": "dl-08",
+    "content": "Decision from today's planning session — Engram v0.1 will ship honest envelope stubs rather than templated heuristics. Reasoning: Phase 5 should POPULATE rather than RESTRUCTURE. Owner: Russell, 2026-05-26, against the Phase 4 plan.",
+    "expected": {
+      "decision": "Engram v0.1 will ship honest envelope stubs rather than templated heuristics",
+      "rationale": "Phase 5 should POPULATE rather than RESTRUCTURE",
+      "owner": "Russell",
+      "date": "2026-05-26",
+      "project": "Engram v0.1 / Phase 4"
+    }
+  },
+  {
+    "id": "dl-09",
+    "content": "After the architecture review, we're keeping the two-DO topology (EngramMcp session + WorkspaceDO durable). The alternative (single-DO with discriminator column) would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy. Russell owns; date 2026-05-18.",
+    "expected": {
+      "decision": "Keep the two-DO topology (EngramMcp session + WorkspaceDO durable)",
+      "rationale": "Single-DO with discriminator column would have been simpler to scaffold but harder to evolve toward v0.3's UserDO/TeamDO/ProjectDO hierarchy",
+      "owner": "Russell",
+      "date": "2026-05-18",
+      "project": null
+    }
+  },
+  {
+    "id": "dl-10",
+    "content": "Devon and Russell agreed on a sync window. Mondays 9am PT for engagement check-ins. Owner of the cadence: Devon. No specific project; standing meeting.",
+    "expected": {
+      "decision": "Mondays 9am PT for engagement check-ins",
+      "rationale": null,
+      "owner": "Devon",
+      "date": null,
+      "project": null
+    }
+  }
+]
