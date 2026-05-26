@@ -84,11 +84,12 @@ export class EngramMcp extends McpAgent<Env, unknown, EngramProps> {
    */
   /* eslint-disable @typescript-eslint/require-await --
      `registerTools` is synchronous (each `server.registerTool` is sync). The
-     `async` keyword is kept because `McpAgent.init()` is typed
-     `init(): Promise<void> | void` and Phase 4 may add async setup (e.g.,
-     warm-loading user preferences from `this.env`). Keeping the keyword now
-     means Phase 4 edits are body-only. Mirrors the pattern used in
-     packages/mcp-server/src/tools.ts for the stub callbacks. */
+     `async` keyword is REQUIRED because `McpAgent.init()` is typed strictly
+     `init(): Promise<void>` (agents/dist/agent-tool-types-*.d.ts:396) and
+     Phase 4 may add async setup (e.g., warm-loading user preferences from
+     `this.env`). Keeping the keyword now means Phase 4 edits are body-only.
+     Mirrors the pattern used in packages/mcp-server/src/tools.ts for the
+     stub callbacks. */
   async init(): Promise<void> {
     registerTools(this.server, () => this.props, this.env);
   }
