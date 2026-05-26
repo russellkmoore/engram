@@ -94,7 +94,7 @@ Plans:
 - **Touches irreversible decision AI-1 / STO-04 (embedding columns from day 1)**: must land in P2's first migration even though AI doesn't activate until P5. (SUMMARY.md §7 #8.)
 - **Touches irreversible decision MT-1 / STO-07 (DO defense-in-depth)**: workspace_id check verified here so all later tool/RPC code inherits it. (SUMMARY.md §7 #4.)
 
-**Plans:** 6/9 plans executed
+**Plans:** 7/9 plans executed
 
 Plans:
 
@@ -114,7 +114,7 @@ Plans:
 
 **Wave 3** (query helpers + last GREEN test file)
 
-- [ ] 02-05-PLAN.md (Wave 3, autonomous) — 7 typed query helpers (queries.ts) + query-specific types (types.ts) + WorkspaceDO method scaffolding + GREEN helpers test [STO-06]
+- [x] 02-05-PLAN.md (Wave 3, autonomous) — 7 typed query helpers (queries.ts) + query-specific types (types.ts) + WorkspaceDO method scaffolding + GREEN helpers test [STO-06]
 
 **Wave 4** (defense-in-depth + lint script — parallel)
 
@@ -254,7 +254,7 @@ Plans:
 | Phase                    | Plans Complete | Status      | Completed |
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
-| 2. WorkspaceDO + SQLite  | 6/9 | In Progress|  |
+| 2. WorkspaceDO + SQLite  | 7/9 | In Progress|  |
 | 3. MCP Server Scaffold   | 0/0            | Not started | —         |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
