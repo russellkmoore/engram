@@ -52,17 +52,19 @@
  *   `./types.js` barrel re-export is deferred to Plan 02-05 (creates it).
  *
  * Plan boundaries:
- * - This file (Plan 02-04): constructor body + STO-09 hibernation
- *   integration.
+ * - Plan 02-04: constructor body + STO-09 hibernation integration.
  * - Plan 02-05: typed query helpers (insert/get/lexical search/delete/list/
  *   inbox/conflicts) as methods on this class + the `./types.ts` module.
- * - Plan 02-06: `assertOwnsWorkspace(workspaceId)` defense-in-depth helper.
- *   The `import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/
- *   types.js"` lands then, not here.
+ * - Plan 02-06: `assertOwnsWorkspace(workspaceId)` defense-in-depth helper
+ *   PLUS the `import { McpError, ErrorCode } from
+ *   "@modelcontextprotocol/sdk/types.js"` at the top of this file and the
+ *   guard call wired as the first executable line of every public method.
  *
  * @module @engram/workspace-do
  */
 import { DurableObject } from "cloudflare:workers";
+
+import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 
 import type { Memory, Conflict } from "@engram/types";
 
@@ -108,15 +110,49 @@ export class WorkspaceDO extends DurableObject<unknown> {
     /* eslint-enable @typescript-eslint/require-await */
   }
 
+  /**
+   * STO-07 defense-in-depth: every public method on `WorkspaceDO` MUST call
+   * this as its first executable line. Throws `McpError(InvalidRequest =
+   * -32600)` when the args' claimed `workspace_id` does not match this DO's
+   * bound `id.name`.
+   *
+   * Cloudflare DurableObjectId guarantees (per Cloudflare Id API docs, summarized
+   * in 02-PATTERNS.md §C and 02-RESEARCH.md §C):
+   *   - `env.WORKSPACE.idFromName(name).name === name`         → MCP-server path (Phase 3)
+   *   - `env.WORKSPACE.idFromString(hex).name === undefined`   → raw-hex attack path
+   *   - `env.WORKSPACE.newUniqueId().name === undefined`       → newly-allocated path
+   *
+   * Either of the latter two causes the check to throw (undefined !== any
+   * provided workspace_id string). A JWT-derived workspace_id that doesn't
+   * match the legitimate DO also throws. This is the data-plane backstop
+   * that complements the Worker-layer JWT check in Phase 3 (MT-1 mitigation
+   * pair with Phase 4's TOL-07 penetration test).
+   *
+   * Uses `this.ctx.id.name` (NOT `this.state.id.name`) — both are equivalent
+   * on the modern DurableObject base class (PATTERNS.md §C), but `ctx`
+   * matches the Phase 1 convention already adopted.
+   *
+   * @param workspaceId the claimed workspace id from the request args
+   * @throws McpError(ErrorCode.InvalidRequest) on mismatch — Phase 3 tool
+   *   handlers must surface this directly to the client.
+   */
+  private assertOwnsWorkspace(workspaceId: string): void {
+    if (this.ctx.id.name !== workspaceId) {
+      throw new McpError(
+        ErrorCode.InvalidRequest,
+        `Workspace mismatch: DO bound to '${this.ctx.id.name ?? "<unnamed>"}' but request claims '${workspaceId}'`,
+      );
+    }
+  }
+
   // -------------------------------------------------------------------------
   // STO-06 typed query helpers (Plan 02-05) exposed as instance methods.
   //
   // Every method takes its first arg as an object whose first field is
   // `workspace_id: string`. The uniform shape is the contract Plan 02-06
-  // depends on — its guard wiring will prepend
-  // `this.assertOwnsWorkspace(args.workspace_id)` as the first executable
-  // line of every method below. The `// TODO Plan 06` markers are the
-  // explicit insertion points.
+  // wired through: every method's first executable line is the
+  // `assertOwnsWorkspace` guard call (defined above) — Plan 02-05 left a
+  // single-line slot per method for Plan 02-06 to fill.
   //
   // Method bodies delegate to the corresponding `./queries.js` function
   // (renamed on import to avoid shadowing). The methods themselves do not
@@ -125,18 +161,18 @@ export class WorkspaceDO extends DurableObject<unknown> {
   // -------------------------------------------------------------------------
 
   insertBlock(args: { workspace_id: string; block: Memory }): void {
-    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    this.assertOwnsWorkspace(args.workspace_id);
     insertBlockQuery(this.ctx.storage.sql, args.block);
   }
 
   getBlock(args: { workspace_id: string; id: string }): Memory {
-    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    this.assertOwnsWorkspace(args.workspace_id);
     return getBlockQuery(this.ctx.storage.sql, args.id);
   }
 
   // prettier-ignore
   lexicalSearchBlocks(args: { workspace_id: string; query: string; limit?: number }): LexicalSearchHit[] {
-    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    this.assertOwnsWorkspace(args.workspace_id);
     return lexicalSearchBlocksQuery(this.ctx.storage.sql, args.query, args.limit);
   }
 
@@ -144,24 +180,23 @@ export class WorkspaceDO extends DurableObject<unknown> {
     blocks_deleted: number;
     relations_deleted: number;
   } {
-    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    this.assertOwnsWorkspace(args.workspace_id);
     return deleteBlockQuery(this.ctx.storage.sql, args.id, args.cascade ?? true);
   }
 
   listMemoryTypes(args: { workspace_id: string }): MemoryType[] {
-    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
-    void args;
+    this.assertOwnsWorkspace(args.workspace_id);
     return listMemoryTypesQuery(this.ctx.storage.sql);
   }
 
   createInboxEntry(args: { workspace_id: string; entry: InboxEntry }): void {
-    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    this.assertOwnsWorkspace(args.workspace_id);
     createInboxEntryQuery(this.ctx.storage.sql, args.entry);
   }
 
   // prettier-ignore -- keep `args: { workspace_id: string` on the signature line so Plan 06's grep verifier matches all 7 methods uniformly.
   listConflicts(args: { workspace_id: string; resolved?: boolean; limit?: number }): Conflict[] {
-    // TODO Plan 06: this.assertOwnsWorkspace(args.workspace_id);
+    this.assertOwnsWorkspace(args.workspace_id);
     // Build opts conditionally so we only pass defined keys — strict
     // exactOptionalPropertyTypes forbids `{ key: undefined }` literals.
     const opts: { resolved?: boolean; limit?: number } = {};
@@ -169,8 +204,4 @@ export class WorkspaceDO extends DurableObject<unknown> {
     if (args.limit !== undefined) opts.limit = args.limit;
     return listConflictsQuery(this.ctx.storage.sql, opts);
   }
-
-  // Plan 02-06 adds the `assertOwnsWorkspace(workspaceId)` defense-in-depth
-  // helper. Each method above will prepend a call to it as the first
-  // executable line.
 }
