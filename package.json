@@ -16,6 +16,7 @@
     "lint": "eslint .",
     "lint:wrangler": "node scripts/lint-wrangler.mjs",
     "lint:blockconcurrency": "node scripts/lint-blockconcurrency.mjs",
+    "kv:bootstrap": "node scripts/kv-bootstrap.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc -b --noEmit",
