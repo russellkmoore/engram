@@ -33,6 +33,25 @@ jobs:
       - name: Format check (Prettier)
         run: npm run format:check
 
+      - name: Lint blockConcurrencyWhile I/O (STO-10)
+        run: npm run lint:blockconcurrency
+
+      # STO-10 negative-fixture assertion: the bad fixture MUST trigger a
+      # lint failure. If this step succeeds (lint exits 0 on bad fixture),
+      # the linter has regressed and is no longer catching forbidden tokens
+      # inside blockConcurrencyWhile blocks.
+      - name: Lint blockConcurrencyWhile — negative fixture must fail (STO-10)
+        run: |
+          if node scripts/lint-blockconcurrency.mjs packages/workspace-do/__fixtures__/bad-blockconcurrency.ts; then
+            echo "STO-10 regression: bad fixture did not trigger lint failure"
+            exit 1
+          fi
+          echo "STO-10 negative fixture correctly failed."
+
+      # STO-10 positive-fixture assertion: the good fixture must pass cleanly.
+      - name: Lint blockConcurrencyWhile — positive fixture must pass (STO-10)
+        run: node scripts/lint-blockconcurrency.mjs packages/workspace-do/__fixtures__/good-blockconcurrency.ts
+
       - name: Lint wrangler.jsonc (FND-08)
         run: npm run lint:wrangler
 
@@ -59,3 +78,6 @@ jobs:
 
       - name: Smoke - fresh install
         run: bash scripts/smoke-install.sh
+
+      - name: Test (Vitest)
+        run: npm test
