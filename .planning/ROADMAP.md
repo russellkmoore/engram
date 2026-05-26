@@ -150,7 +150,7 @@ Plans:
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 **UI hint:** no
 
-**Plans:** 1/6 plans executed
+**Plans:** 3/6 plans executed
 
 Plans:
 
@@ -160,12 +160,12 @@ Plans:
 
 **Wave 1** (pure-data/pure-function modules — parallel within wave)
 
-- [ ] 03-02-PLAN.md (Wave 1, autonomous) — schemas.ts (5 zod input schemas + 5 z.infer aliases, T-03-DD-IN structural invariant) + error-mapping.ts (mapToMcpError + sanitize for T-03-LEAK) + schemas.test.ts + error-mapping.test.ts GREEN [MCP-06]
+- [x] 03-02-PLAN.md (Wave 1, autonomous) — schemas.ts (5 zod input schemas + 5 z.infer aliases, T-03-DD-IN structural invariant) + error-mapping.ts (mapToMcpError + sanitize for T-03-LEAK) + schemas.test.ts + error-mapping.test.ts GREEN [MCP-06]
 
 **Wave 2** (independent modules — parallel within wave; both depend on Wave 0+1)
 
 - [ ] 03-03-PLAN.md (Wave 2, autonomous) — tools.ts (registerTools + 5 MethodNotFound stubs with TOL pointers + Phase-4-ready comment block enforcing T-03-DD-RT) + tools.test.ts GREEN [MCP-05, MCP-06]
-- [ ] 03-04-PLAN.md (Wave 2, autonomous) — oauth.ts (defaultHandler: /, /health, /authorize with KV-only props per T-03-PROPS, sanitized 500 per T-03-PARSE, 403 with no KV-value leak per T-03-KV-LEAK) + oauth.test.ts GREEN [MCP-04]
+- [x] 03-04-PLAN.md (Wave 2, autonomous) — oauth.ts (defaultHandler: /, /health, /authorize with KV-only props per T-03-PROPS, sanitized 500 per T-03-PARSE, 403 with no KV-value leak per T-03-KV-LEAK) + oauth.test.ts GREEN [MCP-04]
 
 **Wave 3** (unifier — depends on all of Wave 1+2)
 
@@ -280,7 +280,7 @@ Plans:
 | ------------------------ | -------------- | ----------- | --------- |
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
-| 3. MCP Server Scaffold   | 1/6 | In Progress|  |
+| 3. MCP Server Scaffold   | 3/6 | In Progress|  |
 | 4. Core Tools + Envelope | 0/0            | Not started | —         |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
