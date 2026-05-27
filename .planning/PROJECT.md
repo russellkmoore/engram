@@ -176,4 +176,4 @@ This document evolves at phase transitions and milestone boundaries.
 6. **Linear**: post milestone summary comment on the Linear milestone
 
 ---
-_Last updated: 2026-05-25 after Phase 1 (Foundation) completion_
+_Last updated: 2026-05-27 after Phase 4 (Core Tools + Envelope) completion — TOL-01..08, MCP-07, MCP-08 satisfied; 117 vitest tests GREEN; `EngramResponse<T>` envelope contract holds end-to-end against MCP Inspector (local smoke). Phase 5 (AI Integration) is next._
