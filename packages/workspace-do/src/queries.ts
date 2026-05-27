@@ -155,8 +155,8 @@ function narrowBlockRow(row: Record<string, SqlStorageValue | undefined>): Memor
   if (typeof id !== "string") {
     throw new Error("invariant violation: blocks.id is not a string");
   }
-  if (typeof type !== "string") {
-    throw new Error("invariant violation: blocks.type is not a string");
+  if (type !== null && typeof type !== "string") {
+    throw new Error("invariant violation: blocks.type is not a string or null");
   }
   if (typeof created_at !== "number") {
     throw new Error("invariant violation: blocks.created_at is not a number");
@@ -184,7 +184,7 @@ function narrowBlockRow(row: Record<string, SqlStorageValue | undefined>): Memor
 
   return {
     id,
-    type,
+    type: type,
     content,
     summary,
     properties,
