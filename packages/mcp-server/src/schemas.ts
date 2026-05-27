@@ -49,26 +49,29 @@ export const RememberInputSchema = z.object({
   project: z.string().optional(),
   tags: z.array(z.string()).optional(),
   source: z.string().optional(),
-  expires: z.string().datetime().optional(),
+  expires: z.iso.datetime().optional(),
 });
 export type RememberInput = z.infer<typeof RememberInputSchema>;
 
-// recall(query, types?, project?, scope?, limit?, since?, until?)
+// recall(query, types?, project?, scope?, limit?, since?, until?, verbosity?)
 export const RecallInputSchema = z.object({
   query: z.string().min(1),
   types: z.array(z.string()).optional(),
   project: z.string().optional(),
   scope: z.enum(["personal", "project", "org"]).optional(),
-  limit: z.number().int().positive().max(100).optional(),
-  since: z.string().datetime().optional(),
-  until: z.string().datetime().optional(),
+  limit: z.number().int().positive().max(25).optional(), // D-10 (was max(100))
+  since: z.iso.datetime().optional(),
+  until: z.iso.datetime().optional(),
+  // D-03 + spike-findings-engram §1: default flipped to "both" (BORDERLINE gate)
+  verbosity: z.enum(["synthesis", "chunks", "both"]).optional().default("both"),
 });
 export type RecallInput = z.infer<typeof RecallInputSchema>;
 
-// search(query, filters)
+// search(query, filters, limit?)
 export const SearchInputSchema = z.object({
   query: z.string().min(1),
   filters: z.record(z.string(), z.unknown()).optional(),
+  limit: z.number().int().positive().max(25).optional(), // D-10 (new field — Phase 3 had no limit)
 });
 export type SearchInput = z.infer<typeof SearchInputSchema>;
 

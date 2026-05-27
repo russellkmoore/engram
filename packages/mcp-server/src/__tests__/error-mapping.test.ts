@@ -88,9 +88,44 @@ describe("sanitize behavior (T-03-LEAK mitigation)", () => {
     const longMessage = "x".repeat(2000);
     const input = new Error(longMessage);
     const output = mapToMcpError(input);
-    const prefix = `MCP error ${ErrorCode.InternalError}: `;
+    const prefix = `MCP error ${String(ErrorCode.InternalError)}: `;
     expect(output.message.startsWith(prefix)).toBe(true);
     const payload = output.message.slice(prefix.length);
     expect(payload.length).toBeLessThanOrEqual(500);
+  });
+});
+
+describe("Phase 4 regression locks (MCP-07 + T-03-LEAK)", () => {
+  // These assertions lock the Phase 3 error-mapping behavior as REGRESSION ANCHORS
+  // for Phase 4 handler safety. Phase 4 handlers wrap all catch paths through
+  // mapToMcpError — these tests ensure the mapper never leaks DO internals,
+  // paths, or unexpected codes when Phase 4 handler bodies throw.
+
+  it("mapToMcpError(new NotFoundError('block', 'x')) returns McpError(InvalidParams = -32602)", () => {
+    // Lock: WorkspaceDO.getBlock (and others) throws NotFoundError when a block id is absent.
+    // Phase 4 forget/recall handlers must NOT throw on a missing id — but if getBlock is
+    // used internally and throws, the mapper must produce InvalidParams.
+    const result = mapToMcpError(new NotFoundError("block", "x"));
+    expect(result).toBeInstanceOf(McpError);
+    expect(result.code).toBe(ErrorCode.InvalidParams);
+    expect(result.code).toBe(-32602);
+  });
+
+  it("mapToMcpError sanitizes /Users/... paths (T-03-LEAK regression lock for Phase 4 handlers)", () => {
+    // Lock: Phase 4 DO RPC errors may include absolute paths in stack frames.
+    // The mapper MUST scrub them before the message reaches the MCP client.
+    const out = mapToMcpError(new Error("/Users/secret/path/file.ts"));
+    expect(out.message).not.toContain("/Users/");
+  });
+
+  it("mapToMcpError passes McpError(InvalidRequest) through unchanged (assertOwnsWorkspace pass-through)", () => {
+    // Lock: WorkspaceDO.assertOwnsWorkspace throws McpError(InvalidRequest) on workspace
+    // mismatch (Phase 2 STO-07). Phase 4 handlers must NOT re-wrap this — the mapper
+    // passes McpError through unchanged (referential equality or same code).
+    const original = new McpError(ErrorCode.InvalidRequest, "Workspace mismatch");
+    const result = mapToMcpError(original);
+    expect(result.code).toBe(ErrorCode.InvalidRequest);
+    // McpError pass-through is referential — same object as input.
+    expect(result).toBe(original);
   });
 });

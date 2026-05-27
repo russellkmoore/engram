@@ -28,6 +28,17 @@ If a task initially went to one route then bounced to another (e.g., cf-code-ass
 | Task | Artifact | Route | Reason | Approx tokens saved |
 |------|----------|-------|--------|---------------------|
 | _seed_ | _(no rows yet — first executor task appends below this line)_ | _n/a_ | _Tracking starts at execute-phase kickoff_ | _n/a_ |
+| 04-01-02 | `shared/types/src/index.ts` widen `meta.confidence` + `meta.coverage` to `number \| null` | claude | Multi-file reasoning needed (had to verify no existing consumers of `EngramResponse.meta.*` across all workspaces before widening); <10 line diff after context analysis | n/a |
+| 04-01-02 | `npm install gpt-tokenizer@^3.4.0` to `packages/mcp-server` | claude | Package install (not code generation); supply-chain gate already approved by human reviewer | n/a |
+| 04-01-03 | `schemas.ts` — add `verbosity` to `RecallInputSchema`, add `limit` to `SearchInputSchema`, tighten both to `max(25)` | claude | Multi-file context needed (04-CONTEXT.md D-03/D-10, spike-findings SKILL.md §1, existing schema shape) before diff; <15 line additive diff after context read | n/a |
+| 04-01-03 | `schemas.test.ts` — 8 new test assertions for verbosity + limit | claude | Cross-file reasoning with TDD RED/GREEN cycle; test referenced existing file shape; needed full file context | n/a |
+| 04-01-04 | `result-types.ts` — 6 typed result interfaces (RememberResult, RecallChunk, RecallResult, SearchResult, ForgetResult, IngestResult) | claude | Architecture reasoning needed (LexicalSearchHit import chain, import type verbatimModuleSyntax compliance, D-05/D-06/D-07 decisions); multi-file context from CONTEXT.md + workspace-do/types.ts + PATTERNS.md | n/a |
+| 04-01-05 | `envelope.test.ts` (NEW) — 14 RED assertions for envelope builders + META_GAPS snapshot (TOL-06) | claude | Cross-file reasoning: needed CONTEXT.md D-04/D-06/D-07/D-08, PATTERNS.md analog, result-types.ts shape; tests reference not-yet-existing envelope.ts module | n/a |
+| 04-01-05 | `tools-integration.test.ts` (NEW) — 8 RED round-trip tests (TOL-01..05) | claude | Multi-file: captureCallback pattern from PATTERNS.md, DO method surface from workspace-do/index.ts, vitest-pool-workers cloudflare:test + cloudflare:workers APIs | n/a |
+| 04-01-05 | `cross-workspace-pentest.test.ts` (NEW) — 2 RED prong tests (TOL-07) | claude | Security reasoning: two-prong test design from RESEARCH §Pattern 4; DO method + assertOwnsWorkspace message contract from Phase 2 code | n/a |
+| 04-01-05 | `token-budget.test.ts` (NEW) — 3 RED budget assertions (MCP-08) | claude | Multi-file: gpt-tokenizer import path (Pitfall 6), D-10 worst-case fixture spec, TextEncoder workerd-native pattern; references envelope.ts which doesn't exist yet | n/a |
+| 04-01-05 | `tools.test.ts` (EXTEND) — replace MethodNotFound stubs with happy-path callbacks (RED until Plan 03) | claude | In-file reasoning: preserve DD-RT sentinel block, replace MethodNotFound assertions with happy-path block; captureCallback helper addition | n/a |
+| 04-01-05 | `error-mapping.test.ts` (EXTEND) — 3 Phase 4 regression lock assertions (GREEN) | claude | Additive test: context from existing error-mapping.ts behavior + PATTERNS.md §error-mapping.test.ts EXTEND | n/a |
 
 ---
 
