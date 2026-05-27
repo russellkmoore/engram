@@ -109,9 +109,9 @@ describe("schemas rejection paths", () => {
   });
 
   it("RememberInputSchema rejects non-datetime expires", () => {
-    expect(
-      RememberInputSchema.safeParse({ content: "hello", expires: "not-a-date" }).success,
-    ).toBe(false);
+    expect(RememberInputSchema.safeParse({ content: "hello", expires: "not-a-date" }).success).toBe(
+      false,
+    );
   });
 
   it("RecallInputSchema rejects non-enum scope", () => {
@@ -123,6 +123,47 @@ describe("schemas rejection paths", () => {
   });
 
   it("IngestInputSchema rejects threshold outside [0,1]", () => {
-    expect(IngestInputSchema.safeParse({ source: "https://example.com", threshold: 2 }).success).toBe(false);
+    expect(
+      IngestInputSchema.safeParse({ source: "https://example.com", threshold: 2 }).success,
+    ).toBe(false);
+  });
+});
+
+describe("RecallInputSchema verbosity (D-03 + spike-findings-engram §1)", () => {
+  it("Test 1: default verbosity is 'both' (D-02 spike-findings flip)", () => {
+    const result = RecallInputSchema.parse({ query: "x" });
+    expect(result.verbosity).toBe("both");
+  });
+
+  it("Test 2: verbosity 'synthesis' passes through", () => {
+    const result = RecallInputSchema.parse({ query: "x", verbosity: "synthesis" });
+    expect(result.verbosity).toBe("synthesis");
+  });
+
+  it("Test 3: verbosity 'chunks' passes through", () => {
+    const result = RecallInputSchema.parse({ query: "x", verbosity: "chunks" });
+    expect(result.verbosity).toBe("chunks");
+  });
+
+  it("Test 4: verbosity 'summary' is rejected (only synthesis/chunks/both are valid)", () => {
+    expect(RecallInputSchema.safeParse({ query: "x", verbosity: "summary" }).success).toBe(false);
+  });
+});
+
+describe("Recall + Search limit ≤ 25 (D-10)", () => {
+  it("Test 5: RecallInputSchema rejects limit > 25 (D-10 tightened from max(100))", () => {
+    expect(RecallInputSchema.safeParse({ query: "x", limit: 26 }).success).toBe(false);
+  });
+
+  it("Test 6: RecallInputSchema accepts limit = 25 (boundary inclusive)", () => {
+    expect(RecallInputSchema.safeParse({ query: "x", limit: 25 }).success).toBe(true);
+  });
+
+  it("Test 7: SearchInputSchema rejects limit > 25 (D-10 new limit field on Search)", () => {
+    expect(SearchInputSchema.safeParse({ query: "x", limit: 26 }).success).toBe(false);
+  });
+
+  it("Test 8: SearchInputSchema accepts limit = 25 (boundary inclusive)", () => {
+    expect(SearchInputSchema.safeParse({ query: "x", limit: 25 }).success).toBe(true);
   });
 });
