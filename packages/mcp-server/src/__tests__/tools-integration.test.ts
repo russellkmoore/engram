@@ -121,6 +121,34 @@ describe("TOL-01: remember", () => {
     expect(meta.confidence).toBeNull();
     expect(meta.coverage).toBeNull();
   });
+
+  it("TOL-01-CR01: bare remember stores null type — subsequent recall echoes type = null (read-your-writes)", async () => {
+    const workspace_id = "ws-tol01-roundtrip";
+
+    // 1. remember with no type argument
+    const rememberCb = captureCallback("remember", workspace_id);
+    const rememberResult = await rememberCb({ content: "bare remember no type" }, {});
+    const rememberEnvelope = parseEnvelope(rememberResult);
+    const rr = rememberEnvelope.result as Record<string, unknown>;
+    // classified_type in the envelope must be null (honest-stub contract D-06)
+    expect(rr.classified_type).toBeNull();
+    const id = rr.id as string;
+    expect(typeof id).toBe("string");
+
+    // 2. recall the same block by its content
+    const recallCb = captureCallback("recall", workspace_id);
+    const recallResult = await recallCb({ query: "bare remember no type" }, {});
+    const recallEnvelope = parseEnvelope(recallResult);
+    const recallR = recallEnvelope.result as Record<string, unknown>;
+    const memories = recallR.memories as Record<string, unknown>[];
+    expect(memories.length).toBeGreaterThanOrEqual(1);
+
+    // 3. The stored block must echo type = null — CR-01 read-your-writes contract
+    const storedMemory = memories.find((m) => m.id === id) ?? memories[0];
+    expect(storedMemory).toBeDefined();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    expect(storedMemory!.type).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

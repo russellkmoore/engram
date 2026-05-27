@@ -66,7 +66,7 @@
 export const V1_SQL = `
   CREATE TABLE IF NOT EXISTS blocks (
     id                TEXT PRIMARY KEY,
-    type              TEXT NOT NULL,
+    type              TEXT,
     content           TEXT,
     summary           TEXT,
     properties        TEXT,
