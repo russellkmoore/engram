@@ -308,6 +308,24 @@ reasons). Capture is a deferred amendment — if Phase 4 verification or a futur
 requires the evidence, re-run the smoke and paste the response JSONs here in a follow-up
 commit. The AC checklist above is the primary acceptance signal for TOL-08 closure.
 
+### Verification Override
+
+The missing raw JSON capture for this smoke was accepted via a formal override recorded
+in `04-VERIFICATION.md` frontmatter (`overrides[TOL-08]`):
+
+- **Accepted by:** rmoore (Russell Moore)
+- **Accepted at:** 2026-05-27
+- **Override rationale:** The two deviations surfaced and fixed during the live run
+  (workerd SQLite LIKE-pattern-length cap + kv-bootstrap.mjs cwd bug) validate that a
+  genuine live run occurred. A fabricated AC checklist would not surface runtime-specific
+  engine bugs. Verbal confirmation by the workspace owner is accepted as sufficient
+  evidence for Phase 4 closure.
+- **Forward requirement:** Phase 5 (recall semantic upgrade smoke) and Phase 7
+  (DEP-04 Russell-agent reconfig smoke) MUST capture raw JSON inline in their smoke
+  artifacts. This override is a one-time exception, not a precedent.
+
+See `04-VERIFICATION.md` `overrides:` block for the canonical acceptance record.
+
 ## Cross-references
 
 - Plan: [`04-05-PLAN.md`](./04-05-PLAN.md)
