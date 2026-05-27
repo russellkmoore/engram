@@ -28,6 +28,8 @@ If a task initially went to one route then bounced to another (e.g., cf-code-ass
 | Task | Artifact | Route | Reason | Approx tokens saved |
 |------|----------|-------|--------|---------------------|
 | _seed_ | _(no rows yet — first executor task appends below this line)_ | _n/a_ | _Tracking starts at execute-phase kickoff_ | _n/a_ |
+| 04-01-02 | `shared/types/src/index.ts` widen `meta.confidence` + `meta.coverage` to `number \| null` | claude | Multi-file reasoning needed (had to verify no existing consumers of `EngramResponse.meta.*` across all workspaces before widening); <10 line diff after context analysis | n/a |
+| 04-01-02 | `npm install gpt-tokenizer@^3.4.0` to `packages/mcp-server` | claude | Package install (not code generation); supply-chain gate already approved by human reviewer | n/a |
 
 ---
 

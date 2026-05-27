@@ -11,13 +11,14 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "agents": "^0.13.2",
-    "@modelcontextprotocol/sdk": "^1.29.0",
     "@cloudflare/workers-oauth-provider": "0.7.0",
-    "zod": "^4.0.0",
-    "@engram/types": "*",
     "@engram/schema": "*",
-    "@engram/workspace-do": "*"
+    "@engram/types": "*",
+    "@engram/workspace-do": "*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "agents": "^0.13.2",
+    "gpt-tokenizer": "^3.4.0",
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.16.9",

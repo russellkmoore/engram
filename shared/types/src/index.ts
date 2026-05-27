@@ -210,16 +210,16 @@ export interface EngramResponse<T> {
   /** Quality and completeness signals for the calling model. */
   meta: {
     /**
-     * Engram's confidence in the result accuracy (0–1).
-     * Derived from Vectorize similarity scores and CF AI classification confidence.
+     * Engram's confidence in the result accuracy (0–1), or `null` when no AI
+     * scoring has run for this result (v0.1 honest-stub posture — D-04).
+     * Phase 5 populates with real Vectorize-derived numbers.
      */
-    confidence: number;
+    confidence: number | null;
     /**
-     * Completeness signal (0–1) indicating how much of the relevant knowledge
-     * Engram believes it has captured. Low values hint that Claude should ask
-     * the user for more context.
+     * Completeness signal (0–1), or `null` when AI coverage estimation has not
+     * yet been wired (v0.1 honest-stub). Phase 5 / v0.2 populates.
      */
-    coverage: number;
+    coverage: number | null;
     /** Unix epoch timestamp (ms) of the most recently updated memory in the result. */
     last_updated: number;
     /**
