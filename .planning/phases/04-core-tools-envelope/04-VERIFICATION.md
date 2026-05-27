@@ -3,7 +3,29 @@ phase: 04-core-tools-envelope
 verified: 2026-05-27T14:46:17Z
 status: gaps_found
 score: 8/10 must-haves verified
-overrides_applied: 0
+overrides_applied: 1
+overrides:
+  - id: TOL-08
+    truth: "TOL-08 smoke has verifiable evidence (raw JSON capture or independent replay capability)"
+    original_status: partial
+    override_status: accepted
+    accepted_by: rmoore
+    accepted_at: "2026-05-27"
+    rationale: >
+      AC-01..AC-12 were verbally confirmed by the runner (Russell Moore) during the live
+      MCP Inspector smoke on 2026-05-27. The smoke ran cleanly after two code-deviation
+      fixes (commits 6e20d2d + 01a225e). Raw per-call JSON capture was elected to be
+      skipped for time reasons. The verbal confirmation is accepted as sufficient evidence
+      for Phase 4 closure given: (a) the smoke was executed by the workspace owner, not a
+      third party; (b) the two deviations found and fixed during the smoke validate that a
+      genuine live run occurred (a fabricated report would not surface workerd SQLite
+      LIKE-pattern-length bugs); (c) future smokes (Phase 5 recall semantic upgrade, Phase
+      7 DEP-04 Russell-agent reconfig) are required to capture raw JSON and will establish
+      the evidence standard going forward.
+    forward_note: >
+      Phase 5 and Phase 7 DEP-04 smokes MUST capture raw JSON inline in their smoke
+      artifacts. This override should not be used as a precedent for skipping JSON capture
+      in future phases.
 gaps:
   - truth: "remember() returns classified_type that matches what was stored in the blocks table"
     status: failed
