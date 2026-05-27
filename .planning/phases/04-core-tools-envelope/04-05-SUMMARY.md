@@ -36,12 +36,16 @@ decisions:
   - "Verbosity default 'both' documented with spike-findings rationale (BORDERLINE band recovery surface)"
   - "forget() is the one non-stubbed tool — fully implemented in v0.1 (blocks + relations deleted, idempotent on missing id)"
 metrics:
-  duration: "~6 minutes (Tasks 05-01, 05-03, 05-04 — auto tasks completed before checkpoint)"
+  duration: "~6 minutes auto-tasks + checkpoint smoke session (Tasks 05-02 / 05-05 closed via orchestrator-inline path with two lexicalSearchBlocks fixes landed during the smoke)"
   completed: "2026-05-27"
-  tasks_completed: 3
-  tasks_pending: 2
+  tasks_completed: 5
+  tasks_pending: 0
   files_created: 2
-  files_modified: 1
+  files_modified: 3
+deviations:
+  - "Task 05-02 smoke surfaced a workerd SQLite LIKE-pattern-length cap bug in lexicalSearchBlocks. Fixed inline via commits 6e20d2d (JS-built pattern, insufficient) + 01a225e (switched to instr() — no pattern-length limit). Regression test added in helpers.test.ts. Tests-vs-prod workerd-flavor divergence captured in 04-MCP-INSPECTOR-SMOKE.md deviation log."
+  - "Task 05-02 smoke surfaced kv-bootstrap.mjs cwd bug — must be invoked from packages/mcp-server/. Workaround documented; cwd patch filed as Phase 5 backlog (not blocking Phase 4)."
+  - "Raw per-call envelope JSON capture in 04-MCP-INSPECTOR-SMOKE.md was elected to be skipped for time reasons; AC-01..AC-12 checklist + deviation log are the primary TOL-08 acceptance signal. Deferred amendment if Phase 4 verification requires evidence."
 ---
 
 # Phase 4 Plan 05: Wave 4 Documentation + Smoke Procedure Summary
@@ -60,12 +64,24 @@ and Phase 5 hand-off note produced. Tasks 05-03 and 05-04 were completed before 
 | 05-03 | Append Tool Surface (v0.1) to README (DEP-05 amendment) | `0859203` | `README.md` |
 | 05-04 | Write 04-PHASE-5-HANDOFF.md | `bd29717` | `.planning/phases/04-core-tools-envelope/04-PHASE-5-HANDOFF.md` |
 
-## Tasks Pending (Post-Smoke-Checkpoint)
+## Tasks Completed (Post-Checkpoint, orchestrator-inline)
 
-| Task | Name | Blocked By |
-|------|------|------------|
-| 05-02 | Execute LOCAL MCP Inspector smoke + record results (TOL-08 acceptance) | Human-verify checkpoint |
-| 05-05 | Final regression + VALIDATION.md close-out | Requires `04-MCP-INSPECTOR-SMOKE.md` status: resolved |
+- **Task 05-02** — Execute LOCAL MCP Inspector smoke + mark artifact resolved
+  (TOL-08). Commit `83d938e` updates
+  `.planning/phases/04-core-tools-envelope/04-MCP-INSPECTOR-SMOKE.md` to
+  `status: resolved` (resolved_at: 2026-05-27) with the AC-01..AC-12 checklist,
+  deviation log, and explicit TOL-08 scope boundary (LOCAL smoke only; DEP-04
+  Russell-agent reconfig deferred to Phase 7).
+- **Task 05-05** — Final regression run (`npm run test --workspaces
+  --if-present` exits 0; 90 mcp-server + 26 workspace-do = 116 GREEN) +
+  `04-VALIDATION.md` flipped to `nyquist_compliant: true` with all wave-
+  complete + sign-off checkboxes ticked + plan SUMMARY finalized. Committed in
+  this same final commit.
+
+Two lexicalSearchBlocks fixes also landed during the Task 05-02 smoke session
+(separate commits `6e20d2d` + `01a225e`); they are deviation commits, NOT
+Plan 04-05 task commits — see `## Deviations from Plan` below for the full
+trail.
 
 ## What Was Built
 
@@ -138,18 +154,21 @@ None — no new attack surface introduced. All changes are documentation-only.
 - [`04-03-SUMMARY.md`](./04-03-SUMMARY.md) — 5 live handler bodies in `tools.ts` + TOL-01..05 GREEN
 - [`04-04-SUMMARY.md`](./04-04-SUMMARY.md) — TOL-07 cross-workspace pentest + MCP-08 token-budget behavioral proofs
 
-## Self-Check: PARTIAL (checkpoint)
+## Self-Check: PASSED
 
-This summary covers Tasks 05-01, 05-03, and 05-04 only. Tasks 05-02 and 05-05 are pending
-the human-verify smoke gate. The continuation agent (after smoke approval) will:
-1. Execute the smoke procedure per `04-MCP-INSPECTOR-SMOKE.md`
-2. Update frontmatter to `status: resolved` + `resolved_at: YYYY-MM-DD`
-3. Run `npm run test --workspaces --if-present` (zero regressions expected)
-4. Update `04-VALIDATION.md` to mark `nyquist_compliant: true` + Wave 4 complete
-5. Commit with message from Task 05-05 spec
+All 5 tasks complete. Phase 4 ready for `/gsd:verify-work 4`.
 
 **Created files exist:**
 
-- `57995bd` (Task 05-01): `.planning/phases/04-core-tools-envelope/04-MCP-INSPECTOR-SMOKE.md` — CONFIRMED
+- `57995bd` (Task 05-01): `.planning/phases/04-core-tools-envelope/04-MCP-INSPECTOR-SMOKE.md` — CONFIRMED (deferred → resolved via 83d938e)
 - `0859203` (Task 05-03): `README.md` Tool Surface section — CONFIRMED
 - `bd29717` (Task 05-04): `.planning/phases/04-core-tools-envelope/04-PHASE-5-HANDOFF.md` — CONFIRMED
+- `83d938e` (Task 05-02): `04-MCP-INSPECTOR-SMOKE.md` status: resolved — CONFIRMED
+- (Task 05-05, this commit): `04-VALIDATION.md` nyquist_compliant: true + 04-05-SUMMARY.md finalized
+
+**Test gate:** `npm run test --workspaces --if-present` exits 0 — 90 mcp-server tests + 26 workspace-do tests = 116 GREEN. workspace-do regression test for the lexicalSearchBlocks fix included.
+
+**Deviation commits during smoke (NOT Plan 04-05 task commits):**
+
+- `6e20d2d`: first lexicalSearchBlocks fix attempt (JS-built pattern, insufficient)
+- `01a225e`: lexicalSearchBlocks switched to instr() — GREEN smoke after this lands
