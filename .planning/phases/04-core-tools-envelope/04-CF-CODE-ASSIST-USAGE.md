@@ -39,6 +39,7 @@ If a task initially went to one route then bounced to another (e.g., cf-code-ass
 | 04-01-05 | `token-budget.test.ts` (NEW) — 3 RED budget assertions (MCP-08) | claude | Multi-file: gpt-tokenizer import path (Pitfall 6), D-10 worst-case fixture spec, TextEncoder workerd-native pattern; references envelope.ts which doesn't exist yet | n/a |
 | 04-01-05 | `tools.test.ts` (EXTEND) — replace MethodNotFound stubs with happy-path callbacks (RED until Plan 03) | claude | In-file reasoning: preserve DD-RT sentinel block, replace MethodNotFound assertions with happy-path block; captureCallback helper addition | n/a |
 | 04-01-05 | `error-mapping.test.ts` (EXTEND) — 3 Phase 4 regression lock assertions (GREEN) | claude | Additive test: context from existing error-mapping.ts behavior + PATTERNS.md §error-mapping.test.ts EXTEND | n/a |
+| 04-02-01..09 | `packages/mcp-server/src/envelope.ts` (NEW) — all 8 named exports: META_GAPS const, 5 build*Response builders, trimToBudget, wrapMcpContent, plus file-local helpers | claude | Multi-file reasoning required: CONTEXT.md D-04/D-05/D-06/D-07/D-08/D-09/D-10, spike-findings-engram §3 (byte-frozen META_GAPS strings), PATTERNS.md builder templates, result-types.ts interfaces, token-budget.test.ts/envelope.test.ts RED contracts, workspace-do LexicalSearchHit shape — all needed simultaneously to produce a correctly-typed file that turns 18 RED tests GREEN | n/a |
 
 ---
 
