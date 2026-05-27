@@ -7,6 +7,7 @@
 ## Auto-Load Routing
 
 - **Spike findings for engram** (Workers AI quality, EngramResponse synthesis contract, Phase 5 ranking strategy) → `Skill("spike-findings-engram")`
+- **Phase 4 cf-code-assist routing tracker** (ACTIVE until `/gsd:verify-work 4` passes) — every code-producing task during Phase 4 execution must append one row to `.planning/phases/04-core-tools-envelope/04-CF-CODE-ASSIST-USAGE.md`. The file has the instructions and table at its top. Tracks how often the cf-code-assist MCP (qwen3 on Workers AI) is the right route vs. when Claude handles it directly. The instruction propagates to spawned gsd-executor subagents via the "Project instructions: Read ./CLAUDE.md" line in each PLAN.md. Stop logging when Phase 4 verification passes.
 
 ---
 
