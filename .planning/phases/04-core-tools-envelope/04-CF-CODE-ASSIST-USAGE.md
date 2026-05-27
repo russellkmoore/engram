@@ -32,6 +32,7 @@ If a task initially went to one route then bounced to another (e.g., cf-code-ass
 | 04-01-02 | `npm install gpt-tokenizer@^3.4.0` to `packages/mcp-server` | claude | Package install (not code generation); supply-chain gate already approved by human reviewer | n/a |
 | 04-01-03 | `schemas.ts` — add `verbosity` to `RecallInputSchema`, add `limit` to `SearchInputSchema`, tighten both to `max(25)` | claude | Multi-file context needed (04-CONTEXT.md D-03/D-10, spike-findings SKILL.md §1, existing schema shape) before diff; <15 line additive diff after context read | n/a |
 | 04-01-03 | `schemas.test.ts` — 8 new test assertions for verbosity + limit | claude | Cross-file reasoning with TDD RED/GREEN cycle; test referenced existing file shape; needed full file context | n/a |
+| 04-01-04 | `result-types.ts` — 6 typed result interfaces (RememberResult, RecallChunk, RecallResult, SearchResult, ForgetResult, IngestResult) | claude | Architecture reasoning needed (LexicalSearchHit import chain, import type verbatimModuleSyntax compliance, D-05/D-06/D-07 decisions); multi-file context from CONTEXT.md + workspace-do/types.ts + PATTERNS.md | n/a |
 
 ---
 
