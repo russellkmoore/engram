@@ -201,7 +201,7 @@ Plans:
 - **Touches irreversible decision A8 (`EngramResponse` envelope on every tool from v0.1)**: skipping the envelope here is a breaking-change debt that grows with every consumer. All five tools wrap it from day 1.
 - **Touches irreversible decision MT-1 (defense-in-depth)**: TOL-07 penetration test is the only behavioral proof that workspace isolation holds. (SUMMARY.md §7 #4.)
 
-**Plans:** 7/7 plans (5 original + 2 gap-closure)
+**Plans:** 6/7 plans executed
 
 Plans:
 
@@ -227,7 +227,7 @@ Plans:
 
 **Wave 5** (gap closure — CR-01 fix)
 
-- [ ] 04-06-PLAN.md (Wave 5, autonomous) — CR-01: widen Memory.type to string|null, fix remember handler to store null not research_note, relax narrowBlockRow invariant, add round-trip regression test [TOL-01]
+- [x] 04-06-PLAN.md (Wave 5, autonomous) — CR-01: widen Memory.type to string|null, fix remember handler to store null not research_note, relax narrowBlockRow invariant, add round-trip regression test [TOL-01]
 
 **Wave 6** (gap closure — TOL-08 override)
 
@@ -313,7 +313,7 @@ Plans:
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
-| 4. Core Tools + Envelope | 7/7 | Gap closure in progress | 2026-05-27 |
+| 4. Core Tools + Envelope | 6/7 | In Progress|  |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
