@@ -201,7 +201,7 @@ Plans:
 - **Touches irreversible decision A8 (`EngramResponse` envelope on every tool from v0.1)**: skipping the envelope here is a breaking-change debt that grows with every consumer. All five tools wrap it from day 1.
 - **Touches irreversible decision MT-1 (defense-in-depth)**: TOL-07 penetration test is the only behavioral proof that workspace isolation holds. (SUMMARY.md §7 #4.)
 
-**Plans:** 6/7 plans executed
+**Plans:** 7/7 plans complete
 
 Plans:
 
@@ -231,7 +231,7 @@ Plans:
 
 **Wave 6** (gap closure — TOL-08 override)
 
-- [ ] 04-07-PLAN.md (Wave 6, autonomous) — TOL-08 verbal-acceptance override: add overrides block to 04-VERIFICATION.md frontmatter, add ### Verification Override subsection to 04-MCP-INSPECTOR-SMOKE.md [TOL-08]
+- [x] 04-07-PLAN.md (Wave 6, autonomous) — TOL-08 verbal-acceptance override: add overrides block to 04-VERIFICATION.md frontmatter, add ### Verification Override subsection to 04-MCP-INSPECTOR-SMOKE.md [TOL-08]
 
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 **UI hint:** no
@@ -313,7 +313,7 @@ Plans:
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
-| 4. Core Tools + Envelope | 6/7 | In Progress|  |
+| 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
