@@ -201,6 +201,38 @@ Plans:
 - **Touches irreversible decision A8 (`EngramResponse` envelope on every tool from v0.1)**: skipping the envelope here is a breaking-change debt that grows with every consumer. All five tools wrap it from day 1.
 - **Touches irreversible decision MT-1 (defense-in-depth)**: TOL-07 penetration test is the only behavioral proof that workspace isolation holds. (SUMMARY.md §7 #4.)
 
+**Plans:** 7/7 plans (5 original + 2 gap-closure)
+
+Plans:
+
+**Wave 0** (RED scaffolds + types)
+
+- [x] 04-01-PLAN.md (Wave 0, checkpoint:human-verify) — gpt-tokenizer install + Memory meta widening to number|null + schemas diff (verbosity D-03, limit ≤25 D-10) + result-types.ts (6 interfaces) + 4 RED test scaffolds [TOL-01, TOL-06, TOL-07, MCP-08]
+
+**Wave 1** (envelope helpers)
+
+- [x] 04-02-PLAN.md (Wave 1, autonomous) — envelope.ts (5 build*Response builders + trimToBudget + wrapMcpContent + META_GAPS frozen strings) [TOL-06, MCP-08]
+
+**Wave 2** (live tool handler bodies)
+
+- [x] 04-03-PLAN.md (Wave 2, autonomous) — tools.ts: 5 live async handler bodies (remember/recall/search/forget/ingest) routing through WorkspaceDO via DO namespace, all 116 tests GREEN [TOL-01, TOL-02, TOL-03, TOL-04, TOL-05, MCP-07]
+
+**Wave 3** (behavioral proofs)
+
+- [x] 04-04-PLAN.md (Wave 3, autonomous) — TOL-07 cross-workspace pentest (Prong A + B) + MCP-08 token-budget behavioral proof (6/6 GREEN) [TOL-07, MCP-08]
+
+**Wave 4** (docs + smoke)
+
+- [x] 04-05-PLAN.md (Wave 4, checkpoint:human-verify) — TOL-08 local MCP Inspector smoke (status: resolved) + DEP-05 README Tool Surface section + 04-PHASE-5-HANDOFF.md [TOL-08]
+
+**Wave 5** (gap closure — CR-01 fix)
+
+- [ ] 04-06-PLAN.md (Wave 5, autonomous) — CR-01: widen Memory.type to string|null, fix remember handler to store null not research_note, relax narrowBlockRow invariant, add round-trip regression test [TOL-01]
+
+**Wave 6** (gap closure — TOL-08 override)
+
+- [ ] 04-07-PLAN.md (Wave 6, autonomous) — TOL-08 verbal-acceptance override: add overrides block to 04-VERIFICATION.md frontmatter, add ### Verification Override subsection to 04-MCP-INSPECTOR-SMOKE.md [TOL-08]
+
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 **UI hint:** no
 
@@ -281,7 +313,7 @@ Plans:
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
-| 4. Core Tools + Envelope | 5/5 | Complete   | 2026-05-27 |
+| 4. Core Tools + Envelope | 7/7 | Gap closure in progress | 2026-05-27 |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
