@@ -4,27 +4,28 @@ plan: 05
 task: 2
 artifact: smoke-test-record
 requirement: TOL-08
-status: deferred
+status: resolved
+resolved_at: 2026-05-27
 ---
 
 # MCP Inspector Smoke Test — Plan 04-05 Task 2
 
 ## Status
 
-**DEFERRED — awaiting Task 05-02 execution.** This artifact is the FIRST proof that the
-`EngramResponse<T>` envelope (frozen by Plans 04-01 through 04-04) holds against a real MCP
-client outside the vitest harness. The 4-call round-trip procedure below will be executed as
-the human-verify checkpoint in Plan 04-05 Task 2.
+**RESOLVED 2026-05-27.** The 4-call round-trip procedure below executed against `wrangler dev`
+local with MCP Inspector. All 5 tools registered without `MethodNotFound`. After two code fixes
+landed during the smoke (commits `6e20d2d` + `01a225e` — see `## Smoke Run` deviations), the
+`remember → recall → forget → recall=0` cycle completed cleanly and the `EngramResponse<T>`
+envelope contract held against a generic MCP client outside the vitest harness.
 
 Per `04-CONTEXT.md` "Claude's Discretion" — TOL-08 delineation: v0.1 ships a LOCAL smoke ONLY.
 Full Russell-agent reconfig is **DEP-04 in Phase 7** — see `## Effect on Phase 04 closure`
-below. This plan ships the local `wrangler dev` + MCP Inspector smoke as the acceptance proof.
+below.
 
-When Task 05-02 (the human-verify checkpoint) executes this procedure, the runner will:
-1. Edit the frontmatter: `status: deferred` → `status: resolved`
-2. Add `resolved_at: YYYY-MM-DD` to the frontmatter
-3. Replace the `## Smoke Run` placeholder body with the structured record from `### What to record after running`
-4. Commit with message: `test(04-05): record MCP Inspector smoke outcome (resolves TOL-08)`
+Evidence detail (per-call envelope JSONs) was not captured into this artifact — the runner
+confirmed AC-01..AC-12 pass verbally; raw JSON capture is deferred as a follow-up amendment if
+needed by Phase 4 verification. The `## Smoke Run` section below records the run metadata,
+deviations encountered, and the AC pass-fail summary.
 
 ## Procedure (to be followed by Task 05-02)
 
@@ -229,8 +230,83 @@ Before committing the updated artifact, sanitize the recorded JSON and screensho
 
 ## Smoke Run
 
-_TBD — see Task 05-02 (the human-verify checkpoint in Plan 04-05). After the smoke runs,
-replace this paragraph with the structured record per "What to record after running" above._
+- **Date:** 2026-05-27
+- **Mode:** `wrangler dev` PURE LOCAL (no `--remote` — Phase 3 Deviation 1 confirmed still in
+  place)
+- **Runner:** Russell Moore (workspace `rmoore-personal`, user `rmoore`)
+- **OAuth `sub`:** redacted (synthetic local-mode subject seeded via `kv-bootstrap.mjs --local`)
+- **Result:** PASS — `remember → recall → forget → recall=0` cycle completed cleanly after the
+  two code-deviation fixes landed (see deviations below). All 5 tools registered without
+  `MethodNotFound`. Envelope contract from Plans 04-02 / 04-03 held against MCP Inspector
+  outside the vitest harness.
+
+### Deviations encountered during the smoke (resolved inline, follow-ups filed)
+
+These were live bugs the smoke surfaced. All resolved on `main` before TOL-08 was marked
+resolved.
+
+1. **Phase 3 Deviation 2 still active** — `scripts/kv-bootstrap.mjs` runs `npx wrangler` with
+   inherited `cwd`, so it must be invoked from inside `packages/mcp-server/` for wrangler to
+   resolve the `ENGRAM_IDENTITIES` KV binding. Running `npm run kv:bootstrap` from repo root
+   fails with `No KV Namespaces configured!`. Workaround used during the smoke:
+
+   ```bash
+   cd packages/mcp-server
+   node ../../scripts/kv-bootstrap.mjs --sub <sub> --workspace-id rmoore-personal --user-id rmoore --local
+   ```
+
+   **Follow-up:** patch `kv-bootstrap.mjs` to pass `cwd: path.join(import.meta.dirname, "..",
+   "packages", "mcp-server")` to `spawnSync`, so `npm run kv:bootstrap` from repo root works.
+   Filed as a Phase 5 / v0.2 backlog item — not part of Phase 4 `must_haves`.
+2. **`lexicalSearchBlocks` tripped workerd's SQLite LIKE-pattern-length cap** — `recall`
+   returned `MCP error -32603: LIKE or GLOB pattern too complex: SQLITE_ERROR` for the query
+   `"Acme Corp staff engineer"`. workerd sets `SQLITE_LIMIT_LIKE_PATTERN_LENGTH` well below
+   the mainline default — any realistic multi-word query exceeded it.
+   **Fix landed:** commit `6e20d2d` first pre-built the `%foo%` pattern in JS (insufficient);
+   commit `01a225e` switched to `instr(lower(content), ?) > 0` which has no pattern-length
+   limit. Regression test added in `packages/workspace-do/src/__tests__/helpers.test.ts`
+   exercising the exact failing query shape.
+3. **vitest fixture flavor of workerd did NOT trip the same SQLite cap** — Plan 04-04's
+   `tools-integration.test.ts` and `tools.test.ts` both exercise `recall` against
+   `vitest-pool-workers` and remained GREEN throughout, despite the production `wrangler dev`
+   flavor of workerd failing the same code path. **Follow-up:** capture this real-runtime
+   divergence as a known testing-gap in the Phase 5 handoff. Smoke caught what tests missed.
+4. **Inspector args-entry mode required user discipline** — pasting the full JSON `{...}`
+   object into a single text input was accepted by the schema (`args.content` is `string`) but
+   produced wrong data (whole JSON object stored as `content`, `type` fell back to default
+   `research_note`). Correct usage is the Inspector form-field mode, one schema property per
+   row. **Follow-up:** README "Tool Surface (v0.1)" section already documents the request
+   shape; no code change needed, but the Phase 7 / DEP-04 Russell-agent reconfig should not
+   hit this pitfall because the agent sends structured args programmatically.
+
+### Acceptance criteria results
+
+- [x] **AC-01:** OAuth dance completes after Quick OAuth Flow.
+- [x] **AC-02:** KV bootstrap succeeds (after workaround in Deviation 1 above).
+- [x] **AC-03:** Tools tab shows exactly 5 tools: `remember`, `recall`, `search`, `forget`,
+  `ingest`.
+- [x] **AC-04:** NO tool returns `MethodNotFound` — Plan 04-03 live handlers retired the Phase
+  3 stubs.
+- [x] **AC-05:** Call 1 (`remember`) — `result.id` matched UUID v4 pattern.
+- [x] **AC-06:** Call 1 — `meta.gaps` contained both the AI-classification and conflict-
+  detection canonical strings.
+- [x] **AC-07:** Call 1 — `"suggestions" in envelope` was `false` (key absent per D-04).
+- [x] **AC-08:** Call 2 (`recall` verbosity=both) — `result.memories.length >= 1` and
+  `result.chunks` was present after the `instr()` fix.
+- [x] **AC-09:** Call 2 — `result.synthesis === null` and `meta.gaps` contained the AI-
+  synthesis canonical string.
+- [x] **AC-10:** Call 3 (`forget` cascade=true) — `result.blocks_deleted >= 1` and
+  `meta.gaps === []`.
+- [x] **AC-11:** Call 4 (`recall` post-forget) — `result.memories` was empty (block was
+  deleted).
+- [x] **AC-12:** Inspector UI rendered full response JSON without truncation.
+
+### Raw JSON capture
+
+Not recorded inline in this commit (runner elected to skip the JSON capture for time
+reasons). Capture is a deferred amendment — if Phase 4 verification or a future audit
+requires the evidence, re-run the smoke and paste the response JSONs here in a follow-up
+commit. The AC checklist above is the primary acceptance signal for TOL-08 closure.
 
 ## Cross-references
 
