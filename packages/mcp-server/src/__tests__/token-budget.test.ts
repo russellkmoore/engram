@@ -31,7 +31,7 @@
 // Source: 04-RESEARCH.md §Pattern 3 (worst-case fixture + encode shape)
 //         + PATTERNS.md §"token-budget.test.ts" lines 574-634.
 //
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+
 // Rationale: envelope.ts does not exist yet (Plan 04-02 deliverable). TypeScript
 // resolves all imports from ../envelope.js as `error`-typed, triggering no-unsafe-*
 // rules. These tests are intentionally RED until Plan 04-02 ships. The disable
@@ -74,6 +74,26 @@ function buildWorstCaseMemories() {
     match_column: null as "content" | "summary" | null,
     score: null,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Helper: captureToolRegistrations (mirrors captureRegistrations in tools.test.ts:67-84)
+// Named captureToolRegistrations to avoid grep-collision with the tools.test.ts helper
+// if both files are ever co-loaded by a test-helper extract in the future.
+// ---------------------------------------------------------------------------
+
+function captureToolRegistrations(): { name: string; description: string }[] {
+  const spy = vi.spyOn(McpServer.prototype, "registerTool");
+  try {
+    const server = new McpServer({ name: "test", version: "0.0.1" });
+    registerTools(server, () => undefined, env);
+    return spy.mock.calls.map((call) => {
+      const [name, config] = call as unknown as [string, { description?: string }];
+      return { name, description: config.description ?? "" };
+    });
+  } finally {
+    spy.mockRestore();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -141,24 +161,61 @@ describe("MCP-08: token-budget post-trim ≤ 7,500 cl100k_base tokens", () => {
 
 describe("MCP-08: every registered tool description is ≤ 1,500 bytes (UTF-8)", () => {
   it("each tool description is ≤ 1,500 UTF-8 bytes (TextEncoder.encode — workerd-native)", () => {
-    // Use the captureRegistrations spy pattern from tools.test.ts:67-84.
-    // TextEncoder is workerd-native; do NOT use Buffer.byteLength.
-    const spy = vi.spyOn(McpServer.prototype, "registerTool");
-    try {
-      const server = new McpServer({ name: "engram-mcp-server-test", version: "0.0.1" });
-      registerTools(server, () => undefined, env as Env);
+    const registrations = captureToolRegistrations();
 
-      for (const call of spy.mock.calls) {
-        const [toolName, config] = call as [string, { description?: string }];
-        const desc = config.description ?? "";
-        const byteLength = new TextEncoder().encode(desc).byteLength;
-        expect(
-          byteLength,
-          `Tool '${toolName}' description is ${String(byteLength)} bytes — must be ≤ 1,500`,
-        ).toBeLessThanOrEqual(1_500);
-      }
-    } finally {
-      spy.mockRestore();
+    // Sanity check: all 5 tools are registered (proves the spy captured the full set)
+    expect(registrations).toHaveLength(5);
+
+    for (const { name, description } of registrations) {
+      // Sanity check: non-empty description (proves test is not passing vacuously)
+      expect(description.length, `${name} description is empty`).toBeGreaterThan(0);
+
+      // TextEncoder is workerd-native (use instead of any node:buffer API).
+      const byteLength = new TextEncoder().encode(description).byteLength;
+      expect(byteLength, `${name} description byte length`).toBeLessThanOrEqual(1_500);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// MCP-08: negative-fixture sanity (adversarial-proof)
+// ---------------------------------------------------------------------------
+
+describe("MCP-08: worst-case envelope WITHOUT trimToBudget exceeds 8,000 tokens — adversarial proof", () => {
+  it("MCP-08: worst-case recall envelope WITHOUT trimToBudget exceeds 8,000 tokens — proves the fixture is adversarial", () => {
+    // Build the SAME worst-case fixture as the "worst-case" test above
+    // (25 memories × 4KB content + 1KB summary + populated metadata).
+    // Assert the un-trimmed envelope EXCEEDS the MCP-08 8K-token ceiling.
+    //
+    // Purpose: this is the adversarial-proof test. If the fixture
+    // does NOT exceed 8K tokens raw, then the "trims to ≤ 7,500"
+    // assertion in the worst-case test passes trivially (trim never
+    // had to do anything), and the entire MCP-08 guarantee is unverified.
+    // This test locks the fixture's adversarial-ness as a regression check.
+    const worstCaseMemories = Array.from({ length: 25 }, (_, i) => ({
+      id: `blk-${String(i)}`,
+      type: "research_note",
+      content: "x".repeat(4_000), // 4KB content
+      summary: "y".repeat(1_000), // 1KB summary
+      properties: null,
+      embedding_id: null,
+      scope: "personal" as const,
+      project_id: null,
+      source: "mcp:test",
+      confidence: 0.9,
+      created_at: 1_700_000_000_000 + i,
+      updated_at: 1_700_000_000_000 + i,
+      snippet: null,
+      match_column: null as "content" | "summary" | null,
+      score: null,
+    }));
+
+    const envelope = buildRecallResponse({ memories: worstCaseMemories, verbosity: "synthesis" });
+    const rawTokens = encode(JSON.stringify(envelope)).length;
+
+    // If this assertion ever fails (rawTokens drops below 8K), the worst-case test
+    // above is no longer load-bearing — investigate whether `buildRecallResponse`
+    // output shape changed or whether the fixture sizes need scaling up.
+    expect(rawTokens).toBeGreaterThan(8_000);
   });
 });
