@@ -59,8 +59,14 @@ export interface MemoryEvent {
 export interface Memory {
   /** UUID primary key. */
   id: string;
-  /** Memory type ID — references a row in the `memory_types` table. */
-  type: string;
+  /**
+   * Memory type ID — references a row in the `memory_types` table, or `null`
+   * when no type was provided at ingest time and AI classification has not yet
+   * run. Phase 5 replaces `null` with the CF AI–inferred type after
+   * classification. Honest-stub contract D-06: the stored value must equal the
+   * `classified_type` echoed in the `remember()` response envelope.
+   */
+  type: string | null;
   /** Raw original content as provided at ingest time. */
   content: string | null;
   /** CF AI–generated summary of the content. */

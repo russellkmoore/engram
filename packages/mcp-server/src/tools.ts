@@ -199,7 +199,7 @@ export function registerTools(
       // args.tags + args.expires accepted by schema but not yet persisted (no Memory field)
       const block: Memory = {
         id,
-        type: args.type ?? "research_note",
+        type: args.type ?? null,
         content: args.content,
         summary: null,
         properties: null,
