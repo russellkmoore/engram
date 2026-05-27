@@ -20,7 +20,7 @@
 - [x] **Phase 1: Foundation** — Monorepo, shared types, system memory type seeds, per-package `wrangler.jsonc`, license, CLAUDE.md corrections (completed 2026-05-25)
 - [x] **Phase 2: WorkspaceDO + SQLite** — Durable Object with idempotent schema migrations, all seven tables, system type seeding, typed query helpers, vitest coverage (completed 2026-05-26)
 - [x] **Phase 3: MCP Server Scaffold** — `EngramMcp extends McpAgent`, JWT-to-`props` middleware, two-DO topology, empty tool registrations, MCP Inspector connectivity (completed 2026-05-26)
-- [ ] **Phase 4: Core Tools + Envelope** — `remember`/`recall`/`search`/`forget`/`ingest` with `EngramResponse` envelope, `McpError` shape, response-size budgets, transactional `forget`, cross-workspace penetration test
+- [x] **Phase 4: Core Tools + Envelope** — `remember`/`recall`/`search`/`forget`/`ingest` with `EngramResponse` envelope, `McpError` shape, response-size budgets, transactional `forget`, cross-workspace penetration test (completed 2026-05-27)
 - [ ] **Phase 5: AI Integration** — Vectorize index + namespaces, `bge-base-en-v1.5` embeddings on sync write, semantic recall, Triage-Worker AI (entity extraction, memorability), 429-aware retry, vector delete on forget
 - [ ] **Phase 6: Async Pipeline** — `engram-ingest` Queue, producer wiring with `ctx.waitUntil`, Triage Worker consumer with idempotency + DLQ, `blocks.ingest_status` tracking, RPC back into WorkspaceDO
 - [ ] **Phase 7: Deploy + Acceptance** — `wrangler deploy` for both Workers, Russell JWT + Claude Desktop config, end-to-end acceptance (store in conv A, recall in conv B), job-search agent flipped over, setup README
@@ -281,7 +281,7 @@ Plans:
 | 1. Foundation            | 6/6 | Complete   | 2026-05-25 |
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
-| 4. Core Tools + Envelope | 4/5 | In Progress|  |
+| 4. Core Tools + Envelope | 5/5 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/0            | Not started | —         |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
