@@ -378,17 +378,27 @@ export function getBlock(sql: SqlStorage, id: string): Memory {
  * Note: LIKE in SQLite is case-insensitive for ASCII by default but
  * case-sensitive for non-ASCII (UTF-8). v0.1 accepts this; Phase 4 may
  * upgrade to FTS5 if non-ASCII matching becomes a tracked issue.
+ *
+ * Pattern is built in JS and bound as a single parameter. The earlier
+ * `'%' || ? || '%'` SQL concatenation tripped workerd SQLite's
+ * "LIKE or GLOB pattern too complex" guard for realistic-length queries —
+ * the JS-side concatenation makes the bound value a single literal pattern
+ * that workerd accepts without complexity analysis. User-supplied `%` / `_`
+ * / `\` are passed through verbatim; v0.1 treats these as part of the
+ * search intent rather than escaping them (the lexical surface is naive by
+ * design and Phase 5 displaces it with Vectorize semantic search).
  */
 export function lexicalSearchBlocks(
   sql: SqlStorage,
   query: string,
   limit = 50,
 ): LexicalSearchHit[] {
+  const pattern = `%${query}%`;
   const rows = sql
     .exec(
-      "SELECT id, type, content, summary, properties, embedding_id, embedding_model, embedding_version, scope, project_id, source, confidence, created_at, updated_at FROM blocks WHERE content LIKE '%' || ? || '%' OR summary LIKE '%' || ? || '%' ORDER BY created_at DESC LIMIT ?",
-      query,
-      query,
+      "SELECT id, type, content, summary, properties, embedding_id, embedding_model, embedding_version, scope, project_id, source, confidence, created_at, updated_at FROM blocks WHERE content LIKE ? OR summary LIKE ? ORDER BY created_at DESC LIMIT ?",
+      pattern,
+      pattern,
       limit,
     )
     .toArray();

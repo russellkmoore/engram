@@ -130,6 +130,32 @@ describe("WorkspaceDO typed query helpers (STO-06)", () => {
     });
   });
 
+  it("lexicalSearchBlocks accepts realistic multi-word queries without tripping LIKE complexity", async () => {
+    // Regression: the prior `'%' || ? || '%'` SQL concatenation tripped
+    // workerd SQLite's "LIKE or GLOB pattern too complex" guard for realistic
+    // queries (smoke caught `"Acme Corp staff engineer"` failing). The fix
+    // pre-computes the pattern in JS and binds a single literal. This test
+    // exercises a query string of the same shape that originally failed.
+    const workspace_id = "ws-helpers-lexical-complex";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance) => {
+      const ws = asWorkspaceDO(instance);
+      ws.insertBlock({
+        workspace_id,
+        block: makeBlock({
+          id: "blk-lex-complex-001",
+          content: "Phase 4 smoke test: applied to Acme Corp staff engineer role 2026-05-26",
+          summary: null,
+        }),
+      });
+
+      const hits = ws.lexicalSearchBlocks({ workspace_id, query: "Acme Corp staff engineer" });
+      expect(hits.length).toBe(1);
+      expect(hits[0]?.id).toBe("blk-lex-complex-001");
+    });
+  });
+
   it("deleteBlock cascades to relations when cascade=true (default)", async () => {
     const workspace_id = "ws-helpers-delete";
     const id = env.WORKSPACE.idFromName(workspace_id);
