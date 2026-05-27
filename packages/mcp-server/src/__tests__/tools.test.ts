@@ -29,8 +29,8 @@
  * @module @engram/mcp-server/__tests__/tools
  */
 import { describe, it, expect, vi } from "vitest";
+import { env } from "cloudflare:workers";
 
-import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { registerTools } from "../tools.js";
@@ -68,7 +68,7 @@ function captureRegistrations(): RegisteredToolCall[] {
   const spy = vi.spyOn(McpServer.prototype, "registerTool");
   try {
     const server = new McpServer({ name: "engram-mcp-server-test", version: "0.0.1" });
-    registerTools(server, () => undefined, {} as unknown as Env);
+    registerTools(server, () => undefined, {} as Env);
     const captured: RegisteredToolCall[] = spy.mock.calls.map((call) => {
       const [name, config, callback] = call as unknown as [
         string,
@@ -78,6 +78,41 @@ function captureRegistrations(): RegisteredToolCall[] {
       return { name, config, callback };
     });
     return captured;
+  } finally {
+    spy.mockRestore();
+  }
+}
+
+/**
+ * Capture the registered callback for a specific tool and return it bound to
+ * the given workspace_id. Injects real env from cloudflare:workers so the
+ * Phase 4 handler bodies can resolve the WORKSPACE DO via getAgentByName.
+ *
+ * Pattern from PATTERNS.md §S6 + tools-integration.test.ts analog.
+ */
+function captureCallback(
+  toolName: string,
+  workspace_id: string,
+  user_id = "u-test",
+): (args: unknown, extra: unknown) => Promise<unknown> {
+  const spy = vi.spyOn(McpServer.prototype, "registerTool");
+  try {
+    const server = new McpServer({ name: "engram-mcp-server-test", version: "0.0.1" });
+    registerTools(server, () => ({ workspace_id, user_id }), env as Env);
+    let foundCallback: ((args: unknown, extra: unknown) => Promise<unknown>) | undefined;
+    for (const rawCall of spy.mock.calls) {
+      const [callName, , callCb] = rawCall as unknown as [
+        string,
+        RegisteredToolCall["config"],
+        RegisteredToolCall["callback"],
+      ];
+      if (callName === toolName) {
+        foundCallback = callCb;
+        break;
+      }
+    }
+    if (foundCallback === undefined) throw new Error(`registration for '${toolName}' not captured`);
+    return foundCallback;
   } finally {
     spy.mockRestore();
   }
@@ -105,36 +140,27 @@ describe("registerTools registration", () => {
   });
 });
 
-describe("MethodNotFound stubs (D-05 phase-pinned messages)", () => {
+describe("Phase 4 happy-path callbacks (TOL-01..05)", () => {
+  // RED until Plan 03 (tools.ts handler bodies) ships. These tests reference the
+  // real DO via getAgentByName(env.WORKSPACE, workspace_id); the callbacks
+  // currently throw McpError(MethodNotFound) so each it() below fails with
+  // "MethodNotFound" until Phase 4 Plan 03 swaps the bodies.
   it.each([
-    ["remember", "TOL-01"],
-    ["recall", "TOL-02"],
-    ["search", "TOL-03"],
-    ["forget", "TOL-04"],
-    ["ingest", "TOL-05"],
-  ])(
-    "%s throws McpError(MethodNotFound) with 'Phase 3' + '%s' message",
-    async (toolName, tolId) => {
-      const calls = captureRegistrations();
-      const match = calls.find((c) => c.name === toolName);
-      if (match === undefined) {
-        throw new Error(
-          `${toolName} registration not captured — registerTools did not register it`,
-        );
-      }
-
-      let caught: unknown = undefined;
-      try {
-        await match.callback({}, {});
-      } catch (err) {
-        caught = err;
-      }
-      // SHAPE-LOCK assertions — mirror of defense-in-depth.test.ts:191-196.
-      expect(caught).toBeInstanceOf(McpError);
-      expect((caught as McpError).code).toBe(ErrorCode.MethodNotFound);
-      expect((caught as McpError).message).toContain("Phase 3");
-      expect((caught as McpError).message).toContain("Phase 4");
-      expect((caught as McpError).message).toContain(tolId);
+    ["remember", { content: "hello" }],
+    ["recall", { query: "x" }],
+    ["search", { query: "x" }],
+    ["forget", { id: "nonexistent" }],
+    ["ingest", { source: "https://example.com" }],
+  ] as [string, Record<string, unknown>][])(
+    "%s callback returns wrapped EngramResponse envelope",
+    async (toolName, args) => {
+      const cb = captureCallback(toolName, "ws-happy-path");
+      const result = (await cb(args, {})) as { content: [{ type: "text"; text: string }] };
+      expect(result).toHaveProperty("content");
+      const envelope = JSON.parse(result.content[0].text) as Record<string, unknown>;
+      expect(envelope).toHaveProperty("result");
+      expect(envelope).toHaveProperty("context");
+      expect(envelope).toHaveProperty("meta");
     },
   );
 });
