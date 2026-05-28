@@ -46,18 +46,28 @@ export default defineConfig({
         test: {
           name: "workerd",
           include: ["src/__tests__/**/*.test.ts"],
-          exclude: ["src/__tests__/lint-no-direct-vectorize.test.ts"],
+          exclude: [
+            "src/__tests__/lint-no-direct-vectorize.test.ts",
+            // ai-helper-identity.test.ts uses node:fs readFileSync for cross-package reads;
+            // workerd runtime does not support this. Runs in lint-node pool below.
+            "src/__tests__/ai-helper-identity.test.ts",
+          ],
         },
       },
       {
-        // Node-pool project: ONLY the AI-02 lint grep gate.
-        // Default Vitest pool (Node) — provides node:fs so the test can walk
+        // Node-pool project: lint grep gate + cross-package identity tests.
+        // Default Vitest pool (Node) — provides node:fs so the tests can walk
         // the source tree. The cloudflareTest plugin is intentionally NOT
         // loaded for this project (it would try to bind WORKSPACE DO which
-        // is irrelevant for a pure-grep test).
+        // is irrelevant for pure-grep / pure-identity tests).
         test: {
           name: "lint-node",
-          include: ["src/__tests__/lint-no-direct-vectorize.test.ts"],
+          include: [
+            "src/__tests__/lint-no-direct-vectorize.test.ts",
+            // Cross-file model-constant identity test (AI-SPEC.md §5 dimension #2).
+            // Reads triage-worker/src/ai-helper.ts via node:fs — cannot run in workerd pool.
+            "src/__tests__/ai-helper-identity.test.ts",
+          ],
         },
       },
     ],

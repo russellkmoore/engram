@@ -1,9 +1,10 @@
 /**
- * RED test stubs for `ai-helper.ts` (AI-03/04/07 constant + 429 dual-path).
+ * Tests for `ai-helper.ts` (AI-03/04/07 constant + 429 dual-path).
  *
- * These tests COMPILE but FAIL because `../ai-helper.js` does not exist yet —
- * Plan 05-02 (Wave 1) creates it. The import-resolution failure is the
- * expected RED state.
+ * Plan 05-02 (Wave 1) shipped `ai-helper.ts` in mcp-server.
+ * Plan 05-04 (Wave 2b) ships `ai-helper.ts` in triage-worker and wires the
+ * cross-file identity test asserting literal-string equality on all 3 model
+ * constants (AI-SPEC.md §5 dimension #2 identity-check gate).
  *
  * Requirements covered:
  * - AI-03/AI-04: model-id constants locked at AI-SPEC.md §5 values; drift
@@ -14,10 +15,7 @@
  *
  * @module @engram/mcp-server/__tests__/ai-helper
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-// Rationale: ai-helper.ts does not exist yet (Plan 05-02 deliverable). TypeScript
-// resolves all imports from ../ai-helper.js as error-typed, triggering no-unsafe-*
-// rules. Tests are intentionally RED until Plan 05-02 ships.
+
 import { describe, it, expect } from "vitest";
 
 import {
@@ -45,9 +43,11 @@ describe("AI helper constants (AI-03/04 drift guard)", () => {
     expect(CLASSIFIER_MODEL).toBe("@cf/meta/llama-3.1-8b-instruct");
   });
 
-  it.todo(
-    "EMBEDDING_MODEL is identical across mcp-server and triage-worker (cross-file equality — stub until Plan 05-04 lands triage-worker/src/ai-helper.ts)",
-  );
+  it.skip("EMBEDDING_MODEL is identical across mcp-server and triage-worker (AI-SPEC.md §5 dimension #2 identity-check gate — tested in ai-helper-identity.test.ts lint-node pool)", () => {
+    // workerd pool cannot use node:fs readFileSync for cross-package file reads.
+    // The actual identity assertion lives in ai-helper-identity.test.ts (lint-node pool)
+    // which uses node:fs to read triage-worker/src/ai-helper.ts directly.
+  });
 });
 
 // ---------------------------------------------------------------------------
