@@ -71,9 +71,11 @@ export const META_GAPS = {
     "AI classification lands in Phase 5. classified_type echoes args.type when supplied.",
     "Conflict detection lands in Phase 5 (semantic similarity via Vectorize).",
   ],
-  recall: [
-    "AI synthesis lands in Phase 5 (Vectorize + Workers AI). Phase 4 returns lexical (LIKE) matches only.",
-  ],
+  // Phase 5 Plan 05-05: the Phase 4 placeholder string "AI synthesis lands in Phase 5..." is
+  // REMOVED because AI synthesis ships here. The array is now empty for non-default verbosity
+  // recall. For default verbosity="chunks", recallChunksOmittedSynthesis is APPENDED per-call
+  // in buildRecallResponse (not in this canonical array).
+  recall: [] as string[],
   search: ["Lexical (LIKE) backing — semantic search lands in Phase 5."],
   forget: [] as string[],
   ingest: ["Async enrichment pipeline lands in Phase 6 — job is recorded but not yet processed."],
@@ -82,6 +84,14 @@ export const META_GAPS = {
   // semantically searchable via Vectorize. Byte-frozen per D-10 — do NOT paraphrase.
   truncationOver1800Chars:
     "Content over 1,800 chars truncated for embedding; full content stored in SQLite but only the first ~512 tokens are semantically searchable.",
+  // Phase 5 Plan 05-05 D-02: appended to meta.gaps on every default-verbosity (chunks) recall
+  // so Claude knows synthesis is available on opt-in. Byte-frozen per D-10 — do NOT paraphrase.
+  recallChunksOmittedSynthesis:
+    "Synthesis omitted — re-call with verbosity: 'synthesis' or 'both' to add an LLM summary.",
+  // Phase 5 Plan 05-05: informational gap for cold-storage demotions (CONTEXT.md D-07).
+  // NOT surfaced by Phase 5 recall — reserved for v0.2 include_cold: true recall path.
+  coldStorageDemotion:
+    "Memory scored < 0.4 memorability — moved to cold-storage. Pass include_cold: true to recall (v0.2).",
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -169,16 +179,24 @@ export function buildRememberResponse(input: {
  * - `"synthesis"` → `result.chunks` is ABSENT (key not present — not undefined).
  * - `"chunks"` or `"both"` → `result.chunks` is an array of `RecallChunk` objects.
  *
- * D-07 (synthesis: null): `result.synthesis` is ALWAYS `null` in v0.1 regardless
- * of verbosity. Phase 5 / AI-04 populates with real CF AI synthesis after Vectorize
- * search without changing this builder's signature.
+ * Phase 5 D-01: `result.synthesis` is null on default verbosity="chunks" (synthesis opt-in).
+ * When verbosity ∈ {"synthesis", "both"}, synthesis is passed via the `synthesis` param
+ * and populated in the envelope.
  *
- * Spike §1 (default flip rationale): `verbosity` default is `"both"` — it captures
- * both dimensions. The BORDERLINE band decision (spike-001/002) keeps this field.
+ * Phase 5 D-02: discoverability triad — when verbosity="chunks" (default):
+ * - `meta.gaps` includes `META_GAPS.recallChunksOmittedSynthesis` (surface #2)
+ * - `suggestions.actions` includes the opt-in guidance string (surface #3, first activation in v0.1)
+ *
+ * Spike §1 (default flip rationale): verbosity default is "chunks" per Phase 5 D-01 —
+ * synthesis opt-in avoids the 2–5s latency penalty on every default recall call.
  */
 export function buildRecallResponse(input: {
   memories: LexicalSearchHit[];
   verbosity: "synthesis" | "chunks" | "both";
+  /** Phase 5 D-01: CF AI synthesis string, or null when verbosity="chunks" (skipped). */
+  synthesis?: string | null;
+  /** Phase 5 D-02: suggestions.actions populated when verbosity="chunks" (discoverability triad). */
+  suggestions?: { actions: string[] };
 }): EngramResponse<RecallResult> {
   const chunksField =
     input.verbosity === "synthesis"
@@ -188,7 +206,7 @@ export function buildRecallResponse(input: {
             (memory): RecallChunk => ({
               id: memory.id,
               content_excerpt: memory.snippet ?? (memory.content ?? "").slice(0, 300),
-              score: null,
+              score: (memory as LexicalSearchHit & { _score?: number })._score ?? null,
             }),
           ),
         };
@@ -196,10 +214,16 @@ export function buildRecallResponse(input: {
   const lastUpdated =
     input.memories.length > 0 ? Math.max(...input.memories.map((m) => m.created_at)) : Date.now();
 
-  return {
+  // Phase 5 D-02: per-call gap for the synthesis-omitted hint.
+  // META_GAPS.recall is now empty (Phase 4 placeholder removed); recallChunksOmittedSynthesis
+  // is appended per-call when verbosity="chunks" so Claude sees the discoverability signal.
+  const gaps: string[] = [...META_GAPS.recall];
+  if (input.verbosity === "chunks") gaps.push(META_GAPS.recallChunksOmittedSynthesis);
+
+  const envelope: EngramResponse<RecallResult> = {
     result: {
       memories: input.memories,
-      synthesis: null,
+      synthesis: input.synthesis ?? null,
       ...chunksField,
     },
     context: {
@@ -211,9 +235,30 @@ export function buildRecallResponse(input: {
       confidence: null,
       coverage: null,
       last_updated: lastUpdated,
-      gaps: [...META_GAPS.recall],
+      gaps,
     },
   };
+
+  // Phase 5 D-02 surface #3: suggestions.actions populated on default-verbosity recall only.
+  // When verbosity="chunks" (default), auto-generate the discoverability guidance even if the
+  // caller did not pass suggestions. This ensures the triad fires correctly from buildRecallResponse
+  // itself (envelope unit tests call the builder directly without going through the handler).
+  // When verbosity ∈ {"synthesis", "both"} the caller explicitly opted in — no guidance needed.
+  if (input.verbosity === "chunks") {
+    const actions = input.suggestions?.actions ?? [
+      "Set verbosity: 'synthesis' to add a summary of these memories.",
+    ];
+    return {
+      ...envelope,
+      suggestions: {
+        actions,
+        queries: [], // v0.1: queries stays empty; v0.2 will populate with related query suggestions
+      },
+    };
+  }
+
+  // For synthesis / both: no suggestions (caller opted in explicitly)
+  return envelope;
 }
 
 // ---------------------------------------------------------------------------
@@ -408,10 +453,15 @@ function dropLastMemory<T extends { memories: LexicalSearchHit[] }>(
  * 2. Step 1 — drop `result.memories[i].content` → set to `null` on each entry.
  * 3. Step 2 — drop `result.memories[i].summary` → set to `null` on each entry.
  * 4. Step 3 — drop trailing memories one-by-one until under budget or only one remains.
+ * 5. Step 4 (Phase 5 exceptional) — if synthesis alone exceeds budget, truncate synthesis
+ *    and append META_GAPS.recallChunksOmittedSynthesis to meta.gaps as a truncation flag.
  *
  * D-10 invariants (NEVER violated):
  * - `envelope.meta` is NEVER dropped (load-bearing signals for Claude).
+ * - `envelope.meta.gaps` is NEVER dropped or emptied.
  * - `envelope.context.conflicts` is NEVER dropped (even when empty — load-bearing signal).
+ * - `result.synthesis` is NEVER dropped — it is the value the caller asked for.
+ *   If synthesis alone exceeds budget, it is truncated (not silently removed).
  * - `envelope.result.id` on `buildRememberResponse` outputs is NEVER dropped
  *   (remember() envelopes have no `memories` array, so the trim algorithm never
  *   applies to them anyway).
@@ -459,9 +509,36 @@ export function trimToBudget<T>(envelope: EngramResponse<T>): EngramResponse<T> 
   }
 
   // Step 3: drop trailing memories one-by-one until under budget or only 1 remains.
+  // Phase 5 Phase 4 handoff: drop trailing memories first — NEVER drop synthesis or meta.gaps.
   let current = trimmed as unknown as EngramResponse<WithMemories>;
   while (countTokens(current) > BUDGET && current.result.memories.length > 1) {
     current = dropLastMemory(current);
+  }
+
+  // Step 4 (Phase 5 exceptional case only): if still over budget with 0–1 memories,
+  // and result.synthesis is present, truncate synthesis to fit.
+  // This protects meta.gaps and synthesis is partially preserved over being silently dropped.
+  if (countTokens(current) > BUDGET) {
+    const withSynthesis = current.result as WithMemories & { synthesis?: string | null };
+    if (typeof withSynthesis.synthesis === "string" && withSynthesis.synthesis.length > 0) {
+      // Truncate synthesis: budget ~4K chars as a rough heuristic (~1K tokens)
+      const truncatedSynthesis = withSynthesis.synthesis.slice(0, 4000) + "… [synthesis truncated]";
+      const updatedGaps = [
+        ...(Array.isArray(current.meta.gaps) ? current.meta.gaps : []),
+        META_GAPS.recallChunksOmittedSynthesis,
+      ];
+      current = {
+        ...current,
+        result: {
+          ...current.result,
+          synthesis: truncatedSynthesis,
+        },
+        meta: {
+          ...current.meta,
+          gaps: updatedGaps,
+        },
+      };
+    }
   }
 
   return current as unknown as EngramResponse<T>;

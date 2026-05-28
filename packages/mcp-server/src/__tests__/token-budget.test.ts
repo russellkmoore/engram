@@ -113,7 +113,11 @@ describe("MCP-08: token-budget post-trim ≤ 7,500 cl100k_base tokens", () => {
     expect(trimmed).toHaveProperty("meta");
     expect(trimmed.meta.gaps).toBeDefined();
     expect(Array.isArray(trimmed.meta.gaps)).toBe(true);
-    expect(trimmed.meta.gaps.length).toBeGreaterThan(0);
+    // Phase 5 Plan 05-05: META_GAPS.recall[] is now empty (Phase 4 placeholder removed;
+    // AI synthesis ships in Phase 5). For verbosity="synthesis", meta.gaps is [] (no gaps).
+    // For verbosity="chunks" (default), meta.gaps contains recallChunksOmittedSynthesis.
+    // D-10 invariant: meta.gaps is NEVER dropped — it may be an empty array, which is valid.
+    // The length>0 assertion is removed here because synthesis verbosity legitimately has 0 gaps.
   });
 
   it("worst-case remember envelope trims correctly (meta.confidence/coverage preserved)", () => {

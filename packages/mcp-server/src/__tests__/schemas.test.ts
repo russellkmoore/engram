@@ -130,9 +130,12 @@ describe("schemas rejection paths", () => {
 });
 
 describe("RecallInputSchema verbosity (D-03 + spike-findings-engram §1)", () => {
-  it("Test 1: default verbosity is 'both' (D-02 spike-findings flip)", () => {
+  it("Test 1: default verbosity is 'chunks' (Phase 5 D-01 flip — synthesis opt-in)", () => {
+    // Phase 5 CONTEXT.md D-01: verbosity default changed from "both" to "chunks"
+    // so synthesis is opt-in. Plan 05-01 shipped the schema change; Plan 05-05
+    // fixes this test (deferred per 05-01-SUMMARY.md §Deferred Items).
     const result = RecallInputSchema.parse({ query: "x" });
-    expect(result.verbosity).toBe("both");
+    expect(result.verbosity).toBe("chunks");
   });
 
   it("Test 2: verbosity 'synthesis' passes through", () => {

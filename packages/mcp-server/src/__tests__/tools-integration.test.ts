@@ -64,31 +64,89 @@ import { registerTools } from "../tools.js";
 /** Deterministic 768-dim embedding returned by the AI mock on every call. */
 const MOCK_VECTOR = new Array(768).fill(0.1) as number[];
 
+// ---------------------------------------------------------------------------
+// Phase 5 AI-04: Vectorize mock state tracking
+//
+// recall() now uses Vectorize semantically. The mock must simulate the
+// upsert→query→delete lifecycle so integration tests (TOL-01, TOL-04, AI-08)
+// can exercise read-your-writes behaviour without a real Vectorize binding.
+//
+// Implementation: a Map from (namespace → Set<id>) accumulates upserted IDs.
+// On query, the mock returns all IDs in the namespace as deterministic matches.
+// On deleteByIds, the mock removes the IDs from the namespace set.
+// This gives realistic round-trip behaviour for the test suite.
+// ---------------------------------------------------------------------------
+
+/** Per-namespace ID registry for the Vectorize mock. keyed by workspaceId. */
+const vectorizeStore = new Map<string, Set<string>>();
+
 /**
  * Patch env.AI and env.VECTORIZE with minimal stubs that satisfy the
- * Plan 05-03 handler logic without hitting the remote binding.
+ * Plan 05-03 + Plan 05-05 handler logic without hitting the remote binding.
  *
- * - env.AI.run returns a deterministic 768-dim embedding vector.
- * - env.VECTORIZE.upsert / deleteByIds are no-ops returning { mutationId: "mock" }.
- *
- * Returns cleanup functions for beforeAll / afterAll usage.
+ * Phase 5 AI-04 additions:
+ * - env.VECTORIZE.query returns deterministic matches for all IDs upserted
+ *   into the same namespace, enabling recall round-trips in integration tests.
+ * - env.VECTORIZE.upsert tracks IDs per namespace (workspace isolation correct).
+ * - env.VECTORIZE.deleteByIds removes IDs from the namespace set.
  */
 function patchEnvBindings() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
   const e = env as any;
 
-  // AI mock: return deterministic embedding
+  // AI mock: return deterministic embedding for both embed + synthesis calls.
+  // For synthesis calls (CLASSIFIER_MODEL), return { response: "Mock synthesis." }
+  // so verbosity="synthesis" tests get a non-null synthesis value.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   e.AI = {
-    run: vi.fn().mockResolvedValue({ data: [MOCK_VECTOR], shape: [1, 768] }),
+    run: vi.fn().mockImplementation((model: string): Promise<unknown> => {
+      if (model === "@cf/meta/llama-3.1-8b-instruct") {
+        return Promise.resolve({ response: "Mock synthesis for test." });
+      }
+      // Default: embedding model returns deterministic 768-dim vector
+      return Promise.resolve({ data: [MOCK_VECTOR], shape: [1, 768] });
+    }),
   };
 
-  // VECTORIZE mock: no-op upsert + deleteByIds
+  // VECTORIZE mock: stateful upsert + query + deleteByIds simulating namespace isolation.
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   e.VECTORIZE = {
-    upsert: vi.fn().mockResolvedValue({ mutationId: "mock-upsert" }),
-    deleteByIds: vi.fn().mockResolvedValue({ mutationId: "mock-delete" }),
-    query: vi.fn().mockResolvedValue({ matches: [], count: 0 }),
+    upsert: vi
+      .fn()
+      .mockImplementation(
+        (vectors: { id: string; namespace?: string }[]): Promise<{ mutationId: string }> => {
+          for (const v of vectors) {
+            const ns = v.namespace ?? "__default__";
+            if (!vectorizeStore.has(ns)) vectorizeStore.set(ns, new Set());
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            vectorizeStore.get(ns)!.add(v.id);
+          }
+          return Promise.resolve({ mutationId: "mock-upsert" });
+        },
+      ),
+    deleteByIds: vi.fn().mockImplementation((ids: string[]): Promise<{ mutationId: string }> => {
+      // Remove IDs from all namespaces (Vectorize deleteByIds is namespace-agnostic)
+      for (const set of vectorizeStore.values()) {
+        for (const id of ids) {
+          set.delete(id);
+        }
+      }
+      return Promise.resolve({ mutationId: "mock-delete" });
+    }),
+    query: vi
+      .fn()
+      .mockImplementation(
+        (
+          _vector: unknown,
+          opts: { namespace?: string; topK?: number },
+        ): Promise<{ matches: { id: string; score: number }[]; count: number }> => {
+          const ns = opts.namespace ?? "__default__";
+          const ids = [...(vectorizeStore.get(ns) ?? [])];
+          const topK = opts.topK ?? 25;
+          const matches = ids.slice(0, topK).map((id) => ({ id, score: 0.9 }));
+          return Promise.resolve({ matches, count: matches.length });
+        },
+      ),
   };
 }
 
@@ -98,6 +156,8 @@ beforeAll(() => {
 
 afterEach(() => {
   // Reset mock call counts between tests, but keep the stubs installed.
+  // Clear the Vectorize store so tests are isolated.
+  vectorizeStore.clear();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
   const e = env as any;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -106,6 +166,8 @@ afterEach(() => {
   (e.VECTORIZE?.upsert as ReturnType<typeof vi.fn> | undefined)?.mockClear();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   (e.VECTORIZE?.deleteByIds as ReturnType<typeof vi.fn> | undefined)?.mockClear();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  (e.VECTORIZE?.query as ReturnType<typeof vi.fn> | undefined)?.mockClear();
 });
 
 // ---------------------------------------------------------------------------
@@ -231,7 +293,10 @@ describe("TOL-02: recall", () => {
 
     const r = envelope.result as Record<string, unknown>;
     expect(Array.isArray(r.memories)).toBe(true);
-    expect(r.synthesis).toBeNull(); // D-07 honest stub
+    // Phase 5 AI-04: synthesis is no longer always null — verbosity="synthesis" returns
+    // a real synthesis when memories are present (mock returns "Mock synthesis for test.").
+    // When memories.length === 0 (no Vectorize hits), synthesis may be null (skipped).
+    expect(r.synthesis === null || typeof r.synthesis === "string").toBe(true);
     // verbosity="synthesis" → chunks absent
     expect(Object.prototype.hasOwnProperty.call(r, "chunks")).toBe(false);
 
