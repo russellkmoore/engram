@@ -259,6 +259,35 @@ Plans:
 - **Touches irreversible decision MP-5 (transactional forget)**: AI-08 is the v0.1 completion of the `forget` contract started in P4. (SUMMARY.md §7 #7.)
 - The triage-worker AI calls run only inside the Queue consumer (P6), never on the sync write path beyond `remember()`'s inline embedding. This split keeps `remember()` latency at ~150–430ms per ARCHITECTURE.md §"Data Flow Diagrams".
 
+**Plans:** 7 plans across 6 waves
+
+Plans:
+
+**Wave 0** (infra + tracker + migrations + WorkspaceDO RPCs + RED stubs + doc touch-ups)
+
+- [ ] 05-01-PLAN.md (Wave 0, checkpoint:human-verify) — BLOCKING cf-code-assist routing tracker + wrangler AI/VECTORIZE bindings + triage-worker vitest infra + schema v2 (cold_storage) + 5 new WorkspaceDO RPCs + RecallInputSchema verbosity default flip + 4 RED test stubs + AI-SPEC.md/CLAUDE.md/SKILL.md doc touch-ups [AI-02, AI-03, AI-04, AI-05, AI-06, AI-07, AI-08]
+
+**Wave 1** (helpers + setup script — blocked on Wave 0)
+
+- [ ] 05-02-PLAN.md (Wave 1, autonomous) — scripts/setup-vectorize.sh idempotent provisioning + vectorize-helper.ts (mandatory workspaceId + 64-byte guard) + ai-helper.ts (model constants + dual-path 429 + safeRun + RateLimitError) + hybrid-rank.ts (locked AI-04 formula) [AI-01, AI-02, AI-03, AI-04, AI-07]
+
+**Wave 2** (parallel — both depend on Wave 1; no file overlap)
+
+- [ ] 05-03-PLAN.md (Wave 2, autonomous) — remember() AI-03 sync embed+stamp+upsert + truncation warn + forget() AI-08 Vectorize-first cascade + AI-02 Prong C pentest + AI-08 round-trip + lint-no-direct-vectorize gate [AI-02, AI-03, AI-08]
+- [ ] 05-04-PLAN.md (Wave 2, checkpoint:human-verify) — Package Legitimacy Audit (zod-to-json-schema) + Triage Worker schemas/prompts/memorability/extract/index queue consumer + cross-file ai-helper identity test [AI-05, AI-06, AI-07]
+
+**Wave 3** (recall — depends on Waves 1+2)
+
+- [ ] 05-05-PLAN.md (Wave 3, autonomous) — recall() AI-04 semantic backing (Vectorize + hybrid rank + conditional synthesis per D-01) + envelope.ts D-02 discoverability triad + trimToBudget synthesis-preservation + recall tool description amendment [AI-02, AI-04]
+
+**Wave 4** (evals + real-corpus gate + tuning — depends on Waves 2+3)
+
+- [ ] 05-06-PLAN.md (Wave 4, checkpoint:human-verify) — Package Legitimacy Audit (promptfoo) + 20-example reference corpus + recall-f1.eval F1≥0.75 gate + embedding-consistency cross-file test + Promptfoo extraction eval + memorability-calibration eval + Russell real-corpus sanitization checkpoint + hybrid-rank weight tuning + npm run evals:ci wiring [AI-04, AI-05, AI-06]
+
+**Wave 5** (production monitoring — depends on Wave 4; LOW priority — may defer to v0.2 if timeline tight)
+
+- [ ] 05-07-PLAN.md (Wave 5, autonomous) — Workers Analytics Engine writeAnalytics helpers (mcp-server + triage-worker siblings) + instrumentation at AI/Vectorize/DO-RPC call sites + canonical SQL queries + 05-MONITORING-NOTES.md runbook (Email Routing alerts + Logpush + monthly calibration cadence; eval-cron-worker deferred to v0.2) [AI-04, AI-05, AI-07]
+
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 
 ### Phase 6: Async Pipeline
@@ -314,7 +343,7 @@ Plans:
 | 2. WorkspaceDO + SQLite  | 9/9 | Complete   | 2026-05-26 |
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
-| 5. AI Integration        | 0/0            | Not started | —         |
+| 5. AI Integration        | 0/7            | Ready to execute | —    |
 | 6. Async Pipeline        | 0/0            | Not started | —         |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
 
