@@ -57,8 +57,57 @@ If a task initially went to one route then bounced to another (e.g., cf-code-ass
 - **Routed to cf-code-assist:** _TBD_ (`X/N`, `XX%`)
 - **Kept with Claude:** _TBD_
 - **Mixed (re-routed):** _TBD_
-- **Total approx tokens saved:** _TBD_
-- **Routing-rule lessons:**
-  - _e.g., "scaffoldTests overshot when the test referenced a not-yet-existing module — better to write the imports first then route the bodies"_
-  - _e.g., "transformCode handled the 5 handler-body swaps in tools.ts cleanly once Plan 03's <action> blocks were copied as context"_
-- **Recommended changes to `~/.claude/CLAUDE.md` AI routing section:** _TBD or "none"_
+- **Total approx tokens saved via cf-code-assist:** 0
+
+### Honest post-mortem — was 0% right?
+
+No. Walking back through the table after Phase 4 closed, the realistic split was:
+
+| Category | Count | Tasks |
+|---|---|---|
+| **Clear missed opportunities** (textbook cf-code-assist shapes) | 5 | `schemas.test.ts` constraint assertions, `result-types.ts` 6 interfaces, `error-mapping.test.ts` additive locks, `token-budget.test.ts` budget assertions, `tools.test.ts` MethodNotFound → happy-path stub swap |
+| **Partial misses** (some generation routable, some Claude-required) | 4 | `envelope.test.ts` structural scaffold, `tools-integration.test.ts` captureCallback layer, Plan 03 5-handler-body transform, `token-budget.test.ts` helper |
+| **Legitimately Claude** | 6 | `envelope.ts` (7-doc cross-cutting + byte-frozen META_GAPS), cross-workspace pentest (security reasoning), Plan 06-T1 schema impact analysis, ESLint+symlink debug |
+| **Not applicable** (not generation) | 1 | npm install |
+
+Estimated tokens we left on the table: **~10-15K** if the 5 clear misses + half of the 4 partial misses had routed cleanly.
+
+### Diagnosis: the routing rule was applied too coarsely
+
+CLAUDE.md said **"Multi-file reasoning or cross-cutting changes → Keep with Claude."** That got read as **"any task that REQUIRED reading multiple files → Claude"** when it should have been **"any task whose GENERATION step requires synthesizing multiple files → Claude."**
+
+For test scaffolding specifically, the multi-file READING is the planning step — Claude gathers PATTERNS.md + DO method signatures + CONTEXT.md decisions, then the **emission** step (`scaffoldTests` with packaged context) is cf-code-assist's sweet spot. The Phase 4 executor agents conflated those two steps and defaulted to Claude on every row.
+
+### Other lessons
+
+- **Context-prep friction is real.** For diffs under ~15 lines, packaging up CONTEXT.md excerpts + file references + spec snippets into a clean `context` parameter probably costs more tokens than it saves. The 5 clear misses above are all in the 50–150 line band where the math clearly works.
+- **Runtime debugging breaks the contract.** Plan 03's handler-body swap started as a textbook `transformCode` case, but the `getAgentByName` symlink issue forced a debug round-trip mid-task. cf-code-assist can't course-correct on runtime errors it can't see. Lesson: route the first cut; fall back to Claude only when the failure mode surfaces.
+- **RED-first TDD is hostile to cf-code-assist's type analysis.** Test files that import not-yet-existing modules confuse generators that try to infer types from the import graph. Plan 01's envelope.test.ts and tools-integration.test.ts hit this. Workaround: write the empty module stub first, then route the test scaffold.
+- **Phase character predicts routing mix.** Phase 4 was a *contract-integration phase* (5 plans, all coordinating envelope/handler/test contracts across 3 packages). Phase 5 (AI Integration) is the opposite — *content-generation phase* with lots of zod schemas, vitest evals, Workers AI bindings. Expect a 40–60% cf-code-assist routing mix there.
+
+### Phase 5 hypothesis — concrete bets
+
+Phase 5's task shapes that should route to cf-code-assist (assuming Claude packages context correctly):
+
+| Phase 5 task shape | cf-code-assist tool | Context Claude must package |
+|---|---|---|
+| Zod schemas for Triage AI structured outputs (entity-extraction, memorability scoring) | `generateTypes` or `generateCode` | AI-SPEC §4b schema spec + existing `shared/types/src/index.ts` patterns |
+| Vitest eval scripts (recall F1 on reference corpus, classification accuracy harness) | `scaffoldTests` | AI-SPEC §5 dimension rubrics + reference-corpus.json schema + existing test helpers |
+| Triage Worker queue consumer scaffold | `generateWorkerBoilerplate` | AI-SPEC §3 entry pattern + Cloudflare Queues docs (via Cloudflare MCP) + wrangler.jsonc binding shape |
+| Mechanical recall() swap from instr() → Vectorize query | `transformCode` | AI-SPEC §3 Vectorize.query pattern + current tools.ts:recall body + namespace=workspace_id contract |
+| 429-aware retry wrapper for Workers AI calls | `generateCode` | AI-SPEC §3 Pitfall 1 + Queue retry pattern |
+| Workers Analytics Engine event-write helper | `generateCode` | AI-SPEC §7 schema (blobs[0..3] + doubles[0..3] + indexes[0]) + CF Analytics Engine docs |
+
+### Recommended changes to `~/.claude/CLAUDE.md` AI routing section
+
+Applied 2026-05-27. Key adjustments:
+
+1. **Split "multi-file reasoning"** into READING (still routable; Claude packages context) vs SYNTHESIS (Claude). The Phase 4 default-to-Claude pattern came from conflating these.
+2. **Add "task shape" examples** at the top of the "Route to" list — scaffoldTests, generateTypes, transformCode with sentinel anchors — instead of just verbs.
+3. **Add a diff-size heuristic** — <15 lines mechanical = probably not worth the prep; 50–150 lines mechanical = clear win; >150 = strong win.
+4. **Add a "phase character" note** — contract-integration phases lean Claude-heavy; content-generation phases lean cf-code-assist-heavy. Track per phase and reassess at /gsd:verify-work.
+5. **Add a "Before defaulting to Claude" 3-question checklist** — "Is the SYNTHESIS step itself cross-file?", "Is the diff > 50 lines?", "Is there a stable template I can anchor on?". If "no, yes, yes" → try cf-code-assist first.
+
+### Phase 5 tracking forward
+
+The Phase 4 routing-tracker pattern carries forward to Phase 5 as `.planning/phases/05-ai-integration/05-CF-CODE-ASSIST-USAGE.md` — but with an active forcing-function column: **"Did Claude apply the 3-question checklist BEFORE committing the route?"** That converts the tracker from a passive log into a routing-decision audit. Stop tracking when `/gsd:verify-work 5` passes.
