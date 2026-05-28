@@ -36,7 +36,7 @@
 // packages/mcp-server/src/__tests__/tools-integration.test.ts
 // Source: PATTERNS.md §"tools-integration.test.ts" + helpers.test.ts:21-29
 //         + 04-CONTEXT.md TOL-01..05.
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterEach } from "vitest";
 import { env } from "cloudflare:workers";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -45,6 +45,68 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 type SqlStorage = any;
 
 import { registerTools } from "../tools.js";
+
+// ---------------------------------------------------------------------------
+// Phase 5 AI-03 / AI-08 mocks: VECTORIZE + AI binding stubs
+//
+// tools-integration.test.ts exercises the full handler pipeline via a real
+// WorkspaceDO (WORKSPACE binding from wrangler.test.jsonc). With Plan 05-03,
+// remember() now calls env.AI.run (for embeddings) and env.VECTORIZE.upsert;
+// forget() now calls env.VECTORIZE.deleteByIds. These bindings require a remote
+// Cloudflare account when not mocked — local miniflare throws "needs to be run
+// remotely" (per Vectorize docs: no local dev support).
+//
+// Strategy: intercept the helpers' binding calls via Object.defineProperty on
+// the env proxy so the DO-backed WORKSPACE path (real SQL) remains intact while
+// AI and Vectorize calls are stubbed.
+// ---------------------------------------------------------------------------
+
+/** Deterministic 768-dim embedding returned by the AI mock on every call. */
+const MOCK_VECTOR = new Array(768).fill(0.1) as number[];
+
+/**
+ * Patch env.AI and env.VECTORIZE with minimal stubs that satisfy the
+ * Plan 05-03 handler logic without hitting the remote binding.
+ *
+ * - env.AI.run returns a deterministic 768-dim embedding vector.
+ * - env.VECTORIZE.upsert / deleteByIds are no-ops returning { mutationId: "mock" }.
+ *
+ * Returns cleanup functions for beforeAll / afterAll usage.
+ */
+function patchEnvBindings() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+  const e = env as any;
+
+  // AI mock: return deterministic embedding
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  e.AI = {
+    run: vi.fn().mockResolvedValue({ data: [MOCK_VECTOR], shape: [1, 768] }),
+  };
+
+  // VECTORIZE mock: no-op upsert + deleteByIds
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  e.VECTORIZE = {
+    upsert: vi.fn().mockResolvedValue({ mutationId: "mock-upsert" }),
+    deleteByIds: vi.fn().mockResolvedValue({ mutationId: "mock-delete" }),
+    query: vi.fn().mockResolvedValue({ matches: [], count: 0 }),
+  };
+}
+
+beforeAll(() => {
+  patchEnvBindings();
+});
+
+afterEach(() => {
+  // Reset mock call counts between tests, but keep the stubs installed.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+  const e = env as any;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  (e.AI?.run as ReturnType<typeof vi.fn> | undefined)?.mockClear();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  (e.VECTORIZE?.upsert as ReturnType<typeof vi.fn> | undefined)?.mockClear();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  (e.VECTORIZE?.deleteByIds as ReturnType<typeof vi.fn> | undefined)?.mockClear();
+});
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -309,6 +371,10 @@ describe("TOL-04: forget round-trip", () => {
 // ---------------------------------------------------------------------------
 
 describe("AI-08: forget cascade with Vectorize delete + eventual consistency (RED until Plan 05-03)", () => {
+  // Timeout: 12s to allow the 5s Vectorize eventual-consistency sleep + per-step latency
+  // (AI-SPEC.md §3 Pitfall 7 — Vectorize delete is eventually consistent ~seconds).
+  // Per RESEARCH §Assumption A8: if this becomes flaky in CI, Plan 05-06 owns conversion
+  // to poll-with-timeout (poll every 500ms up to 10s).
   it("remember → forget → sleep(5s) → recall returns 0 semantic matches", async () => {
     const workspace_id = "ws-ai08-roundtrip";
     const rememberCb = captureCallback("remember", workspace_id);
@@ -322,6 +388,9 @@ describe("AI-08: forget cascade with Vectorize delete + eventual consistency (RE
 
     // AI-SPEC.md §3 Pitfall 7: Vectorize delete is eventually consistent (~seconds).
     // Allow up to 5s for the delete to propagate per 05-RESEARCH.md §"Pitfall 4".
+    // Note: recall() uses lexical SQLite search in v0.1 (Phase 5 Plan 05-05 wires Vectorize
+    // into recall). The SQLite cascade from forget() means lexical recall also returns 0.
+    // The 5s sleep is insurance for future Vectorize-backed recall path.
     await new Promise((resolve) => setTimeout(resolve, 5_000));
 
     const recallAfter = await recallCb(
@@ -330,7 +399,7 @@ describe("AI-08: forget cascade with Vectorize delete + eventual consistency (RE
     );
     const memories = (parseEnvelope(recallAfter).result as { memories: unknown[] }).memories;
     expect(memories.length).toBe(0);
-  });
+  }, 12_000);
 });
 
 // ---------------------------------------------------------------------------

@@ -77,7 +77,10 @@ import {
   buildIngestResponse,
   trimToBudget,
   wrapMcpContent,
+  META_GAPS,
 } from "./envelope.js";
+import { safeRun, EMBEDDING_MODEL, EMBEDDING_VERSION } from "./ai-helper.js";
+import { vectorizeUpsert, vectorizeDelete } from "./vectorize-helper.js";
 import type { Memory } from "@engram/types";
 import type { WorkspaceDO } from "@engram/workspace-do";
 
@@ -215,7 +218,68 @@ export function registerTools(
         workspace_id: props.workspace_id, // ALWAYS from props, NEVER from args
         block,
       });
-      const envelope = buildRememberResponse({ id, classified_type: args.type ?? null });
+
+      // === Phase 5 AI-03: sync embed + stamp + upsert (lands HERE per PLAN 05-03) ===
+      // LATENCY BUDGET: total 430ms p50 for remember() (AI-SPEC.md §4b).
+      // WARNING: Do NOT add additional env.AI.run calls here — entity extraction and
+      // memorability scoring belong in Triage Worker (Plan 05-04), NOT inline.
+      // Adding CLASSIFIER_MODEL here breaks the 430ms p50 budget (RESEARCH Pitfall 5).
+
+      // Step 1: Truncation — per CONTEXT.md Claude's Discretion §"Long-content truncation policy"
+      // Full content already stored in SQLite above; only embedding side gets truncated.
+      const TRUNCATE_THRESHOLD = 1800;
+      const contentForEmbed =
+        block.content.length > TRUNCATE_THRESHOLD
+          ? block.content.slice(0, TRUNCATE_THRESHOLD)
+          : block.content;
+      const truncated = block.content.length > TRUNCATE_THRESHOLD;
+
+      // Step 2: Embed via safeRun — wraps env.AI.run with dual-path 429 detection.
+      // AI-SPEC.md §3 Pitfall 3: unwrap embedResp.data[0], NOT pass full response.
+      // On 429: safeRun throws RateLimitError; mapToMcpError below surfaces as InternalError.
+      // Inline 429 retry is intentionally absent — remember() is interactive (user retries).
+      // Plan 05-04's queue consumer is the only call site that catches RateLimitError.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.AI is declared in worker-configuration.d.ts; wrangler types generates Ai binding at deploy time
+      const embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [contentForEmbed] });
+      const vector = embedResp.data?.[0];
+      if (vector?.length !== 768) {
+        throw new Error(
+          `embed: unexpected shape (expected number[768], got ${String(vector?.length ?? "undefined")})`,
+        );
+      }
+
+      // Step 3: Stamp embedding columns in SQLite (Plan 05-01 stampEmbedding RPC).
+       
+      await stub.stampEmbedding({
+        workspace_id: props.workspace_id, // ALWAYS from props, NEVER from args
+        block_id: id,
+        embedding_model: EMBEDDING_MODEL,
+        embedding_version: EMBEDDING_VERSION,
+      });
+
+      // Step 4: Upsert vector to Vectorize under workspace namespace (AI-02 isolation).
+      // vectorizeUpsert stamps namespace = workspaceId unconditionally (Plan 05-02).
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.VECTORIZE declared in worker-configuration.d.ts
+      await vectorizeUpsert(env, props.workspace_id, [
+        {
+          id,
+          values: vector,
+          metadata: {
+            type: block.type ?? "",
+            scope: block.scope,
+            created_at: block.created_at,
+          },
+        },
+      ]);
+      // === End Phase 5 AI-03 additions ===
+
+      // Surface truncation in meta.gaps if content was truncated for embedding.
+      const extraGaps = truncated ? [META_GAPS.truncationOver1800Chars] : [];
+      const envelope = buildRememberResponse({
+        id,
+        classified_type: args.type ?? null,
+        extraGaps,
+      });
       return wrapMcpContent(trimToBudget(envelope));
     } catch (err) {
       throw mapToMcpError(err);
@@ -295,6 +359,19 @@ export function registerTools(
     }
     try {
       const stub = workspaceNs.get(workspaceNs.idFromName(props.workspace_id));
+
+      // === Phase 5 AI-08: Vectorize delete FIRST (per RESEARCH §Pattern 3a + Open Question 3) ===
+      // Ordering rationale: Vectorize FIRST prevents the ghost-recall failure mode (T-05-03-GHOST).
+      // Partial-failure analysis:
+      //   (a) Vectorize delete fails → SQLite stays; mapToMcpError surfaces the error; user retries.
+      //       Recall continues to return the block (vector still present). Acceptable.
+      //   (b) SQLite delete fails after Vectorize succeeds → orphan SQLite row. Harmless because
+      //       recall via Vectorize no longer finds the vector. Background sweep (Wave 6) cleans up.
+      // Vectorize deleteByIds is idempotent — forgetting an id not in the index returns success.
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.VECTORIZE declared in worker-configuration.d.ts
+      await vectorizeDelete(env, props.workspace_id, [args.id]);
+
+      // === Phase 4 path preserved: SQLite cascade ===
       // Pitfall 4: deleteBlock returns {blocks_deleted: 0, relations_deleted: 0} on bogus id — do NOT synthetically throw NotFoundError. Echo the truth (idempotent semantics; CONTEXT.md "forget(cascade) semantics").
       const { blocks_deleted, relations_deleted } = await stub.deleteBlock({
         workspace_id: props.workspace_id, // ALWAYS from props, NEVER from args

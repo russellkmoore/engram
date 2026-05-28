@@ -28,12 +28,36 @@
  *
  * @module @engram/mcp-server/__tests__/tools
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
 import { env } from "cloudflare:workers";
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { registerTools } from "../tools.js";
+
+// ---------------------------------------------------------------------------
+// Phase 5 AI-03 mocks: patch env.AI + env.VECTORIZE for local test execution.
+//
+// tools.test.ts exercises remember() + forget() in the "Phase 4 happy-path
+// callbacks" describe block. With Plan 05-03, these handlers now call
+// env.AI.run (embeddings) and env.VECTORIZE.upsert / deleteByIds.
+// Patch with minimal stubs so the DO routing logic remains intact without
+// requiring a remote Cloudflare connection.
+// ---------------------------------------------------------------------------
+const MOCK_VECTOR = new Array(768).fill(0.1) as number[];
+
+beforeAll(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+  const e = env as any;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  e.AI = { run: vi.fn().mockResolvedValue({ data: [MOCK_VECTOR], shape: [1, 768] }) };
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  e.VECTORIZE = {
+    upsert: vi.fn().mockResolvedValue({ mutationId: "mock-upsert" }),
+    deleteByIds: vi.fn().mockResolvedValue({ mutationId: "mock-delete" }),
+    query: vi.fn().mockResolvedValue({ matches: [], count: 0 }),
+  };
+});
 
 // Vite's `?raw` query inlines the file content as a string at bundle time —
 // no runtime `node:fs` required (workerd does not implement `node:fs`).
