@@ -468,6 +468,106 @@ describe("AI-08: forget cascade with Vectorize delete + eventual consistency (RE
 });
 
 // ---------------------------------------------------------------------------
+// AI-04: recall latency budget (default verbosity = "chunks", no synthesis)
+//
+// Per AI-SPEC.md §4b "Cost and Latency Budget": p50 < 400ms no-synthesis.
+// Note: requires real Vectorize binding (remote: true). In PR CI the mock
+// Vectorize binding responds instantly; the 5s sleep dominates latency.
+// Marked it.skip until Plan 05-06 configures nightly-CI with real bindings.
+// ---------------------------------------------------------------------------
+
+describe("AI-04: recall latency budget (default verbosity)", () => {
+  // Skip in PR CI — real Vectorize binding required for a meaningful measurement.
+  // Plan 05-06 owns the nightly-CI gate that un-skips this test.
+  it.skip("p50 latency under 400ms for default-verbosity (chunks) recall", async () => {
+    const ws = "ws-latency-p50";
+    const rememberCb = captureCallback("remember", ws);
+    const recallCb = captureCallback("recall", ws);
+
+    // Seed 10 memories with distinct content
+    for (let i = 0; i < 10; i++) {
+      await rememberCb(
+        { content: `latency seed memory ${String(i)} about topic-${String(i % 3)}` },
+        {},
+      );
+    }
+    // Vectorize eventual consistency — per AI-SPEC.md §3 Pitfall 7.
+    await new Promise((r) => setTimeout(r, 5_000));
+
+    const latencies: number[] = [];
+    for (let i = 0; i < 10; i++) {
+      const start = Date.now();
+      await recallCb({ query: `find topic-${String(i % 3)} content`, verbosity: "chunks" }, {});
+      latencies.push(Date.now() - start);
+    }
+    latencies.sort((a, b) => a - b);
+    const p50 = latencies[Math.floor(latencies.length / 2)];
+    console.log(
+      `AI-04 default recall p50: ${String(p50)}ms (latencies: ${latencies.join(", ")}ms)`,
+    );
+    expect(p50).toBeLessThan(400); // AI-SPEC.md §4b budget
+  }, 70_000);
+});
+
+// ---------------------------------------------------------------------------
+// AI-04: recall envelope shape (D-03 verbosity parameterization)
+//
+// Asserts the two verbosity branches produce the correct envelope shape:
+// - verbosity="chunks" → synthesis=null, suggestions.actions present, meta.gaps opt-in hint
+// - verbosity="synthesis" → synthesis populated, no suggestions, no opt-in hint in gaps
+// ---------------------------------------------------------------------------
+
+describe("AI-04: recall envelope shape (D-03 verbosity parameterization)", () => {
+  it("default verbosity (chunks) returns synthesis=null + suggestions.actions + meta.gaps opt-in hint", async () => {
+    const ws = "ws-shape-chunks";
+    const rememberCb = captureCallback("remember", ws);
+    const recallCb = captureCallback("recall", ws);
+    await rememberCb({ content: "shape test memory for chunks verbosity" }, {});
+
+    const result = parseEnvelope(await recallCb({ query: "shape test", verbosity: "chunks" }, {}));
+    const r = result.result as Record<string, unknown>;
+    // D-01: default verbosity returns synthesis=null (no LLM synthesis call)
+    expect(r.synthesis).toBeNull();
+    // D-02: suggestions.actions present with opt-in hint
+    const suggestions = result.suggestions as { actions: string[] } | undefined;
+    expect(suggestions?.actions).toContain(
+      "Set verbosity: 'synthesis' to add a summary of these memories.",
+    );
+    // D-02: meta.gaps includes the frozen opt-in discoverability string
+    const meta = result.meta as { gaps: string[] };
+    expect(meta.gaps).toContain(
+      "Synthesis omitted — re-call with verbosity: 'synthesis' or 'both' to add an LLM summary.",
+    );
+  });
+
+  it("verbosity='synthesis' returns synthesis-populated + no suggestions + no opt-in gap", async () => {
+    const ws = "ws-shape-synthesis";
+    const rememberCb = captureCallback("remember", ws);
+    const recallCb = captureCallback("recall", ws);
+    await rememberCb(
+      { content: "shape test memory for synthesis verbosity — concrete fact about Cloudflare" },
+      {},
+    );
+
+    const result = parseEnvelope(
+      await recallCb({ query: "shape test", verbosity: "synthesis" }, {}),
+    );
+    const r = result.result as Record<string, unknown>;
+    // verbosity="synthesis": synthesis is populated (mock returns "Mock synthesis for test.")
+    expect(r.synthesis).not.toBeNull();
+    expect(typeof r.synthesis).toBe("string");
+    expect((r.synthesis as string).length).toBeGreaterThan(20);
+    // D-02: no suggestions when synthesis is requested
+    expect(result.suggestions).toBeUndefined();
+    // meta.gaps does NOT contain the opt-in hint (user already opted in)
+    const meta = result.meta as { gaps: string[] };
+    expect(meta.gaps).not.toContain(
+      "Synthesis omitted — re-call with verbosity: 'synthesis' or 'both' to add an LLM summary.",
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
 // TOL-05: ingest returns accepted envelope
 // ---------------------------------------------------------------------------
 
