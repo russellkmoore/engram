@@ -51,6 +51,7 @@ If Q2 is No and Q3 is No → Keep with Claude (context-prep overhead exceeds sav
 | 05-01-T6 | schemas.ts verbosity default flip ("both" → "chunks") | claude | N/N/N | Single-line diff with cross-doc citation; <10 lines, but precise comment update requires CONTEXT.md D-01 / D-05 accuracy. No savings worth routing overhead. | n/a |
 | 05-01-T7a | 4 NEW RED test stubs (vectorize-helper.test.ts, ai-helper.test.ts, hybrid-rank.test.ts, extract.test.ts) | cf-code-assist:scaffoldTests | N/Y/Y | Within-file synthesis (each file independent); ~250 lines total from PATTERNS.md per-file analog excerpts; stable spec in PATTERNS.md. Q1=N, Q2=Y, Q3=Y → cf-code-assist intended. Note: cf-code-assist unavailable in execution context; Claude executed. | ~5,000 tokens |
 | 05-01-T7b | 3 existing-test extensions (envelope.test.ts, tools-integration.test.ts, cross-workspace-pentest.test.ts) | claude | Y/N/Y | Small-diff append-to-existing-describe-block; <20 lines per file; must place precisely in context — no savings from routing overhead. | n/a |
+| 05-02-T1 | `scripts/setup-vectorize.sh` + `package.json` setup:vectorize script | claude | N/N/Y | ~25 lines, under 50-line diff threshold (Q2=N); needs wrangler subcommand semantics + idempotency precheck logic but prep overhead exceeds savings for this size. | n/a |
 
 ---
 

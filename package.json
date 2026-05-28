@@ -24,7 +24,8 @@
     "test": "npm run test --workspaces --if-present",
     "dev:mcp": "npm run dev --workspace @engram/mcp-server",
     "dev:triage": "npm run dev --workspace @engram/triage-worker",
-    "setup": "node -e \"console.log('Engram setup: see CONTRIBUTING.md for GSD plugin install steps.')\" && npm install && npm run types:gen"
+    "setup:vectorize": "bash scripts/setup-vectorize.sh",
+    "setup": "node -e \"console.log('Engram setup: see CONTRIBUTING.md for GSD plugin install steps.')\" && npm install && npm run types:gen && npm run setup:vectorize"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260525.1",
