@@ -16,5 +16,6 @@ exports[`META_GAPS byte-determinism (D-10 fixture stability) > META_GAPS strings
   "search": [
     "Lexical (LIKE) backing — semantic search lands in Phase 5.",
   ],
+  "truncationOver1800Chars": "Content over 1,800 chars truncated for embedding; full content stored in SQLite but only the first ~512 tokens are semantically searchable.",
 }
 `;

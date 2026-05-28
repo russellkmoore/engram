@@ -190,6 +190,37 @@ describe("suggestions field omission (D-04 honest-stub)", () => {
 });
 
 // ---------------------------------------------------------------------------
+// buildRememberResponse — extraGaps (Phase 5 Plan 05-03 truncation warn)
+// ---------------------------------------------------------------------------
+
+describe("buildRememberResponse — extraGaps (Phase 5 truncation warn)", () => {
+  it("appends truncation gap when extraGaps is provided", () => {
+    const envelope = buildRememberResponse({
+      id: "test",
+      classified_type: null,
+      extraGaps: [META_GAPS.truncationOver1800Chars],
+    });
+    expect(envelope.meta.gaps).toContain(META_GAPS.truncationOver1800Chars);
+  });
+
+  it("does not append truncation gap when extraGaps is undefined (default)", () => {
+    const envelope = buildRememberResponse({ id: "test", classified_type: null });
+    expect(envelope.meta.gaps).not.toContain(META_GAPS.truncationOver1800Chars);
+  });
+
+  it("canonical META_GAPS.remember entries still present when extraGaps provided", () => {
+    const envelope = buildRememberResponse({
+      id: "test",
+      classified_type: null,
+      extraGaps: [META_GAPS.truncationOver1800Chars],
+    });
+    for (const gap of META_GAPS.remember) {
+      expect(envelope.meta.gaps).toContain(gap);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // D-01 default flip + D-02 discoverability triad
 // RED until Plan 05-05 extends buildRecallResponse with the new verbosity
 // params and adds META_GAPS.recallChunksOmittedSynthesis.

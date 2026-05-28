@@ -77,6 +77,11 @@ export const META_GAPS = {
   search: ["Lexical (LIKE) backing — semantic search lands in Phase 5."],
   forget: [] as string[],
   ingest: ["Async enrichment pipeline lands in Phase 6 — job is recorded but not yet processed."],
+  // Phase 5 Plan 05-03: per-call gap surfaced in meta.gaps when content > 1,800 chars is truncated
+  // for embedding. The full content is stored in SQLite but only the first ~512 tokens are
+  // semantically searchable via Vectorize. Byte-frozen per D-10 — do NOT paraphrase.
+  truncationOver1800Chars:
+    "Content over 1,800 chars truncated for embedding; full content stored in SQLite but only the first ~512 tokens are semantically searchable.",
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -126,6 +131,11 @@ function countTokens(envelope: unknown): number {
 export function buildRememberResponse(input: {
   id: string;
   classified_type: string | null;
+  /** Optional additional gap strings appended AFTER the canonical META_GAPS.remember entries.
+   * Phase 5 Plan 05-03: used by the truncation-warn path in the remember() handler when
+   * content > 1,800 chars is truncated for embedding. Callers that do NOT truncate pass
+   * `undefined` (or omit the field) — backward-compatible with all Phase 4 call sites. */
+  extraGaps?: string[];
 }): EngramResponse<RememberResult> {
   return {
     result: {
@@ -143,7 +153,7 @@ export function buildRememberResponse(input: {
       confidence: null,
       coverage: null,
       last_updated: Date.now(),
-      gaps: [...META_GAPS.remember],
+      gaps: [...META_GAPS.remember, ...(input.extraGaps ?? [])],
     },
   };
 }
