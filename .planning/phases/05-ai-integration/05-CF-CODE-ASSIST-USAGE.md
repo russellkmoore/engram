@@ -1,0 +1,72 @@
+# Phase 5 — cf-code-assist Routing Tracker
+
+> Tracks every code-generation decision during Phase 5 execution so we can measure how often the Cloudflare Workers AI (qwen3-30b-a3b-fp8) MCP route was viable vs. when Claude handled it directly.
+>
+> **Scope:** Active for Phase 5 execution only. Stop tracking once `/gsd:verify-work 5` (or `/gsd:execute-phase 5`'s final verification) returns PASSED. After that, this file becomes the artifact summary; do not extend.
+>
+> **Why it matters:** Phase 5 is the AI Integration phase, projected as a content-generation phase that should route 40–60% to cf-code-assist (per project CLAUDE.md and `~/.claude/CLAUDE.md` phase-character heuristic). Specific Phase 5 task shapes that should default to cf-code-assist: zod schemas (generateTypes), vitest eval scripts (scaffoldTests), Triage Worker queue consumer scaffold (generateWorkerBoilerplate), `recall()` `instr()`→Vectorize swap (transformCode), 429-aware retry wrapper (generateCode), Workers Analytics Engine event-write helper (generateCode).
+
+---
+
+## Instructions for the executor (and Claude orchestrating)
+
+For **every task** in plans 05-01 through 05-07 that produces code, append one row to the table below. "Code" means: any new `.ts` file body, any non-trivial edit to an existing `.ts`/`.tsx`/`.mjs`/`.js` file, any test fixture, any zod fragment, any commit message generated from a diff. Pure file moves, frontmatter edits, doc-only changes do NOT need a row.
+
+Each row records:
+- **Task** — task id (e.g., `05-01-T5`) or short label
+- **Artifact** — the file or symbol produced
+- **Route** — one of: `cf-code-assist:<tool>` (e.g., `cf-code-assist:generateCode`), `claude`, or `mixed:<tools>`
+- **Checklist (Q1/Q2/Q3)** — 3-character answer: e.g., `N/Y/Y`. Must be answered BEFORE committing the route, not after.
+- **Reason** — one short sentence: why this route. If `claude`, name the routing-rule criterion that disqualified cf-code-assist (e.g., "multi-file reasoning", "needs Context7 lookup first", "<10 lines"). If `cf-code-assist:*`, name the context Claude gathered before the call.
+- **Approx tokens saved** — rough estimate if cf-code-assist was used; "n/a" otherwise. Order-of-magnitude is fine.
+
+If a task initially went to one route then bounced to another (e.g., cf-code-assist output failed review and Claude fixed it), record both attempts and mark the row `mixed`.
+
+---
+
+## 3-Question Checklist (mandatory per row)
+
+Answer these three questions BEFORE committing the route decision, not after. The answers populate the Checklist column (Q1/Q2/Q3) in the routing log.
+
+1. **Is the SYNTHESIS step itself cross-file?** (Not the reading — the actual generation step must it produce coordinated changes across multiple files with consistency invariants?) No → still routable to cf-code-assist.
+2. **Is the diff >50 lines of mechanical code?** Yes → savings beat prep cost.
+3. **Is there a stable template/spec/sentinel to anchor the generation on?** Yes → cf-code-assist can use it.
+
+If the answers are **No / Yes / Yes** → try cf-code-assist first.
+If Q1 is Yes → Keep with Claude (multi-file synthesis requires Claude).
+If Q2 is No and Q3 is No → Keep with Claude (context-prep overhead exceeds savings).
+
+---
+
+## Routing Log
+
+| Task | Artifact | Route | Checklist (Q1/Q2/Q3) | Reason | Approx tokens saved |
+|------|----------|-------|----------------------|--------|---------------------|
+| _seed_ | _(no rows yet — first executor task appends below this line)_ | _n/a_ | _n/a_ | _Tracking starts at execute-phase kickoff_ | _n/a_ |
+| 05-01-T1 | `05-CF-CODE-ASSIST-USAGE.md` tracker file creation | claude | N/N/N | Doc creation, not code generation — tracker rules don't apply to itself. | n/a |
+
+---
+
+## End-of-Phase Summary
+
+> Fill in after `/gsd:verify-work 5` passes. Do not pre-populate.
+
+- **Total code-producing tasks:** _TBD_
+- **Routed to cf-code-assist:** _TBD_ (`X/N`, `XX%`)
+- **Kept with Claude:** _TBD_
+- **Mixed (re-routed):** _TBD_
+- **Total approx tokens saved via cf-code-assist:** _TBD_
+
+### Honest post-mortem (fill after /gsd:verify-work 5)
+
+_Did the projected 40–60% cf-code-assist routing materialize? Which task shapes routed cleanly vs. required Claude fallback? What lessons carry forward to Phase 6?_
+
+### Metric labels (copy from Phase 4)
+
+| Metric | Value |
+|--------|-------|
+| Projected cf-code-assist % | 40–60% |
+| Actual cf-code-assist % | _TBD_ |
+| Clearest wins | _TBD_ |
+| Notable misses | _TBD_ |
+| Tokens saved (est.) | _TBD_ |
