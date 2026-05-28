@@ -62,8 +62,9 @@ export const RecallInputSchema = z.object({
   limit: z.number().int().positive().max(25).optional(), // D-10 (was max(100))
   since: z.iso.datetime().optional(),
   until: z.iso.datetime().optional(),
-  // D-03 + spike-findings-engram §1: default flipped to "both" (BORDERLINE gate)
-  verbosity: z.enum(["synthesis", "chunks", "both"]).optional().default("both"),
+  // D-01 (Phase 5): default = "chunks" — synthesis is opt-in per recall-latency budget (2–5s LLM tax).
+  // Phase 4 D-03 was "both"; Phase 5 supersedes per CONTEXT.md D-01. Discoverability triad (tool description + meta.gaps + suggestions.actions) lands in Plan 05-05.
+  verbosity: z.enum(["synthesis", "chunks", "both"]).optional().default("chunks"),
 });
 export type RecallInput = z.infer<typeof RecallInputSchema>;
 
