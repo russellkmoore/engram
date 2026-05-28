@@ -141,3 +141,45 @@ export const V1_SQL = `
   );
   CREATE INDEX IF NOT EXISTS idx_conflicts_resolved_at ON conflicts(resolved_at);
 ` as const;
+
+/**
+ * v2 migration DDL — adds `cold_storage` column to `blocks`.
+ *
+ * Phase 5 D-07 (CONTEXT.md): blocks with memorability <0.4 are routed to
+ * cold-storage by the Triage Worker — NOT discarded (the cardinal-sin
+ * clause documented in `.planning/todos/pending/2026-05-26-phase-5-cold-storage-not-discard.md`).
+ *
+ * Design notes:
+ * - **Forward-only via `_schema_migrations` runner.** The runner in
+ *   `./migrations.ts` tracks applied versions in the `_schema_migrations`
+ *   table and skips already-applied entries — so re-executing this
+ *   migration on every DO cold-start is safe.
+ * - **ALTER TABLE ADD COLUMN is NOT idempotent at the SQL layer.** A naive
+ *   re-run would throw "duplicate column name: cold_storage". The version
+ *   check in the `_schema_migrations` table IS the idempotency guarantee
+ *   — the runner never calls `sql.exec(V2_SQL)` twice on the same SQLite
+ *   store.
+ * - **INTEGER not BOOLEAN.** SQLite has no native BOOLEAN type. Following
+ *   Phase 2's convention (INTEGER for timestamps, REAL for confidence).
+ *   `0 = not cold, 1 = cold` — consistent with SQLite's truthiness rules.
+ * - **DEFAULT 0** ensures existing rows (inserted before this migration)
+ *   are treated as non-cold by default, preserving all existing data
+ *   semantics.
+ * - **CREATE INDEX IF NOT EXISTS** for the new column so cold-storage filter
+ *   queries (used in `getBlocksByIds` AND by future `include_cold: true`
+ *   recall) don't require a full-table scan.
+ *
+ * Cross-plan contract:
+ * - Plan 05-01 (migrations.ts) appends `{ version: 2, name: "v2_cold_storage", sql: V2_SQL }`
+ *   to the MIGRATIONS array.
+ * - Plan 05-01 (queries.ts) adds `getBlocksByIds` which filters `cold_storage = 0` by default.
+ * - Plan 05-04 (triage-worker extract.ts) writes `moveToColdStorage(...)` calls that
+ *   set `cold_storage = 1`.
+ * - v0.2 milestone: `include_cold: true` flag on `recall()` surfaces cold rows.
+ *
+ * @module @engram/workspace-do/schema
+ */
+export const V2_SQL = `
+  ALTER TABLE blocks ADD COLUMN cold_storage INTEGER NOT NULL DEFAULT 0;
+  CREATE INDEX IF NOT EXISTS idx_blocks_cold_storage ON blocks(cold_storage);
+` as const;

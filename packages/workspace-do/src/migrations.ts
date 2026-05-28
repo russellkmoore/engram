@@ -37,7 +37,7 @@
  */
 import type { SqlStorage } from "@cloudflare/workers-types";
 
-import { V1_SQL } from "./schema.js";
+import { V1_SQL, V2_SQL } from "./schema.js";
 
 export interface Migration {
   /** Monotonically increasing schema version. v0.1 ships exactly one: `1`. */
@@ -50,6 +50,10 @@ export interface Migration {
 
 export const MIGRATIONS: readonly Migration[] = [
   { version: 1, name: "v1_initial_schema", sql: V1_SQL },
+  // Phase 5 D-07: cold-storage routing (NOT discard — cardinal-sin clause).
+  // ALTER TABLE ADD COLUMN is NOT idempotent at SQL layer; the version check
+  // in the _schema_migrations table is the idempotency guarantee.
+  { version: 2, name: "v2_cold_storage", sql: V2_SQL },
 ];
 
 export function runMigrations(sql: SqlStorage): void {

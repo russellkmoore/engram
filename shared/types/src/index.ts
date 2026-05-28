@@ -98,6 +98,20 @@ export interface Memory {
   created_at: number;
   /** Unix epoch timestamp (ms) when this block was last modified. */
   updated_at: number;
+  /**
+   * Phase 5 D-07: blocks with memorability <0.4 are routed to cold-storage
+   * by the Triage Worker. Cold blocks are excluded from default `recall()`
+   * results and are NOT indexed in Vectorize. This is optional because v0.1
+   * callers on the hot path (insertBlock, getBlock) do not need to set it;
+   * the `blocks.cold_storage` SQLite column defaults to 0 (not cold).
+   *
+   * When `true`, the block is demoted to cold-storage. Use `moveToColdStorage()`
+   * to set this — never set it directly. The `getBlocksByIds()` helper
+   * excludes cold-storage rows by default (`AND cold_storage = 0`).
+   *
+   * v0.2 milestone: `include_cold: true` flag on `recall()` will surface them.
+   */
+  cold_storage?: boolean;
 }
 
 // ---------------------------------------------------------------------------

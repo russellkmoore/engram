@@ -54,19 +54,25 @@ const EXPECTED_TABLES = [
 ] as const;
 
 describe("_schema_migrations table (STO-02)", () => {
-  it("contains exactly one row for v1_initial_schema after first init", async () => {
+  it("contains rows for v1_initial_schema and v2_cold_storage after first init", async () => {
     const id = env.WORKSPACE.idFromName("ws-schema-migrations-test");
     const stub = env.WORKSPACE.get(id);
     await runInDurableObject(stub, (_inst, state) => {
       const rows = state.storage.sql
-        .exec("SELECT version, name, applied_at FROM _schema_migrations")
+        .exec("SELECT version, name, applied_at FROM _schema_migrations ORDER BY version")
         .toArray();
-      expect(rows.length).toBe(1);
-      const row = rows[0];
-      expect(row).toBeDefined();
-      expect(row?.version).toBe(1);
-      expect(row?.name).toBe("v1_initial_schema");
-      expect(typeof row?.applied_at).toBe("number");
+      // Phase 5 Plan 05-01 added v2_cold_storage — expect 2 rows.
+      expect(rows.length).toBe(2);
+      const v1 = rows[0];
+      expect(v1).toBeDefined();
+      expect(v1?.version).toBe(1);
+      expect(v1?.name).toBe("v1_initial_schema");
+      expect(typeof v1?.applied_at).toBe("number");
+      const v2 = rows[1];
+      expect(v2).toBeDefined();
+      expect(v2?.version).toBe(2);
+      expect(v2?.name).toBe("v2_cold_storage");
+      expect(typeof v2?.applied_at).toBe("number");
     });
   });
 });
@@ -89,6 +95,30 @@ describe("table presence (STO-03)", () => {
         .sort();
       // Compare against the sorted EXPECTED_TABLES set — order-independent.
       expect(userTables).toEqual([...EXPECTED_TABLES]);
+    });
+  });
+});
+
+describe("blocks cold_storage column (D-07 / v2)", () => {
+  it("includes cold_storage INTEGER DEFAULT 0 added by v2 migration", async () => {
+    const id = env.WORKSPACE.idFromName("ws-schema-cold-storage-test");
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (_inst, state) => {
+      const cols = state.storage.sql
+        .exec("PRAGMA table_info(blocks)")
+        .toArray()
+        .map((c) => ({
+          name: c.name as string,
+          type: c.type as string,
+          notnull: c.notnull as number,
+          dflt_value: c.dflt_value,
+        }));
+
+      const coldStorage = cols.find((c) => c.name === "cold_storage");
+      expect(coldStorage).toBeDefined();
+      expect(coldStorage?.type.toUpperCase()).toBe("INTEGER");
+      // DEFAULT 0 — existing rows are non-cold by default.
+      expect(coldStorage?.dflt_value).toBe("0");
     });
   });
 });
