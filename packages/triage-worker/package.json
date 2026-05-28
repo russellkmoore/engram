@@ -6,10 +6,17 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "types:gen": "wrangler types"
+    "types:gen": "wrangler types",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@engram/schema": "*",
     "@engram/types": "*",
-    "@engram/schema": "*"
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.16.10",
+    "vitest": "^4.1.7"
   }
 }

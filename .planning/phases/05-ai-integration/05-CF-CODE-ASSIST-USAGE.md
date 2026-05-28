@@ -45,6 +45,7 @@ If Q2 is No and Q3 is No → Keep with Claude (context-prep overhead exceeds sav
 | _seed_ | _(no rows yet — first executor task appends below this line)_ | _n/a_ | _n/a_ | _Tracking starts at execute-phase kickoff_ | _n/a_ |
 | 05-01-T1 | `05-CF-CODE-ASSIST-USAGE.md` tracker file creation | claude | N/N/N | Doc creation, not code generation — tracker rules don't apply to itself. | n/a |
 | 05-01-T2 | wrangler configs (mcp-server + triage-worker, prod + test) — AI + VECTORIZE + ANALYTICS bindings | claude | Y/N/N | Cross-file synthesis: 4 configs must stay consistent; FND-08 lint dependency requires post-edit validation across packages; <30 lines diff but Q1=Y (consistency invariants). | n/a |
+| 05-01-T3 | triage-worker vitest.config.ts, package.json deps, tsconfig.json | claude | Y/N/N | Cross-file synthesis: multi-package version-pin consistency check (mcp-server deps must match exactly); tsconfig + vitest config wired to wrangler.test.jsonc; Q1=Y. | n/a |
 
 ---
 
