@@ -78,6 +78,11 @@ import {
   listMemoryTypes as listMemoryTypesQuery,
   createInboxEntry as createInboxEntryQuery,
   listConflicts as listConflictsQuery,
+  stampEmbedding as stampEmbeddingQuery,
+  getBlocksByIds as getBlocksByIdsQuery,
+  updateBlockEnrichment as updateBlockEnrichmentQuery,
+  moveToInbox as moveToInboxQuery,
+  moveToColdStorage as moveToColdStorageQuery,
 } from "./queries.js";
 import type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
 
@@ -203,5 +208,113 @@ export class WorkspaceDO extends DurableObject<unknown> {
     if (args.resolved !== undefined) opts.resolved = args.resolved;
     if (args.limit !== undefined) opts.limit = args.limit;
     return listConflictsQuery(this.ctx.storage.sql, opts);
+  }
+
+  // -------------------------------------------------------------------------
+  // Phase 5 (Plan 05-01) RPC methods — AI pipeline integration
+  //
+  // Each calls assertOwnsWorkspace as the FIRST EXECUTABLE LINE (STO-07 /
+  // T-05-01-STO07). Delegates to the corresponding typed helper in queries.ts.
+  // -------------------------------------------------------------------------
+
+  /**
+   * Records `embedding_model` + `embedding_version` on a block after Vectorize
+   * upsert completes. The block must exist; throws NotFoundError on miss.
+   *
+   * @requirement AI-03
+   */
+  stampEmbedding(args: {
+    workspace_id: string;
+    block_id: string;
+    embedding_model: string;
+    embedding_version: number;
+  }): void {
+    this.assertOwnsWorkspace(args.workspace_id);
+    stampEmbeddingQuery(this.ctx.storage.sql, {
+      block_id: args.block_id,
+      embedding_model: args.embedding_model,
+      embedding_version: args.embedding_version,
+    });
+  }
+
+  /**
+   * Returns the `Memory[]` for the given ids, EXCLUDING cold-storage rows
+   * (`cold_storage = 0` filter). Returns `[]` when `ids` is empty.
+   *
+   * @requirement AI-04
+   */
+  getBlocksByIds(args: { workspace_id: string; ids: string[] }): Memory[] {
+    this.assertOwnsWorkspace(args.workspace_id);
+    return getBlocksByIdsQuery(this.ctx.storage.sql, args.ids);
+  }
+
+  /**
+   * Overwrites `properties`, `summary`, and `confidence` on an existing block
+   * with AI-enriched values from the Triage Worker. Throws NotFoundError on miss.
+   *
+   * @requirement AI-05
+   */
+  updateBlockEnrichment(args: {
+    workspace_id: string;
+    block_id: string;
+    properties: Record<string, unknown>;
+    summary: string;
+    confidence: number;
+  }): void {
+    this.assertOwnsWorkspace(args.workspace_id);
+    updateBlockEnrichmentQuery(this.ctx.storage.sql, {
+      block_id: args.block_id,
+      properties: args.properties,
+      summary: args.summary,
+      confidence: args.confidence,
+    });
+  }
+
+  /**
+   * Stages a low-confidence block (memorability 0.4–0.8) in the inbox table
+   * for human review. Delegates to createInboxEntry helper.
+   *
+   * @requirement AI-06
+   */
+  moveToInbox(args: {
+    workspace_id: string;
+    block_id: string;
+    entry: {
+      content: string;
+      proposed_type: string;
+      proposed_properties: Record<string, unknown>;
+      memorability_score: number;
+      source: string;
+    };
+  }): void {
+    this.assertOwnsWorkspace(args.workspace_id);
+    moveToInboxQuery(this.ctx.storage.sql, { block_id: args.block_id, entry: args.entry });
+  }
+
+  /**
+   * Routes a low-memorability block (< 0.4) to cold-storage by setting
+   * `cold_storage = 1`. CARDINAL-SIN CLAUSE: cold-storage is NOT discard —
+   * the block remains in SQLite, excluded from default recall + Vectorize.
+   * v0.2's `include_cold` flag will surface these rows.
+   * Throws NotFoundError if the block does not exist.
+   *
+   * @requirement AI-06 (D-07 cold-storage routing)
+   */
+  moveToColdStorage(args: {
+    workspace_id: string;
+    block_id: string;
+    properties?: Record<string, unknown>;
+    summary?: string;
+    confidence?: number;
+    memorability: number;
+  }): void {
+    this.assertOwnsWorkspace(args.workspace_id);
+    moveToColdStorageQuery(this.ctx.storage.sql, {
+      block_id: args.block_id,
+      properties: args.properties,
+      summary: args.summary,
+      confidence: args.confidence,
+      memorability: args.memorability,
+    });
   }
 }

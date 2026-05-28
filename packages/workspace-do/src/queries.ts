@@ -520,3 +520,178 @@ export function listConflicts(
 
   return rows.map((row) => narrowConflictRow(row as Record<string, SqlStorageValue | undefined>));
 }
+
+// ---------------------------------------------------------------------------
+// 8. stampEmbedding — record embedding_model + embedding_version on a block (AI-03)
+// ---------------------------------------------------------------------------
+
+/**
+ * Updates `embedding_model` and `embedding_version` on an existing block after
+ * the Vectorize upsert completes (AI-03 Phase 5 Vectorize model lock-in
+ * mitigation). Throws `NotFoundError("block", args.block_id)` on zero
+ * `rowsWritten` — the block must exist before calling this.
+ *
+ * Design: UPDATE only the two model-identity columns + `updated_at`. Does NOT
+ * touch `embedding_id` (set by `remember()` at upsert time, not here) or any
+ * content columns. Single-statement single-binding exec (Pitfall 8).
+ *
+ * @requirement AI-03
+ */
+export function stampEmbedding(
+  sql: SqlStorage,
+  args: { block_id: string; embedding_model: string; embedding_version: number },
+): void {
+  const result = sql.exec(
+    "UPDATE blocks SET embedding_model = ?, embedding_version = ?, updated_at = ? WHERE id = ?",
+    args.embedding_model,
+    args.embedding_version,
+    Date.now(),
+    args.block_id,
+  );
+  if (result.rowsWritten === 0) {
+    throw new NotFoundError("block", args.block_id);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 9. getBlocksByIds — batch read; excludes cold-storage rows by default (AI-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns `Memory[]` for the given `ids`, EXCLUDING cold-storage rows
+ * (`cold_storage = 0` filter — D-07 belt-and-suspenders: even though Vectorize
+ * never indexes cold vectors, the SQL filter is the second line of defense).
+ * Returns `[]` immediately when `ids` is empty (D-02 — list helpers never throw).
+ *
+ * IN-clause construction uses positional `?` placeholders (one per id) — no
+ * named parameters, no string interpolation of user data (Pitfall 8 + SQL-injection
+ * mitigation). All rows are mapped through `narrowBlockRow`.
+ *
+ * @requirement AI-04
+ */
+export function getBlocksByIds(sql: SqlStorage, ids: string[]): Memory[] {
+  if (ids.length === 0) return [];
+  const placeholders = ids.map(() => "?").join(", ");
+  const rows = sql
+    .exec(
+      `SELECT id, type, content, summary, properties, embedding_id, embedding_model, embedding_version, scope, project_id, source, confidence, created_at, updated_at FROM blocks WHERE id IN (${placeholders}) AND cold_storage = 0`,
+      ...ids,
+    )
+    .toArray();
+  return rows.map((row) => narrowBlockRow(row as Record<string, SqlStorageValue | undefined>));
+}
+
+// ---------------------------------------------------------------------------
+// 10. updateBlockEnrichment — write AI-enriched properties/summary/confidence (AI-05)
+// ---------------------------------------------------------------------------
+
+/**
+ * Overwrites `properties`, `summary`, and `confidence` on an existing block
+ * with the Triage Worker's AI-enriched values (AI-05 Phase 5 enrichment path).
+ * `properties` is JSON-stringified at the boundary (D-03). Throws
+ * `NotFoundError("block", args.block_id)` on zero `rowsWritten`.
+ *
+ * @requirement AI-05
+ */
+export function updateBlockEnrichment(
+  sql: SqlStorage,
+  args: {
+    block_id: string;
+    properties: Record<string, unknown>;
+    summary: string;
+    confidence: number;
+  },
+): void {
+  const result = sql.exec(
+    "UPDATE blocks SET properties = ?, summary = ?, confidence = ?, updated_at = ? WHERE id = ?",
+    JSON.stringify(args.properties),
+    args.summary,
+    args.confidence,
+    Date.now(),
+    args.block_id,
+  );
+  if (result.rowsWritten === 0) {
+    throw new NotFoundError("block", args.block_id);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 11. moveToInbox — stage a low-confidence capture for human review (AI-06)
+// ---------------------------------------------------------------------------
+
+/**
+ * Stages a low-confidence block in the `inbox` table for human review (AI-06
+ * Phase 5 memorability routing: 0.4–0.8 range). Delegates to
+ * `createInboxEntry` (helper #6) so the inbox insert pattern stays
+ * single-source. Generates a UUID-style id from the block_id (prefixed with
+ * "inbox-") so the inbox row is traceable back to the originating block.
+ *
+ * @requirement AI-06
+ */
+export function moveToInbox(
+  sql: SqlStorage,
+  args: {
+    block_id: string;
+    entry: {
+      content: string;
+      proposed_type: string;
+      proposed_properties: Record<string, unknown>;
+      memorability_score: number;
+      source: string;
+    };
+  },
+): void {
+  const inboxEntry: InboxEntry = {
+    id: `inbox-${args.block_id}`,
+    content: args.entry.content,
+    proposed_type: args.entry.proposed_type,
+    proposed_properties: args.entry.proposed_properties,
+    memorability_score: args.entry.memorability_score,
+    source: args.entry.source,
+    created_at: Date.now(),
+  };
+  createInboxEntry(sql, inboxEntry);
+}
+
+// ---------------------------------------------------------------------------
+// 12. moveToColdStorage — route low-memorability block to cold-storage (D-07)
+// ---------------------------------------------------------------------------
+
+/**
+ * Marks a block as cold-storage and optionally ships AI-enriched data alongside
+ * the cold marker. COALESCE(?, col) allows the Triage Worker to send enrichment
+ * without forcing a pre-merge of existing values.
+ *
+ * CARDINAL-SIN CLAUSE (D-07 / Phase 5 CONTEXT.md): cold-storage is NOT discard.
+ * The block remains in SQLite with `cold_storage = 1`; it is excluded from
+ * default `recall()` results and NOT indexed in Vectorize. `v0.2: include_cold`
+ * flag will surface these rows. Never call `DELETE FROM blocks` in the
+ * memorability < 0.4 path — that is the cardinal sin.
+ *
+ * Throws `NotFoundError("block", args.block_id)` on zero `rowsWritten`.
+ *
+ * @requirement AI-06 (cold-storage routing branch, D-07)
+ */
+export function moveToColdStorage(
+  sql: SqlStorage,
+  args: {
+    block_id: string;
+    properties?: Record<string, unknown>;
+    summary?: string;
+    confidence?: number;
+    memorability: number;
+  },
+): void {
+  const propertiesJson = args.properties !== undefined ? JSON.stringify(args.properties) : null;
+  const result = sql.exec(
+    "UPDATE blocks SET cold_storage = 1, properties = COALESCE(?, properties), summary = COALESCE(?, summary), confidence = COALESCE(?, confidence), updated_at = ? WHERE id = ?",
+    propertiesJson,
+    args.summary ?? null,
+    args.confidence ?? null,
+    Date.now(),
+    args.block_id,
+  );
+  if (result.rowsWritten === 0) {
+    throw new NotFoundError("block", args.block_id);
+  }
+}

@@ -47,6 +47,7 @@ If Q2 is No and Q3 is No → Keep with Claude (context-prep overhead exceeds sav
 | 05-01-T2 | wrangler configs (mcp-server + triage-worker, prod + test) — AI + VECTORIZE + ANALYTICS bindings | claude | Y/N/N | Cross-file synthesis: 4 configs must stay consistent; FND-08 lint dependency requires post-edit validation across packages; <30 lines diff but Q1=Y (consistency invariants). | n/a |
 | 05-01-T3 | triage-worker vitest.config.ts, package.json deps, tsconfig.json | claude | Y/N/N | Cross-file synthesis: multi-package version-pin consistency check (mcp-server deps must match exactly); tsconfig + vitest config wired to wrangler.test.jsonc; Q1=Y. | n/a |
 | 05-01-T4 | schema.ts V2_SQL, migrations.ts v2 entry, types.ts Memory.cold_storage | claude | Y/N/N | Cross-file synthesis: V1_SQL preservation invariant + Memory type extension must be coordinated across schema/migrations/types; Q1=Y (<40 lines additive but cross-package consistency). | n/a |
+| 05-01-T5 | queries.ts (5 helpers) + index.ts (5 DO methods) — stampEmbedding, getBlocksByIds, updateBlockEnrichment, moveToInbox, moveToColdStorage | cf-code-assist:generateCode | N/Y/Y | Single-package: both files in workspace-do, no cross-package invariants; ~120 lines mechanical pattern from insertBlock template; insertBlock/insertBlockQuery pattern + PATTERNS.md §Example 8 as stable anchor. Q1=N, Q2=Y, Q3=Y → cf-code-assist. | ~3,000 tokens |
 
 ---
 
