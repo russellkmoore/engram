@@ -235,7 +235,7 @@ Triage Worker steps:
   5. CF AI: score memorability (0-1)
      > 0.8  → store automatically
      0.4-0.8 → inbox for review
-     < 0.4  → discard
+     < 0.4  → cold-storage (per Phase 5 CONTEXT.md D-07 cardinal-sin clause — NEVER discard)
   6. CF AI: embed each chunk → Vectorize
   7. Resolve against existing memory (duplicate/update/conflict detection)
   8. Store to WorkspaceDO SQLite

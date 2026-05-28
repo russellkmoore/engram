@@ -421,6 +421,7 @@ recall(query, types?, project?, scope?, limit?, since?, until?)         [SYNC, M
   │   score = 1.0·cosine + 0.15·recency + 0.2·type_match + 0.15·scope_match
   │
   ├─► env.AI.run("@cf/meta/llama-3.1-8b-instruct", { ... synthesis ... }) [optional per verbosity arg]
+  │   D-01 (Phase 5 CONTEXT.md): SKIPPED on default recall (verbosity="chunks"). Runs ONLY when verbosity ∈ {"synthesis", "both"}. Default recall returns synthesis=null + meta.gaps + suggestions.actions discoverability triad.
   │
   └─► buildRecallResponse({ memories: ranked, synthesis, context: {...} })
 

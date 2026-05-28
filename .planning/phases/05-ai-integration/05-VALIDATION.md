@@ -2,8 +2,8 @@
 phase: 5
 slug: ai-integration
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-05-28
 ---
 
@@ -61,24 +61,24 @@ Detailed `source-presence / behavior-assertion / integration-assertion / eval-as
 
 Test infrastructure gaps the planner MUST close before any Wave ≥1 task runs (sourced from `05-RESEARCH.md` §"Wave 0 Gaps"):
 
-- [ ] `packages/triage-worker/vitest.config.ts` — mirror `packages/mcp-server/vitest.config.ts`
-- [ ] `packages/triage-worker/wrangler.test.jsonc` — declare `AI`, `VECTORIZE`, and `WORKSPACE` (durable_objects.bindings) test bindings
-- [ ] `packages/triage-worker/package.json` devDependencies — add `vitest@^4.1.7`, `@cloudflare/vitest-pool-workers@^0.16.9`, `zod@^4.0.0` (production), `zod-to-json-schema` (production, GATED on Package Legitimacy Audit checkpoint)
-- [ ] `packages/mcp-server/wrangler.test.jsonc` — extend with `AI` + `VECTORIZE` bindings
-- [ ] `packages/mcp-server/wrangler.jsonc` — extend with `AI` + `VECTORIZE` bindings (production config)
-- [ ] `packages/triage-worker/wrangler.jsonc` — extend with `AI` + `VECTORIZE` + `WORKSPACE` (cross-Worker DO binding via `script_name = "engram-mcp-server"`); queue consumer block lands in Phase 6
-- [ ] RED test stubs (one per new helper / boundary):
+- [x] `packages/triage-worker/vitest.config.ts` — mirror `packages/mcp-server/vitest.config.ts`
+- [x] `packages/triage-worker/wrangler.test.jsonc` — declare `AI`, `VECTORIZE`, and `WORKSPACE` (durable_objects.bindings) test bindings
+- [x] `packages/triage-worker/package.json` devDependencies — add `vitest@^4.1.7`, `@cloudflare/vitest-pool-workers@^0.16.9`, `zod@^4.0.0` (production), `zod-to-json-schema` (production, GATED on Package Legitimacy Audit checkpoint)
+- [x] `packages/mcp-server/wrangler.test.jsonc` — extend with `AI` + `VECTORIZE` bindings
+- [x] `packages/mcp-server/wrangler.jsonc` — extend with `AI` + `VECTORIZE` bindings (production config)
+- [x] `packages/triage-worker/wrangler.jsonc` — extend with `AI` + `VECTORIZE` + `WORKSPACE` (cross-Worker DO binding via `script_name = "engram-mcp-server"`); queue consumer block lands in Phase 6
+- [x] RED test stubs (one per new helper / boundary):
   - `packages/mcp-server/__tests__/vectorize-helper.test.ts`
   - `packages/mcp-server/__tests__/ai-helper.test.ts`
   - `packages/mcp-server/__tests__/hybrid-rank.test.ts`
   - `packages/triage-worker/__tests__/extract.test.ts`
-- [ ] Existing-test extensions:
+- [x] Existing-test extensions:
   - `packages/mcp-server/__tests__/envelope.test.ts` — verbosity-parameterized assertions per D-03 (default `"chunks"` does not assert `suggestions === undefined`)
   - `packages/mcp-server/__tests__/tools-integration.test.ts` — AI-08 5-second-sleep round-trip
   - `packages/mcp-server/__tests__/cross-workspace-pentest.test.ts` — Vectorize-side AI-02 isolation it() block
-- [ ] Schema migration v2 — `cold_storage` column on `blocks`; migration scripts in `packages/workspace-do/src/{schema.ts, migrations.ts}`
-- [ ] `.planning/phases/05-ai-integration/05-CF-CODE-ASSIST-USAGE.md` — routing tracker file per CLAUDE.md mandate (Plan 05-01 creates as first deliverable)
-- [ ] Doc touch-ups: `05-AI-SPEC.md` §4 diagram amendment (D-04), `CLAUDE.md` `## Ingest Pipeline` (cold-storage replacement), `.claude/skills/spike-findings-engram/SKILL.md` (D-05 verbosity note)
+- [x] Schema migration v2 — `cold_storage` column on `blocks`; migration scripts in `packages/workspace-do/src/{schema.ts, migrations.ts}`
+- [x] `.planning/phases/05-ai-integration/05-CF-CODE-ASSIST-USAGE.md` — routing tracker file per CLAUDE.md mandate (Plan 05-01 creates as first deliverable)
+- [x] Doc touch-ups: `05-AI-SPEC.md` §4 diagram amendment (D-04), `CLAUDE.md` `## Ingest Pipeline` (cold-storage replacement), `.claude/skills/spike-findings-engram/SKILL.md` (D-05 verbosity note)
 
 Wave 0 sets `wave_0_complete: true` in this file's frontmatter on completion.
 
@@ -96,13 +96,15 @@ Wave 0 sets `wave_0_complete: true` in this file's frontmatter on completion.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or are listed under "Wave 0 Requirements" / "Manual-Only Verifications" with explicit reason
-- [ ] Sampling continuity: no 3 consecutive tasks without an automated verify
-- [ ] Wave 0 covers all `File Exists? ❌` references in the per-task table
-- [ ] No watch-mode flags (`vitest --watch` is forbidden in CI commands)
-- [ ] Feedback latency < 60s (unit suite per workspace + `--workspaces`)
-- [ ] F1 gate (AI-04) and JSON parse rate gate (AI-05) wired into `npm run evals:ci`
-- [ ] `nyquist_compliant: true` flipped in this file's frontmatter at end of Wave 0
-- [ ] `wave_0_complete: true` flipped at end of Wave 0
+- [x] All tasks have `<automated>` verify or are listed under "Wave 0 Requirements" / "Manual-Only Verifications" with explicit reason
+- [x] Sampling continuity: no 3 consecutive tasks without an automated verify
+- [x] Wave 0 covers all `File Exists? ❌` references in the per-task table
+- [x] No watch-mode flags (`vitest --watch` is forbidden in CI commands)
+- [x] Feedback latency < 60s (unit suite per workspace + `--workspaces`)
+- [ ] F1 gate (AI-04) and JSON parse rate gate (AI-05) wired into `npm run evals:ci` — deferred to Wave 5 (eval infrastructure not yet shipped)
+- [x] `nyquist_compliant: true` flipped in this file's frontmatter at end of Wave 0
+- [x] `wave_0_complete: true` flipped at end of Wave 0
 
-**Approval:** pending
+**Wave 0 closed:** 2026-05-28 (Plan 05-01)
+
+**Approval:** Wave 0 CLOSED — all Wave 0 Requirements satisfied by Plan 05-01 tasks.
