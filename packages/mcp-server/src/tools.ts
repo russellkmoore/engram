@@ -79,10 +79,11 @@ import {
   wrapMcpContent,
   META_GAPS,
 } from "./envelope.js";
-import { safeRun, EMBEDDING_MODEL, EMBEDDING_VERSION } from "./ai-helper.js";
-import { vectorizeUpsert, vectorizeDelete } from "./vectorize-helper.js";
+import { safeRun, EMBEDDING_MODEL, EMBEDDING_VERSION, CLASSIFIER_MODEL } from "./ai-helper.js";
+import { vectorizeUpsert, vectorizeDelete, vectorizeQuery } from "./vectorize-helper.js";
+import { hybridRank } from "./hybrid-rank.js";
 import type { Memory } from "@engram/types";
-import type { WorkspaceDO } from "@engram/workspace-do";
+import type { WorkspaceDO, LexicalSearchHit } from "@engram/workspace-do";
 
 import {
   RememberInputSchema,
@@ -92,6 +93,71 @@ import {
   IngestInputSchema,
 } from "./schemas.js";
 import type { EngramProps } from "./index.js";
+
+// ---------------------------------------------------------------------------
+// Phase 5 D-01 / D-02 / D-03: recall() synthesis helpers (file-local, not exported)
+// ---------------------------------------------------------------------------
+
+/**
+ * System prompt for the opt-in synthesis call (verbosity ∈ {"synthesis", "both"}).
+ * Per spike-findings-engram §6: preserve the 5 drop categories — dates, sources,
+ * technical identifiers, numeric values, decision-rejection naming.
+ */
+const SYNTHESIS_SYSTEM_PROMPT =
+  (`You are Engram's recall synthesizer. Given a user query and the top-ranked memories that matched it, produce a 2-4 sentence summary that:\n` +
+    `- Directly answers the user's query when possible\n` +
+    `- Preserves dates, sources, technical identifiers, numeric values, and decision-rejection naming (5 drop categories per spike-findings-engram §6)\n` +
+    `- Cites memories by their position ("memory 1 / memory 2 / ...") when referring to specifics\n` +
+    `- Acknowledges gaps when the memories don't directly answer the query (do NOT fabricate)\n` +
+    `Output prose only; no markdown headers; no JSON; no bullet lists.`) as const;
+
+/**
+ * Trims the ranked memories list to fit within maxTokens worth of synthesis input.
+ * Per AI-SPEC.md §4b "Context Window Strategy": drop trailing memories first.
+ * Conservative estimate: ~4 chars per token.
+ */
+function trimRankedForSynthesis(
+  memories: LexicalSearchHit[],
+  maxTokens: number,
+): LexicalSearchHit[] {
+  const charBudget = maxTokens * 4;
+  let used = 0;
+  const out: LexicalSearchHit[] = [];
+  for (const m of memories) {
+    const cost = (m.summary?.length ?? 0) + (m.content?.length ?? 0);
+    if (used + cost > charBudget) break;
+    out.push(m);
+    used += cost;
+  }
+  return out;
+}
+
+/**
+ * Formats ranked memories into a synthesis prompt body.
+ */
+function formatBlocksForSynthesis(memories: LexicalSearchHit[], query: string): string {
+  const lines = [`Query: ${query}`, "", "Top memories:"];
+  memories.forEach((m, i) => {
+    lines.push(
+      `${String(i + 1)}. [${m.type ?? "unknown"}] ${m.summary ?? m.content?.slice(0, 300) ?? "(empty)"}`,
+    );
+  });
+  return lines.join("\n");
+}
+
+/**
+ * Tool description for `recall()` — D-02 discoverability triad surface #1.
+ * Amended in Phase 5 to document the default verbosity and the opt-in synthesis path.
+ * MUST stay ≤ 1,500 UTF-8 bytes (MCP-08 per token-budget.test.ts).
+ */
+const RECALL_TOOL_DESCRIPTION =
+  `Semantic recall over the user's memories. Queries Cloudflare Vectorize with the embedded query ` +
+  `and returns the top-K most relevant memories, re-ranked by a hybrid score (cosine + recency ` +
+  `+ type-match + scope-match). Use this for "what do I know about X" style queries where exact ` +
+  `wording isn't guaranteed.\n\n` +
+  `Default verbosity is 'chunks' (raw memories + scored chunks, no LLM summary). Pass verbosity: ` +
+  `'synthesis' to add an LLM summary (adds 2–5s latency). Pass verbosity: 'both' to get both.\n\n` +
+  `Args: query (required), types?, project?, scope?, limit? (max 25), since?, until?, verbosity?`;
 
 /**
  * Register the 5 v0.1 MCP tools on the given `McpServer`. Every callback is
@@ -289,7 +355,7 @@ export function registerTools(
   // recall(query, types?, project?, scope?, limit?, since?, until?)
   // prettier-ignore
   server.registerTool("recall", {
-    description: "Semantic search of memories with synthesis and related context.",
+    description: RECALL_TOOL_DESCRIPTION,
     inputSchema: RecallInputSchema.shape,
   }, async (args) => {
     const props = getProps();
@@ -301,14 +367,74 @@ export function registerTools(
     }
     try {
       const stub = workspaceNs.get(workspaceNs.idFromName(props.workspace_id));
-      // types/project/scope/since/until accepted by schema but not yet filtered by v0.1 DO method (lexical only — see META_GAPS.recall; Phase 5 hybrid ranking handles these)
-      // eslint-disable-next-line @typescript-eslint/await-thenable -- DO stub methods return Promise<T> at runtime via Cloudflare RPC layer even though declared sync
-      const memories = await stub.lexicalSearchBlocks({
-        workspace_id: props.workspace_id, // ALWAYS from props, NEVER from args
-        query: args.query,
-        ...(args.limit !== undefined ? { limit: args.limit } : {}),
+
+      // === AI-04 Step 1: embed the query with the SAME model as remember (dimension #2 identity) ===
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.AI declared in worker-configuration.d.ts
+      const embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [args.query] });
+      const queryVector = embedResp.data?.[0];
+      if (queryVector?.length !== 768) {
+        throw new Error(
+          `embed query: unexpected shape (expected number[768], got ${String(queryVector?.length ?? "undefined")})`,
+        );
+      }
+
+      // === AI-04 Step 2: Vectorize query in workspace namespace (AI-02 isolation via helper) ===
+      // topK explicit (Pitfall 7); metadata filter on type when args.types supplied (RESEARCH §Phase 5 Ranking Strategy #2)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.VECTORIZE declared in worker-configuration.d.ts
+      const result = await vectorizeQuery(env, props.workspace_id, queryVector, {
+        topK: args.limit ?? 25,
+        filter: args.types?.length ? { type: { $in: args.types } } : undefined,
+        returnMetadata: "all",
       });
-      const envelope = buildRecallResponse({ memories, verbosity: args.verbosity });
+
+      // === AI-04 Step 3: hydrate full blocks from SQLite (cold_storage excluded by getBlocksByIds) ===
+      const ids = result.matches.map((m) => m.id);
+      // eslint-disable-next-line @typescript-eslint/await-thenable -- DO stub methods return Promise<T> at runtime via Cloudflare RPC layer
+      const blocks = await stub.getBlocksByIds({
+        workspace_id: props.workspace_id, // ALWAYS from props, NEVER from args
+        ids,
+      });
+
+      // === AI-04 Step 4: hybrid re-rank (spike-validated formula: cosine·1.0 + recency·0.15 + type·0.2 + scope·0.15) ===
+      const ranked = hybridRank(result.matches, blocks, args, Date.now());
+
+      // === D-01: synthesis is OPT-IN — skipped on default verbosity="chunks" (no 2–5s latency penalty) ===
+      let synthesis: string | null = null;
+      if (args.verbosity === "synthesis" || args.verbosity === "both") {
+        // AI-SPEC.md §4b "Context Window Strategy": cap synthesis input at ~6K tokens.
+        // Drop trailing memories first (lowest-ranked position after hybridRank).
+        const trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.AI declared in worker-configuration.d.ts
+          const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
+            messages: [
+              { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
+              { role: "user", content: formatBlocksForSynthesis(trimmedForSynth, args.query) },
+            ],
+            temperature: 0.3,
+            max_tokens: 1024,
+          });
+          synthesis = typeof synthResp.response === "string" ? synthResp.response : null;
+        } catch (synthErr) {
+          // Per CONTEXT.md D-07 honest-stubs posture — synthesis failures leave synthesis=null;
+          // meta.gaps surfaces the failure rather than crashing the recall.
+          console.warn("recall:synthesis-failed", { synthErr });
+          synthesis = null;
+        }
+      }
+
+      // === D-02: discoverability triad — populate suggestions ONLY when verbosity="chunks" ===
+      const suggestions =
+        args.verbosity === "chunks"
+          ? { actions: ["Set verbosity: 'synthesis' to add a summary of these memories."] }
+          : undefined;
+
+      const envelope = buildRecallResponse({
+        memories: ranked,
+        verbosity: args.verbosity,
+        synthesis,
+        ...(suggestions !== undefined ? { suggestions } : {}),
+      });
       return wrapMcpContent(trimToBudget(envelope));
     } catch (err) {
       throw mapToMcpError(err);
