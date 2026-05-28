@@ -39,7 +39,7 @@
 // packages/mcp-server/src/__tests__/envelope.test.ts
 // Source: 04-CONTEXT.md D-04/D-06/D-07/D-08/D-10 + PATTERNS.md §envelope.test.ts.
 //
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+
 // Rationale: envelope.ts does not exist yet (Plan 04-02 deliverable). TypeScript
 // resolves all imports from ../envelope.js as `error`-typed, triggering no-unsafe-*
 // rules. These tests are intentionally RED until Plan 04-02 ships. The disable
@@ -186,5 +186,46 @@ describe("suggestions field omission (D-04 honest-stub)", () => {
   it("buildIngestResponse does NOT include 'suggestions' key in envelope", () => {
     const envelope = buildIngestResponse({ job_id: "some-uuid" });
     expect(Object.keys(envelope)).not.toContain("suggestions");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// D-01 default flip + D-02 discoverability triad
+// RED until Plan 05-05 extends buildRecallResponse with the new verbosity
+// params and adds META_GAPS.recallChunksOmittedSynthesis.
+// ---------------------------------------------------------------------------
+
+describe("buildRecallResponse — D-01 default flip + D-02 discoverability triad (RED until Plan 05-05)", () => {
+  it("default verbosity 'chunks' → synthesis null, meta.gaps includes opt-in hint, suggestions.actions present", () => {
+    const envelope = buildRecallResponse({ memories: [], verbosity: "chunks" });
+    // synthesis must be null when verbosity="chunks"
+    expect((envelope.result as Record<string, unknown>).synthesis).toBeNull();
+    // meta.gaps must contain the opt-in hint so Claude knows synthesis is available
+    expect(envelope.meta.gaps).toContain(META_GAPS.recallChunksOmittedSynthesis);
+    // suggestions.actions must guide caller to opt in
+    expect(envelope.suggestions?.actions).toContain(
+      "Set verbosity: 'synthesis' to add a summary of these memories.",
+    );
+  });
+
+  it("verbosity='synthesis' → synthesis populated when input.synthesis provided, suggestions absent", () => {
+    const envelope = buildRecallResponse({
+      memories: [],
+      verbosity: "synthesis",
+      synthesis: "Summary here",
+    });
+    expect((envelope.result as Record<string, unknown>).synthesis).toBe("Summary here");
+    expect(envelope.meta.gaps).not.toContain(META_GAPS.recallChunksOmittedSynthesis);
+    expect(envelope.suggestions).toBeUndefined();
+  });
+
+  it("verbosity='both' → synthesis populated AND meta.gaps does NOT contain opt-in hint", () => {
+    const envelope = buildRecallResponse({
+      memories: [],
+      verbosity: "both",
+      synthesis: "Both mode summary",
+    });
+    expect((envelope.result as Record<string, unknown>).synthesis).toBe("Both mode summary");
+    expect(envelope.meta.gaps).not.toContain(META_GAPS.recallChunksOmittedSynthesis);
   });
 });

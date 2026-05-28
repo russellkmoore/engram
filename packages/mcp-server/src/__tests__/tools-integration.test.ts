@@ -65,7 +65,7 @@ function captureCallback(
   const spy = vi.spyOn(McpServer.prototype, "registerTool");
   try {
     const server = new McpServer({ name: "engram-mcp-server-test", version: "0.0.1" });
-    registerTools(server, () => ({ workspace_id, user_id }), env as Env);
+    registerTools(server, () => ({ workspace_id, user_id }), env);
     let foundCallback: ((args: unknown, extra: unknown) => Promise<unknown>) | undefined;
     for (const rawCall of spy.mock.calls) {
       const [callName, , callCb] = rawCall as unknown as [
@@ -298,6 +298,38 @@ describe("TOL-04: forget round-trip", () => {
     const forgetEnv = parseEnvelope(forgetResult);
     const fr = forgetEnv.result as Record<string, unknown>;
     expect((fr.relations_deleted as number) >= 1).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AI-08: forget cascade with Vectorize delete + eventual consistency
+// RED until Plan 05-03 wires embed + Vectorize delete.
+// Currently fails: remember() doesn't embed, so lexical recall after forget
+// still finds the block by content match — memories.length !== 0.
+// ---------------------------------------------------------------------------
+
+describe("AI-08: forget cascade with Vectorize delete + eventual consistency (RED until Plan 05-03)", () => {
+  it("remember → forget → sleep(5s) → recall returns 0 semantic matches", async () => {
+    const workspace_id = "ws-ai08-roundtrip";
+    const rememberCb = captureCallback("remember", workspace_id);
+    const recallCb = captureCallback("recall", workspace_id);
+    const forgetCb = captureCallback("forget", workspace_id);
+
+    const rememberResult = await rememberCb({ content: "ai08 needle to forget cascade" }, {});
+    const id = (parseEnvelope(rememberResult).result as { id: string }).id;
+
+    await forgetCb({ id }, {});
+
+    // AI-SPEC.md §3 Pitfall 7: Vectorize delete is eventually consistent (~seconds).
+    // Allow up to 5s for the delete to propagate per 05-RESEARCH.md §"Pitfall 4".
+    await new Promise((resolve) => setTimeout(resolve, 5_000));
+
+    const recallAfter = await recallCb(
+      { query: "needle to forget cascade", verbosity: "chunks" },
+      {},
+    );
+    const memories = (parseEnvelope(recallAfter).result as { memories: unknown[] }).memories;
+    expect(memories.length).toBe(0);
   });
 });
 

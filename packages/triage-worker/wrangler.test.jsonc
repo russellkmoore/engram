@@ -24,13 +24,13 @@
   // Unit tests use vi.fn() mocks; 429 dual-path tests pass mock env directly.
   "ai": { "binding": "AI" },
   "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
-  // Cross-Worker DO binding: WorkspaceDO lives in mcp-server.
-  // script_name pins the source Worker (mirrors production wrangler.jsonc).
-  "durable_objects": {
-    "bindings": [
-      { "name": "WORKSPACE", "class_name": "WorkspaceDO", "script_name": "engram-mcp-server" },
-    ],
-  },
+  // WORKSPACE cross-Worker DO binding is intentionally OMITTED from the test config.
+  // The production wrangler.jsonc declares it via script_name="engram-mcp-server".
+  // In test mode, miniflare cannot resolve a cross-Worker script_name reference
+  // (it has no external Worker registry). Wave 0 tests (extract.test.ts) pass
+  // mockEnv directly and do NOT use env.WORKSPACE — so this binding is not needed.
+  // Plan 05-04 will add WORKSPACE back when integration tests need a real DO.
+  //
   // Analytics Engine stub — write-call sites land in Plan 05-07.
   "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
 }

@@ -1,0 +1,129 @@
+/**
+ * RED test stubs for `hybrid-rank.ts` (AI-04 Vectorize + recency formula).
+ *
+ * These tests COMPILE but FAIL because `../hybrid-rank.js` does not exist yet —
+ * Plan 05-02 (Wave 1) creates it. The import-resolution failure is the
+ * expected RED state.
+ *
+ * Requirements covered:
+ * - AI-04: recall hybrid ranking formula combining Vectorize cosine score,
+ *   recency, type_match, and scope_match per AI-SPEC.md §4 starting weights.
+ *
+ * Test patterns:
+ * - Mirrors `envelope.test.ts` lines 64–146 (pure-function describe structure,
+ *   no DO or binding mocks needed — all inputs are plain JS objects).
+ *
+ * @module @engram/mcp-server/__tests__/hybrid-rank
+ */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+// Rationale: hybrid-rank.ts does not exist yet (Plan 05-02 deliverable). TypeScript
+// resolves all imports from ../hybrid-rank.js as error-typed, triggering no-unsafe-*
+// rules. Tests are intentionally RED until Plan 05-02 ships.
+import { describe, it, expect } from "vitest";
+
+import { hybridRank, HYBRID_WEIGHTS } from "../hybrid-rank.js";
+
+// Minimal Memory shape for testing — only the fields hybridRank reads.
+interface RankableMemory {
+  id: string;
+  type: string | null;
+  scope: "personal" | "project" | "org";
+  created_at: number;
+}
+
+describe("hybridRank (AI-04 formula)", () => {
+  it("weights are LOCKED at AI-SPEC.md §4 starting values", () => {
+    expect(HYBRID_WEIGHTS).toEqual({
+      cosine: 1.0,
+      recency: 0.15,
+      type_match: 0.2,
+      scope_match: 0.15,
+    });
+  });
+
+  it("recent block scores higher than older block at same cosine similarity", () => {
+    const now = Date.now();
+    const recent: RankableMemory = {
+      id: "r1",
+      type: "contact",
+      scope: "personal",
+      created_at: now,
+    };
+    const old: RankableMemory = {
+      id: "r2",
+      type: "contact",
+      scope: "personal",
+      created_at: now - 90 * 24 * 60 * 60 * 1000,
+    };
+    const vectorMatches = [
+      { id: "r1", score: 0.9 },
+      { id: "r2", score: 0.9 },
+    ];
+    const ranked = hybridRank(vectorMatches, [recent, old] as never[], {});
+    expect(ranked[0]?.id).toBe("r1");
+  });
+
+  it("type_match boost applies when args.types contains block.type", () => {
+    const now = Date.now();
+    const typed: RankableMemory = {
+      id: "typed",
+      type: "contact",
+      scope: "personal",
+      created_at: now,
+    };
+    const untyped: RankableMemory = {
+      id: "untyped",
+      type: "research_note",
+      scope: "personal",
+      created_at: now,
+    };
+    const vectorMatches = [
+      { id: "typed", score: 0.7 },
+      { id: "untyped", score: 0.75 },
+    ];
+    // types filter includes "contact" — typed block should win despite lower cosine.
+    const ranked = hybridRank(vectorMatches, [typed, untyped] as never[], { types: ["contact"] });
+    expect(ranked[0]?.id).toBe("typed");
+  });
+
+  it("scope_match boost applies when args.scope === block.scope", () => {
+    const now = Date.now();
+    const scoped: RankableMemory = {
+      id: "scoped",
+      type: "contact",
+      scope: "project",
+      created_at: now,
+    };
+    const other: RankableMemory = {
+      id: "other",
+      type: "contact",
+      scope: "personal",
+      created_at: now,
+    };
+    const vectorMatches = [
+      { id: "scoped", score: 0.7 },
+      { id: "other", score: 0.75 },
+    ];
+    const ranked = hybridRank(vectorMatches, [scoped, other] as never[], { scope: "project" });
+    expect(ranked[0]?.id).toBe("scoped");
+  });
+
+  it("output is monotonically ordered by combined score (no ties — all inputs differ)", () => {
+    const now = Date.now();
+    const blocks: RankableMemory[] = [
+      { id: "a", type: "contact", scope: "personal", created_at: now - 1000 },
+      { id: "b", type: "contact", scope: "personal", created_at: now - 2000 },
+      { id: "c", type: "contact", scope: "personal", created_at: now - 3000 },
+    ];
+    const vectorMatches = [
+      { id: "a", score: 0.9 },
+      { id: "b", score: 0.85 },
+      { id: "c", score: 0.8 },
+    ];
+    const ranked = hybridRank(vectorMatches, blocks, {});
+    const scores = ranked.map((r) => (r as { _score?: number })._score ?? 0);
+    for (let i = 1; i < scores.length; i++) {
+      expect(scores[i]).toBeLessThanOrEqual(scores[i - 1]);
+    }
+  });
+});
