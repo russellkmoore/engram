@@ -1,0 +1,36 @@
+// packages/triage-worker/wrangler.test.jsonc
+//
+// TEST-ONLY Wrangler config used by @cloudflare/vitest-pool-workers to resolve
+// AI, VECTORIZE, and WORKSPACE bindings inside test runs. This file is NOT used
+// by `wrangler dev` or `wrangler deploy` — those use packages/triage-worker/wrangler.jsonc.
+//
+// Why a separate file (not the shared `wrangler.jsonc`):
+//   1. The FND-08 lint glob is `packages/*/wrangler.jsonc` (literal filename —
+//      see scripts/lint-wrangler.mjs line 37). The `.test.jsonc` suffix means
+//      this file is NOT linted, by design — it carries its own minimal config
+//      that exists ONLY for the test pool's binding resolver.
+//   2. `compatibility_date` is intentionally omitted — the test pool infers
+//      the latest per the Cloudflare-maintained fixture pattern. Including a
+//      date would freeze the test runtime to a specific version that may
+//      drift from production.
+//
+// FND-08 invariant: even though lint skips this file, use the same binding
+// conventions as the production wrangler.jsonc for maintainability.
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "engram-triage-worker-test",
+  "main": "src/index.ts",
+  // Phase 5 AI + VECTORIZE bindings for unit tests.
+  // Unit tests use vi.fn() mocks; 429 dual-path tests pass mock env directly.
+  "ai": { "binding": "AI" },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
+  // Cross-Worker DO binding: WorkspaceDO lives in mcp-server.
+  // script_name pins the source Worker (mirrors production wrangler.jsonc).
+  "durable_objects": {
+    "bindings": [
+      { "name": "WORKSPACE", "class_name": "WorkspaceDO", "script_name": "engram-mcp-server" },
+    ],
+  },
+  // Analytics Engine stub — write-call sites land in Plan 05-07.
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
+}

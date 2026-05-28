@@ -10,6 +10,9 @@
   "observability": {
     "enabled": true,
   },
+  "ai": { "binding": "AI" },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
   "durable_objects": {
     "bindings": [
       { "name": "MCP_OBJECT", "class_name": "EngramMcp" },

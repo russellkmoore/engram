@@ -32,6 +32,13 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "engram-mcp-server-test",
   "main": "src/index.ts",
+  // Phase 5 AI + VECTORIZE test bindings. Unit tests mock via vi.spyOn; integration
+  // tests (AI-02 namespace isolation, AI-08 round-trip) opt into real Cloudflare
+  // via remote: true in Plan 05-03/05-05 when real Vectorize is required. For Wave 0
+  // the entry stays local so unit-test mocking via vi.spyOn(env.VECTORIZE, "query") works.
+  "ai": { "binding": "AI" },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
   "durable_objects": {
     "bindings": [
       { "name": "MCP_OBJECT", "class_name": "EngramMcp" },

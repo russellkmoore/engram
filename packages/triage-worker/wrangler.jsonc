@@ -1,3 +1,6 @@
+// packages/triage-worker/wrangler.jsonc
+// Source: AI-SPEC.md §3 "Tool Use" + 05-PATTERNS.md S9 (cross-Worker DO via script_name).
+// Compatibility_date matches mcp-server's "2026-05-22" exactly (S9 consistency invariant).
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "engram-triage-worker",
@@ -8,4 +11,21 @@
   // Bind to 8788 so `npm run dev:triage` can run alongside `npm run dev:mcp`
   // (which uses the wrangler default 8787). Matches README:127.
   "dev": { "port": 8788 },
+  // Phase 5 AI + VECTORIZE bindings (AI-SPEC.md §3 binding declarations).
+  "ai": { "binding": "AI" },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
+  // Cross-Worker Durable Object binding: WorkspaceDO lives in mcp-server Worker.
+  // Per 05-RESEARCH.md Open Question 4: use durable_objects.bindings with script_name
+  // (NOT services with entrypoint) — battle-tested pattern for cross-Worker DO access.
+  "durable_objects": {
+    "bindings": [
+      { "name": "WORKSPACE", "class_name": "WorkspaceDO", "script_name": "engram-mcp-server" },
+    ],
+  },
+  // Analytics Engine stub for type-safety — write-call sites land in Plan 05-07.
+  // Per 05-RESEARCH.md Open Question 9: declare binding in Wave 0 for Env interface.
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
+  // Queue consumer block lands in Phase 6 PIP-01.
+  // The bindings above are declared now so the Env interface is correct and
+  // triage-worker tests can import from env.WORKSPACE / env.AI / env.VECTORIZE.
 }
