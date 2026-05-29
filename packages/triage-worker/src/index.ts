@@ -91,29 +91,100 @@ export default {
     // Sequential processing (see Design notes above re: 429 risk with Promise.all).
     for (const message of batch.messages as Message<MemoryEvent>[]) {
       const event = message.body;
+      const attempts = (message as { attempts?: number }).attempts ?? 0;
+      // Phase 6 PIP-05 / CR-01 + WR-03 fix: pre-empt the silent-drop-on-retry-
+      // exhaustion failure mode at attempts === max_retries. wrangler.jsonc
+      // max_retries=3, 0-indexed attempts → pre-empt at attempts >= 2.
+      const isLastAttempt = attempts >= 2;
 
-      // Memoize workspaceTag per-message: SHA-256 is called once here and
-      // reused by every writeAnalytics call within this message processing
-      // (extract.ts + the DO-RPC switch below).
-      const wsTag = await workspaceTag(event.workspace_id);
+      // -----------------------------------------------------------------------
+      // CR-01 + WR-03: per-message try/catch wrapping BOTH workspaceTag AND
+      // extractAndScore. Without this, an unwrapped throw from either call
+      // (e.g., workerd shutdown mid-SHA256, transient AI 5xx, JSON parse error
+      // on the binding envelope) propagates out of the for...of loop and
+      // crashes the queue() handler. Per Cloudflare Queues semantics, an
+      // unhandled rejection causes the ENTIRE BATCH to be retried — including
+      // messages already successfully ack()-ed earlier in this loop. That
+      // amplifies a single transient failure into a batch-wide replay storm
+      // with duplicate Workers AI calls + duplicate Vectorize writes.
+      //
+      // Both extract.ts:144-176 (early-attempt path) AI throws AND the very
+      // first await (workspaceTag SHA-256) are unwrapped today. This wrapper
+      // is the per-message error envelope that bounds those failures to
+      // exactly one retry slot (early attempts) or one markIngestFailed+ack
+      // (last attempt) — never batch-wide redelivery.
+      // -----------------------------------------------------------------------
 
-      // extractAndScore handles its own retry/ack on 429 and Zod failures.
-      // Returns null when it called retry or ack itself — caller must skip.
-      const parsed = await extractAndScore(
-        env,
-        event,
-        {
-          attempts: (message as { attempts?: number }).attempts,
-          ack: () => {
-            message.ack();
+      let wsTag: string;
+      let parsed: Awaited<ReturnType<typeof extractAndScore>>;
+      try {
+        // Memoize workspaceTag per-message: SHA-256 is called once here and
+        // reused by every writeAnalytics call within this message processing
+        // (extract.ts + the DO-RPC switch below).
+        wsTag = await workspaceTag(event.workspace_id);
+
+        // extractAndScore handles its own retry/ack on 429 and Zod failures.
+        // Returns null when it called retry or ack itself — caller must skip.
+        // On non-429 throws with attempts < 2, extract.ts:176 re-throws to us;
+        // we handle that case in the catch block below (CR-01 fix).
+        parsed = await extractAndScore(
+          env,
+          event,
+          {
+            attempts: (message as { attempts?: number }).attempts,
+            ack: () => {
+              message.ack();
+            },
+            retry: (opts: { delaySeconds: number }) => {
+              message.retry(opts);
+            },
+            body: event,
           },
-          retry: (opts: { delaySeconds: number }) => {
-            message.retry(opts);
-          },
-          body: event,
-        },
-        wsTag,
-      );
+          wsTag,
+        );
+      } catch (err) {
+        // CR-01 + WR-03 catch: mirror the DO-RPC catch block below
+        // (index.ts ~ "do-rpc-failed" path). Both paths consume one retry
+        // slot on early attempts and ack+markIngestFailed on the last attempt.
+        const reason = err instanceof Error ? err.message : String(err);
+        console.error("triage:pre-route-threw", {
+          id: event.id,
+          attempts,
+          reason,
+        });
+
+        if (isLastAttempt) {
+          // markIngestFailed is itself a DO RPC — if IT throws we have no
+          // recourse and must still ack (mirrors the inner try/catch pattern
+          // at the DO-RPC catch block below).
+          try {
+            const stub = env.WORKSPACE.get(env.WORKSPACE.idFromName(event.workspace_id));
+            await (
+              stub as unknown as {
+                markIngestFailed: (args: {
+                  workspace_id: string;
+                  block_id: string;
+                  reason: string;
+                }) => Promise<void>;
+              }
+            ).markIngestFailed({
+              workspace_id: event.workspace_id,
+              block_id: event.id,
+              reason: `pre-route-throw: ${reason}`,
+            });
+          } catch (markErr) {
+            console.error("triage:mark-failed-also-threw-from-pre-route", {
+              id: event.id,
+              reason: markErr instanceof Error ? markErr.message : String(markErr),
+            });
+          }
+          message.ack();
+        } else {
+          // Retry budget remains — consume one slot at +30s.
+          message.retry({ delaySeconds: 30 });
+        }
+        continue;
+      }
 
       if (parsed === null) {
         // extractAndScore called retry or ack — skip this message.
@@ -132,13 +203,11 @@ export default {
       // -----------------------------------------------------------------------
 
       // Phase 6 PIP-05 / CONTEXT.md "Claude's Discretion → Queues consumer config":
-      // pre-empt the silent-drop-on-retry-exhaustion failure mode. The Queues runtime
-      // silently acks at attempts === max_retries; we mark failed + ack ourselves on
-      // the LAST allowed attempt (wrangler.jsonc max_retries=3, 0-indexed attempts
-      // → pre-empt at attempts >= 2).
-      const attempts = (message as { attempts?: number }).attempts ?? 0;
-      const isLastAttempt = attempts >= 2;
-
+      // `attempts` and `isLastAttempt` were hoisted to the top of the loop
+      // iteration above so the CR-01 + WR-03 wrapper can also branch on them.
+      // Same semantics: wrangler.jsonc max_retries=3, 0-indexed attempts → the
+      // Queues runtime silently acks at attempts === max_retries; we mark
+      // failed + ack ourselves on the LAST allowed attempt to pre-empt that.
       const stub = env.WORKSPACE.get(env.WORKSPACE.idFromName(event.workspace_id));
       const decision = routeByMemorability(parsed.memorability);
       const rpcStart = Date.now();
