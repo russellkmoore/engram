@@ -26,6 +26,7 @@ import type { Memory } from "@engram/types";
 
 import { NotFoundError } from "../errors.js";
 import type { WorkspaceDO } from "../index.js";
+import { markIngestFailed } from "../queries.js";
 import type { InboxEntry } from "../types.js";
 
 // Type-coercion shim: the `runInDurableObject` callback parameter is typed as
@@ -292,6 +293,195 @@ describe("WorkspaceDO typed query helpers (STO-06)", () => {
       expect(resolved.length).toBe(1);
       expect(resolved[0]?.id).toBe("cnf-resolved");
       expect(resolved[0]?.resolved_at).toBe(1_500);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 6 D-03 — ingest_status lifecycle on Phase 5 enrichment helpers.
+  // Each amended helper (updateBlockEnrichment / moveToColdStorage / moveToInbox)
+  // must atomically set `ingest_status='enriched'` as part of its UPDATE clause.
+  // ---------------------------------------------------------------------------
+
+  it("updateBlockEnrichment transitions ingest_status pending → enriched (Phase 6 D-03)", async () => {
+    const workspace_id = "ws-pip-updateBlockEnrichment-status";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      const block = makeBlock({ id: "blk-pip-enrich-001" });
+      ws.insertBlock({ workspace_id, block });
+
+      // Baseline: V3 migration defaults ingest_status to 'pending'.
+      const before = state.storage.sql
+        .exec("SELECT ingest_status FROM blocks WHERE id = ?", block.id)
+        .one();
+      expect(before.ingest_status).toBe("pending");
+
+      ws.updateBlockEnrichment({
+        workspace_id,
+        block_id: block.id,
+        properties: { ai_extracted: true },
+        summary: "ai summary",
+        confidence: 0.9,
+      });
+
+      const after = state.storage.sql
+        .exec("SELECT ingest_status FROM blocks WHERE id = ?", block.id)
+        .one();
+      expect(after.ingest_status).toBe("enriched");
+    });
+  });
+
+  it("moveToColdStorage sets BOTH cold_storage=1 AND ingest_status='enriched' (D-03 orthogonality)", async () => {
+    const workspace_id = "ws-pip-moveToColdStorage-status";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      const block = makeBlock({ id: "blk-pip-cold-001" });
+      ws.insertBlock({ workspace_id, block });
+
+      ws.moveToColdStorage({
+        workspace_id,
+        block_id: block.id,
+        memorability: 0.1,
+      });
+
+      const row = state.storage.sql
+        .exec("SELECT cold_storage, ingest_status FROM blocks WHERE id = ?", block.id)
+        .one();
+      // D-03 orthogonality: cold-storage + enriched ALWAYS co-occur,
+      // NEVER cold-storage + failed.
+      expect(row.cold_storage).toBe(1);
+      expect(row.ingest_status).toBe("enriched");
+    });
+  });
+
+  it("moveToInbox sets source block ingest_status='enriched' AND inserts exactly one inbox row", async () => {
+    const workspace_id = "ws-pip-moveToInbox-status";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      const block = makeBlock({ id: "blk-pip-inbox-001" });
+      ws.insertBlock({ workspace_id, block });
+
+      ws.moveToInbox({
+        workspace_id,
+        block_id: block.id,
+        entry: {
+          content: "inbox content",
+          proposed_type: "job_application",
+          proposed_properties: { company: "Acme" },
+          memorability_score: 0.55,
+          source: "mcp:test",
+        },
+      });
+
+      const blockRow = state.storage.sql
+        .exec("SELECT ingest_status FROM blocks WHERE id = ?", block.id)
+        .one();
+      expect(blockRow.ingest_status).toBe("enriched");
+
+      const inboxCount = state.storage.sql
+        .exec("SELECT COUNT(*) AS n FROM inbox WHERE id = ?", `inbox-${block.id}`)
+        .one();
+      expect(inboxCount.n).toBe(1);
+    });
+  });
+
+  it("moveToInbox called twice with same block_id is idempotent (INSERT OR IGNORE, PIP-03 / IP-1)", async () => {
+    const workspace_id = "ws-pip-moveToInbox-idempotent";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      const block = makeBlock({ id: "blk-pip-replay-001" });
+      ws.insertBlock({ workspace_id, block });
+
+      const args = {
+        workspace_id,
+        block_id: block.id,
+        entry: {
+          content: "first delivery",
+          proposed_type: "job_application",
+          proposed_properties: { company: "Acme" },
+          memorability_score: 0.55,
+          source: "mcp:test",
+        },
+      };
+      // First Queue delivery.
+      ws.moveToInbox(args);
+      // Duplicate Queue delivery (at-least-once semantic). The INSERT OR IGNORE
+      // on the inbox.id PK collision must make the second insert a no-op AND
+      // not raise a UNIQUE-constraint failure. The block UPDATE is naturally
+      // idempotent (second call overwrites with the same value).
+      expect(() => {
+        ws.moveToInbox(args);
+      }).not.toThrow();
+
+      const inboxCount = state.storage.sql
+        .exec("SELECT COUNT(*) AS n FROM inbox WHERE id = ?", `inbox-${block.id}`)
+        .one();
+      expect(inboxCount.n).toBe(1);
+
+      const blockRow = state.storage.sql
+        .exec("SELECT ingest_status FROM blocks WHERE id = ?", block.id)
+        .one();
+      expect(blockRow.ingest_status).toBe("enriched");
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Phase 6 D-03 / PIP-05 — markIngestFailed helper (new in 06-03).
+  // ---------------------------------------------------------------------------
+
+  describe("markIngestFailed (Phase 6 D-03 / PIP-05)", () => {
+    it("transitions ingest_status pending → failed and overwrites properties with {error, failed_at}", async () => {
+      const workspace_id = "ws-pip-markIngestFailed-happy";
+      const id = env.WORKSPACE.idFromName(workspace_id);
+      const stub = env.WORKSPACE.get(id);
+      await runInDurableObject(stub, (instance, state) => {
+        const ws = asWorkspaceDO(instance);
+        const block = makeBlock({ id: "blk-pip-fail-001" });
+        ws.insertBlock({ workspace_id, block });
+
+        // Direct helper call against the DO's SQL store (not RPC — Task 2
+        // covers the RPC path).
+        markIngestFailed(state.storage.sql, {
+          block_id: block.id,
+          reason: "test-reason",
+        });
+
+        const row = state.storage.sql
+          .exec("SELECT ingest_status, properties FROM blocks WHERE id = ?", block.id)
+          .one();
+        expect(row.ingest_status).toBe("failed");
+        expect(typeof row.properties).toBe("string");
+        const parsed = JSON.parse(row.properties as string) as Record<string, unknown>;
+        expect(parsed.error).toBe("test-reason");
+        expect(typeof parsed.failed_at).toBe("number");
+      });
+    });
+
+    it("throws NotFoundError with resource='block' on non-existent block_id (D-02 contract mirror)", async () => {
+      const workspace_id = "ws-pip-markIngestFailed-throw";
+      const id = env.WORKSPACE.idFromName(workspace_id);
+      const stub = env.WORKSPACE.get(id);
+      await runInDurableObject(stub, (_instance, state) => {
+        let caught: unknown = undefined;
+        try {
+          markIngestFailed(state.storage.sql, {
+            block_id: "does-not-exist",
+            reason: "x",
+          });
+        } catch (err) {
+          caught = err;
+        }
+        expect(caught).toBeInstanceOf(NotFoundError);
+        expect((caught as NotFoundError).resource).toBe("block");
+        expect((caught as NotFoundError).id).toBe("does-not-exist");
+      });
     });
   });
 });
