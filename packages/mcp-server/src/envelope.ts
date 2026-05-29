@@ -92,6 +92,11 @@ export const META_GAPS = {
   // NOT surfaced by Phase 5 recall — reserved for v0.2 include_cold: true recall path.
   coldStorageDemotion:
     "Memory scored < 0.4 memorability — moved to cold-storage. Pass include_cold: true to recall (v0.2).",
+  // Phase 5 Plan 05-06 T-05-05-TRUNC backfill: per-call gap surfaced in meta.gaps when the
+  // recall QUERY length > 1,800 chars is truncated for embedding. Mirrors the remember()-side
+  // truncationOver1800Chars contract. Byte-frozen per D-10 — do NOT paraphrase.
+  recallQueryTruncated:
+    "Query over 1,800 chars; only the first ~512 tokens were embedded. Refine the query for better recall.",
 } as const;
 
 // ---------------------------------------------------------------------------

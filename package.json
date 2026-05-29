@@ -25,7 +25,11 @@
     "dev:mcp": "npm run dev --workspace @engram/mcp-server",
     "dev:triage": "npm run dev --workspace @engram/triage-worker",
     "setup:vectorize": "bash scripts/setup-vectorize.sh",
-    "setup": "node -e \"console.log('Engram setup: see CONTRIBUTING.md for GSD plugin install steps.')\" && npm install && npm run types:gen && npm run setup:vectorize"
+    "setup": "node -e \"console.log('Engram setup: see CONTRIBUTING.md for GSD plugin install steps.')\" && npm install && npm run types:gen && npm run setup:vectorize",
+    "evals:vitest": "npm test --workspace=packages/mcp-server -- --run evals && npm test --workspace=packages/triage-worker -- --run evals",
+    "evals:promptfoo": "npx promptfoo eval -c packages/triage-worker/evals/triage-extraction.promptfoo.yaml --threshold-pass-rate 95",
+    "evals:ci": "npm run evals:vitest && npm run evals:promptfoo",
+    "predeploy": "npm run evals:ci"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260525.1",

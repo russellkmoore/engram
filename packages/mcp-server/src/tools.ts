@@ -305,7 +305,7 @@ export function registerTools(
       // On 429: safeRun throws RateLimitError; mapToMcpError below surfaces as InternalError.
       // Inline 429 retry is intentionally absent — remember() is interactive (user retries).
       // Plan 05-04's queue consumer is the only call site that catches RateLimitError.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.AI is declared in worker-configuration.d.ts; wrangler types generates Ai binding at deploy time
+       
       const embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [contentForEmbed] });
       const vector = embedResp.data?.[0];
       if (vector?.length !== 768) {
@@ -325,7 +325,7 @@ export function registerTools(
 
       // Step 4: Upsert vector to Vectorize under workspace namespace (AI-02 isolation).
       // vectorizeUpsert stamps namespace = workspaceId unconditionally (Plan 05-02).
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.VECTORIZE declared in worker-configuration.d.ts
+       
       await vectorizeUpsert(env, props.workspace_id, [
         {
           id,
@@ -368,9 +368,19 @@ export function registerTools(
     try {
       const stub = workspaceNs.get(workspaceNs.idFromName(props.workspace_id));
 
+      // T-05-05-TRUNC backfill (Plan 05-06 Task 5): recall-side query-length truncation warn.
+      // Mirrors the remember()-side truncation contract (Pitfall 6). Embedding model takes ~512
+      // tokens of input; chars over 1,800 are silently dropped. Surface in meta.gaps so Claude
+      // can prompt the user to refine the query when the recall semantics may have suffered.
+      const QUERY_TRUNCATE_THRESHOLD = 1800;
+      const queryWasTruncated = args.query.length > QUERY_TRUNCATE_THRESHOLD;
+      const queryForEmbed = queryWasTruncated
+        ? args.query.slice(0, QUERY_TRUNCATE_THRESHOLD)
+        : args.query;
+
       // === AI-04 Step 1: embed the query with the SAME model as remember (dimension #2 identity) ===
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.AI declared in worker-configuration.d.ts
-      const embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [args.query] });
+       
+      const embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [queryForEmbed] });
       const queryVector = embedResp.data?.[0];
       if (queryVector?.length !== 768) {
         throw new Error(
@@ -380,7 +390,7 @@ export function registerTools(
 
       // === AI-04 Step 2: Vectorize query in workspace namespace (AI-02 isolation via helper) ===
       // topK explicit (Pitfall 7); metadata filter on type when args.types supplied (RESEARCH §Phase 5 Ranking Strategy #2)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.VECTORIZE declared in worker-configuration.d.ts
+       
       const result = await vectorizeQuery(env, props.workspace_id, queryVector, {
         topK: args.limit ?? 25,
         filter: args.types?.length ? { type: { $in: args.types } } : undefined,
@@ -405,7 +415,7 @@ export function registerTools(
         // Drop trailing memories first (lowest-ranked position after hybridRank).
         const trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.AI declared in worker-configuration.d.ts
+           
           const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
             messages: [
               { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
@@ -435,6 +445,11 @@ export function registerTools(
         synthesis,
         ...(suggestions !== undefined ? { suggestions } : {}),
       });
+      // T-05-05-TRUNC backfill: append the recall-query truncation gap when applicable.
+      // Done AFTER buildRecallResponse so the gap survives trimToBudget (which preserves meta.gaps).
+      if (queryWasTruncated) {
+        envelope.meta.gaps = [...envelope.meta.gaps, META_GAPS.recallQueryTruncated];
+      }
       return wrapMcpContent(trimToBudget(envelope));
     } catch (err) {
       throw mapToMcpError(err);
@@ -494,7 +509,7 @@ export function registerTools(
       //   (b) SQLite delete fails after Vectorize succeeds → orphan SQLite row. Harmless because
       //       recall via Vectorize no longer finds the vector. Background sweep (Wave 6) cleans up.
       // Vectorize deleteByIds is idempotent — forgetting an id not in the index returns success.
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- env.VECTORIZE declared in worker-configuration.d.ts
+       
       await vectorizeDelete(env, props.workspace_id, [args.id]);
 
       // === Phase 4 path preserved: SQLite cascade ===
