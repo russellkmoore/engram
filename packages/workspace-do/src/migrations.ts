@@ -37,7 +37,7 @@
  */
 import type { SqlStorage } from "@cloudflare/workers-types";
 
-import { V1_SQL, V2_SQL } from "./schema.js";
+import { V1_SQL, V2_SQL, V3_SQL } from "./schema.js";
 
 export interface Migration {
   /** Monotonically increasing schema version. v0.1 ships exactly one: `1`. */
@@ -54,6 +54,9 @@ export const MIGRATIONS: readonly Migration[] = [
   // ALTER TABLE ADD COLUMN is NOT idempotent at SQL layer; the version check
   // in the _schema_migrations table is the idempotency guarantee.
   { version: 2, name: "v2_cold_storage", sql: V2_SQL },
+  // Phase 6 D-03: ingest_status column tracks per-block enrichment state
+  // (pending → enriched | failed). Forward-only via _schema_migrations runner.
+  { version: 3, name: "v3_ingest_status", sql: V3_SQL },
 ];
 
 export function runMigrations(sql: SqlStorage): void {

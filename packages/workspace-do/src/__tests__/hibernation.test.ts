@@ -55,12 +55,13 @@ describe("hibernation replay safety (STO-09)", () => {
     // First cold start — the constructor's blockConcurrencyWhile bootstrap
     // runs migrations (writing rows into _schema_migrations) and seeds the
     // 7 system memory types. Assert the post-bootstrap shape directly.
-    // Phase 5 Plan 05-01 added v2_cold_storage — expect 2 migration rows.
+    // Phase 6 Plan 06-01 added v3_ingest_status — expect 3 migration rows
+    // (v1_initial_schema, v2_cold_storage, v3_ingest_status).
     await runInDurableObject(stub, (_inst, state) => {
       const applied = state.storage.sql
         .exec("SELECT version, name, applied_at FROM _schema_migrations ORDER BY version")
         .toArray();
-      expect(applied.length).toBe(2);
+      expect(applied.length).toBe(3);
       const v1 = applied[0];
       expect(v1).toBeDefined();
       expect(v1?.version).toBe(1);
@@ -71,6 +72,11 @@ describe("hibernation replay safety (STO-09)", () => {
       expect(v2?.version).toBe(2);
       expect(v2?.name).toBe("v2_cold_storage");
       expect(typeof v2?.applied_at).toBe("number");
+      const v3 = applied[2];
+      expect(v3).toBeDefined();
+      expect(v3?.version).toBe(3);
+      expect(v3?.name).toBe("v3_ingest_status");
+      expect(typeof v3?.applied_at).toBe("number");
 
       const seeds = state.storage.sql.exec("SELECT COUNT(*) AS n FROM memory_types").one();
       expect(seeds.n).toBe(7);
@@ -79,17 +85,17 @@ describe("hibernation replay safety (STO-09)", () => {
     // Second runInDurableObject on the SAME id — simulates the hibernation-
     // replay scenario where Cloudflare evicts the DO instance from memory,
     // SQLite storage persists, and a fresh request constructs a new instance
-    // against the same persisted store. The assertion: STILL 2 migration
-    // rows (the runner's applied-version check prevents re-apply of v1 or v2)
-    // AND STILL 7 memory types (INSERT OR IGNORE prevents PK-collision
-    // duplicates). If migrations had re-run, v2's ALTER TABLE ADD COLUMN would
-    // throw "duplicate column name: cold_storage" — caught here as count !== 2
+    // against the same persisted store. The assertion: STILL 3 migration
+    // rows (the runner's applied-version check prevents re-apply of v1, v2,
+    // or v3) AND STILL 7 memory types (INSERT OR IGNORE prevents PK-collision
+    // duplicates). If migrations had re-run, v3's ALTER TABLE ADD COLUMN would
+    // throw "duplicate column name: ingest_status" — caught here as count !== 3
     // OR a thrown error. If seeds had duplicated, count would be 14 instead of 7.
     await runInDurableObject(stub, (_inst, state) => {
       const migrations = state.storage.sql
         .exec("SELECT COUNT(*) AS n FROM _schema_migrations")
         .one();
-      expect(migrations.n).toBe(2);
+      expect(migrations.n).toBe(3);
 
       const seeds = state.storage.sql.exec("SELECT COUNT(*) AS n FROM memory_types").one();
       expect(seeds.n).toBe(7);
