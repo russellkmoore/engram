@@ -22,7 +22,6 @@
  */
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:workers";
-import type { Ai } from "@cloudflare/workers-types";
 import refCorpus from "../../../../mcp-server/src/__tests__/evals/fixtures/reference-corpus.json";
 import { extractAndScore, type Message } from "../../extract.js";
 import { routeByMemorability, type RouteDecision } from "../../memorability.js";
@@ -66,7 +65,11 @@ describe("AI-06 memorability calibration (60/30/10 ±10pp band over reference co
         },
       };
 
-      const parsed = await extractAndScore(env as unknown as { AI: Ai }, event, message);
+      const parsed = await extractAndScore(
+        env as unknown as Parameters<typeof extractAndScore>[0],
+        event,
+        message,
+      );
       if (parsed === null) continue; // 429 retry or Zod parse-fail permanent — not part of distribution
 
       counts[routeByMemorability(parsed.memorability)]++;

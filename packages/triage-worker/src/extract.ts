@@ -30,7 +30,7 @@
  *
  * @module @engram/triage-worker/extract
  */
-import type { Ai, AnalyticsEngineDataset } from "@cloudflare/workers-types";
+import type { Ai, AnalyticsEngineDataset, DurableObjectNamespace } from "@cloudflare/workers-types";
 import type { MemoryEvent } from "@engram/types";
 import { TriageOutput, TRIAGE_JSON_SCHEMA } from "./schemas.js";
 import { SYSTEM_PROMPT } from "./prompts.js";
@@ -77,7 +77,17 @@ export interface Message {
  * @returns `TriageOutput` on success; `null` when retry or ack was triggered.
  */
 export async function extractAndScore(
-  env: { AI: Ai; ANALYTICS?: AnalyticsEngineDataset },
+  env: {
+    AI: Ai;
+    ANALYTICS?: AnalyticsEngineDataset;
+    /**
+     * Phase 6 PIP-05: needed so the permanent-fail branches can call
+     * `WorkspaceDO.markIngestFailed` (Plan 06-03 RPC) via the cross-Worker
+     * stub cast pattern. Caller (`index.ts` `queue` handler) already has this
+     * binding declared on its `Env` interface.
+     */
+    WORKSPACE: DurableObjectNamespace;
+  },
   event: MemoryEvent,
   message: Message,
   // wsTag is memoized per-message in index.ts queue() handler to avoid
@@ -120,12 +130,49 @@ export async function extractAndScore(
       message.retry({ delaySeconds: 30 });
       return null;
     }
-    // Non-429 throw — let it bubble. Queue runtime's max_retries machinery applies.
+    // Non-429 throw — let it bubble on early attempts (Queue runtime's
+    // max_retries machinery applies). Phase 6 PIP-05: on the LAST allowed
+    // attempt (max_retries=3 → attempts >= 2 is the third/last attempt),
+    // pre-empt the silent-ack-on-retry-exhaustion by calling markIngestFailed
+    // and acking ourselves. Otherwise the Queue runtime would drop the
+    // message without flipping blocks.ingest_status to 'failed'.
     writeAnalytics(env, {
       blobs: ["triage-worker", CLASSIFIER_MODEL, wsTag, "throw"],
       doubles: [Date.now() - aiStart, event.content.length, message.attempts ?? 0, 0],
       indexes: [ANALYTICS_ENV_TAG],
     });
+    const isLastAttempt = (message.attempts ?? 0) >= 2;
+    if (isLastAttempt) {
+      const stub = env.WORKSPACE.get(env.WORKSPACE.idFromName(event.workspace_id));
+      try {
+        await (
+          stub as unknown as {
+            markIngestFailed: (args: {
+              workspace_id: string;
+              block_id: string;
+              reason: string;
+            }) => Promise<void>;
+          }
+        ).markIngestFailed({
+          workspace_id: event.workspace_id,
+          block_id: event.id,
+          reason: `ai-throw-non-429: ${err instanceof Error ? err.message : String(err)}`,
+        });
+        writeAnalytics(env, {
+          blobs: ["triage-worker", "ingest-failed-ai-throw", wsTag, "marked"],
+          doubles: [Date.now() - aiStart, event.content.length, message.attempts ?? 0, 1],
+          indexes: [ANALYTICS_ENV_TAG],
+        });
+      } catch (markErr) {
+        console.error("triage:mark-failed-also-threw-from-ai-throw", {
+          id: event.id,
+          reason: markErr instanceof Error ? markErr.message : String(markErr),
+        });
+      }
+      // Pre-empt silent drop — ack here instead of re-throwing.
+      message.ack();
+      return null;
+    }
     throw err;
   }
 
@@ -193,6 +240,41 @@ export async function extractAndScore(
       doubles: [aiLatency, event.content.length, message.attempts, 0],
       indexes: [ANALYTICS_ENV_TAG],
     });
+
+    // Phase 6 PIP-05: flip blocks.ingest_status from 'pending' to 'failed' so
+    // the v0.2 inbox UI can surface "broken memories". Pre-empts the silent
+    // ack on retry exhaustion. The RPC is wrapped in its own try/catch — if
+    // markIngestFailed itself throws (NotFoundError if the block was deleted
+    // via forget() between producer write and consumer fire, or McpError if
+    // STO-07 fires), log the secondary failure and fall through to ack() so
+    // the message still exits the queue (no infinite-retry).
+    const stub = env.WORKSPACE.get(env.WORKSPACE.idFromName(event.workspace_id));
+    try {
+      await (
+        stub as unknown as {
+          markIngestFailed: (args: {
+            workspace_id: string;
+            block_id: string;
+            reason: string;
+          }) => Promise<void>;
+        }
+      ).markIngestFailed({
+        workspace_id: event.workspace_id,
+        block_id: event.id,
+        reason: `zod-parse-fail: ${parsed.error.issues[0]?.message ?? "unknown"}`,
+      });
+      writeAnalytics(env, {
+        blobs: ["triage-worker", "ingest-failed-zod-parse", wsTag, "marked"],
+        doubles: [aiLatency, event.content.length, message.attempts, 1],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
+    } catch (markErr) {
+      console.error("triage:mark-failed-also-threw-from-zod", {
+        id: event.id,
+        reason: markErr instanceof Error ? markErr.message : String(markErr),
+      });
+    }
+
     message.ack();
     return null;
   }
