@@ -83,7 +83,7 @@ import { safeRun, EMBEDDING_MODEL, EMBEDDING_VERSION, CLASSIFIER_MODEL } from ".
 import { vectorizeUpsert, vectorizeDelete, vectorizeQuery } from "./vectorize-helper.js";
 import { writeAnalytics, workspaceTag } from "./analytics.js";
 import { hybridRank } from "./hybrid-rank.js";
-import type { Memory } from "@engram/types";
+import type { Memory, MemoryEvent } from "@engram/types";
 import type { WorkspaceDO, LexicalSearchHit } from "@engram/workspace-do";
 
 import {
@@ -192,7 +192,6 @@ export function registerTools(
   env: Env,
   getCtx: () => DurableObjectState,
 ): void {
-  void getCtx; // wired in Plan 06-04 — getCtx().waitUntil(env.INGEST_QUEUE.send(memoryEvent)) lands in remember() handler body
   // --------------------------------------------------------------------------
   // Phase-4-ready handler shape — DOCUMENTATION ONLY (Phase 3 stubs throw
   // before reaching any of this). Phase 4 plans (TOL-01..05) literally diff
@@ -385,6 +384,72 @@ export function registerTools(
         indexes: [ANALYTICS_ENV_TAG],
       });
       // === End Phase 5 AI-03 additions ===
+
+      // === Phase 6 PIP-02: enqueue async enrichment ===
+      // MemoryEvent assembly per CONTEXT.md Claude's Discretion §"MemoryEvent payload contents".
+      // `id: id` (same UUID as the SQLite row above — A11/IP-1 idempotency hook).
+      // `workspace_id: props.workspace_id` — ALWAYS from props, NEVER from args (MCP-05 / MT-1).
+      // `source: args.source ?? "mcp:claude"` — mirrors block.source above.
+      // `content: args.content` — raw user content, NOT the truncated `contentForEmbed`.
+      // `timestamp: now` — same Date.now() used in block.created_at.
+      // `hint` is a conditional spread because args.type may be undefined
+      // (exactOptionalPropertyTypes — strict TS forbids `{ key: undefined }` literals).
+      // `context` is always populated — EngramProps.user_id is typed as `string`
+      // (non-optional, JWT-derived).
+      const memoryEvent: MemoryEvent = {
+        id,
+        source: args.source ?? "mcp:claude",
+        content: args.content,
+        workspace_id: props.workspace_id,
+        timestamp: now,
+        context: { user_id: props.user_id },
+        ...(args.type !== undefined && { hint: args.type }),
+      };
+
+      // Phase 6 B3 fix: dereference env.INGEST_QUEUE INSIDE the handler body, NOT at
+      // registerTools entry. This is a deliberate departure from the workspaceNs
+      // closure-capture pattern above — required so test-time env.INGEST_QUEUE patches
+      // (PIP-02 latency test in Plan 06-05 Task 2) take effect, and forward-compatible
+      // with any future runtime rebinding. The per-invocation property-lookup cost is
+      // negligible.
+      const ingestQueue = (env as { INGEST_QUEUE?: Queue<MemoryEvent> }).INGEST_QUEUE;
+      if (ingestQueue === undefined) {
+        // Binding absent — likely a test env that did not patch INGEST_QUEUE (existing
+        // TOL-* tests). Log once per invocation and skip the send so the response path
+        // stays green. Production envs MUST have the binding declared in wrangler.jsonc.
+        console.warn(
+          "mcp-server:INGEST_QUEUE binding absent — queue-send skipped (likely test env without 06-02 binding mock)",
+        );
+      } else {
+        // ctx.waitUntil so remember() returns BEFORE the inner queue send resolves.
+        // Fire-and-forget by design (D-03 known limitation: queue.send failure leaves
+        // block at ingest_status='pending' indefinitely — v0.2 stuck-pending sweep Cron
+        // Worker will address).
+        const queueSendStart = Date.now();
+        getCtx().waitUntil(
+          (async () => {
+            try {
+              await ingestQueue.send(memoryEvent);
+              writeAnalytics(env, {
+                blobs: ["mcp-server", "queue-send", wsTag, "success"],
+                doubles: [Date.now() - queueSendStart, 1, 0, 0],
+                indexes: [ANALYTICS_ENV_TAG],
+              });
+            } catch (queueErr) {
+              console.error("mcp-server:queue-send-failed", {
+                id,
+                reason: queueErr instanceof Error ? queueErr.message : String(queueErr),
+              });
+              writeAnalytics(env, {
+                blobs: ["mcp-server", "queue-send", wsTag, "throw"],
+                doubles: [Date.now() - queueSendStart, 1, 0, 1],
+                indexes: [ANALYTICS_ENV_TAG],
+              });
+            }
+          })(),
+        );
+      }
+      // === End Phase 6 additions ===
 
       // Surface truncation in meta.gaps if content was truncated for embedding.
       const extraGaps = truncated ? [META_GAPS.truncationOver1800Chars] : [];
@@ -634,7 +699,7 @@ export function registerTools(
   });
 
   // ingest(source, type?, project?, priority?, threshold?)
-  /* eslint-disable @typescript-eslint/require-await -- D-05: ingest has no await in v0.1; async is kept so Phase 6 adds ctx.waitUntil(env.INGEST_QUEUE.send(...)) as a one-line diff */
+  /* eslint-disable @typescript-eslint/require-await -- D-05: ingest has no await in v0.1; async is kept so v0.4 connectors (Slack channel ingestion, Google Drive polling) add the Queue producer body — Phase 6 left ingest as a stub per Phase 6 CONTEXT.md D-02 */
   // prettier-ignore
   server.registerTool("ingest", {
     description: "Queue an external content source for async enrichment.",
@@ -648,7 +713,7 @@ export function registerTools(
       );
     }
     try {
-      // Route-by-DO-id check (TOL-07 Prong A). Phase 6 will use the resolved stub to call ctx.waitUntil(env.INGEST_QUEUE.send(memoryEvent)) — D-05 swap is one-line.
+      // Route-by-DO-id check (TOL-07 Prong A). v0.4 connectors will use the resolved stub to call ctx.waitUntil(env.INGEST_QUEUE.send(memoryEvent)) — Phase 6 CONTEXT.md D-02 deferred this body to v0.4.
       void workspaceNs.get(workspaceNs.idFromName(props.workspace_id));
       const job_id = crypto.randomUUID();
       const envelope = buildIngestResponse({ job_id });
