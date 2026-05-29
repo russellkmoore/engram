@@ -54,15 +54,15 @@ const EXPECTED_TABLES = [
 ] as const;
 
 describe("_schema_migrations table (STO-02)", () => {
-  it("contains rows for v1_initial_schema and v2_cold_storage after first init", async () => {
+  it("contains rows for v1_initial_schema, v2_cold_storage, v3_ingest_status after first init", async () => {
     const id = env.WORKSPACE.idFromName("ws-schema-migrations-test");
     const stub = env.WORKSPACE.get(id);
     await runInDurableObject(stub, (_inst, state) => {
       const rows = state.storage.sql
         .exec("SELECT version, name, applied_at FROM _schema_migrations ORDER BY version")
         .toArray();
-      // Phase 5 Plan 05-01 added v2_cold_storage — expect 2 rows.
-      expect(rows.length).toBe(2);
+      // Phase 6 Plan 06-01 added v3_ingest_status — expect 3 rows.
+      expect(rows.length).toBe(3);
       const v1 = rows[0];
       expect(v1).toBeDefined();
       expect(v1?.version).toBe(1);
@@ -73,6 +73,11 @@ describe("_schema_migrations table (STO-02)", () => {
       expect(v2?.version).toBe(2);
       expect(v2?.name).toBe("v2_cold_storage");
       expect(typeof v2?.applied_at).toBe("number");
+      const v3 = rows[2];
+      expect(v3).toBeDefined();
+      expect(v3?.version).toBe(3);
+      expect(v3?.name).toBe("v3_ingest_status");
+      expect(typeof v3?.applied_at).toBe("number");
     });
   });
 });
@@ -119,6 +124,47 @@ describe("blocks cold_storage column (D-07 / v2)", () => {
       expect(coldStorage?.type.toUpperCase()).toBe("INTEGER");
       // DEFAULT 0 — existing rows are non-cold by default.
       expect(coldStorage?.dflt_value).toBe("0");
+    });
+  });
+});
+
+describe("blocks ingest_status column (D-03 / v3)", () => {
+  it("includes ingest_status TEXT NOT NULL DEFAULT 'pending' added by v3 migration", async () => {
+    const id = env.WORKSPACE.idFromName("ws-schema-ingest-status-test");
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (_inst, state) => {
+      const cols = state.storage.sql
+        .exec("PRAGMA table_info(blocks)")
+        .toArray()
+        .map((c) => ({
+          name: c.name as string,
+          type: c.type as string,
+          notnull: c.notnull as number,
+          dflt_value: c.dflt_value,
+        }));
+
+      const ingestStatus = cols.find((c) => c.name === "ingest_status");
+      expect(ingestStatus).toBeDefined();
+      expect(ingestStatus?.type.toUpperCase()).toBe("TEXT");
+      // NOT NULL — every block must have an enrichment state.
+      expect(ingestStatus?.notnull).toBe(1);
+      // SQLite quotes string-literal defaults in PRAGMA table_info output —
+      // match the quoted form workerd emits (single-quoted 'pending').
+      expect(ingestStatus?.dflt_value).toBe("'pending'");
+    });
+  });
+
+  it("creates idx_blocks_ingest_status supporting index on blocks", async () => {
+    const id = env.WORKSPACE.idFromName("ws-schema-ingest-status-index-test");
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (_inst, state) => {
+      const indexes = state.storage.sql
+        .exec("SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'blocks'")
+        .toArray()
+        .map((r) => r.name as string);
+      // v0.2 inbox-UI "broken memories" query filters on ingest_status; this
+      // index keeps the filter scan-free even as the blocks table grows.
+      expect(indexes).toContain("idx_blocks_ingest_status");
     });
   });
 });

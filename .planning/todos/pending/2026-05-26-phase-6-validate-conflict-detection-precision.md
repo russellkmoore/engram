@@ -41,3 +41,5 @@ Before committing to per-write conflict scanning in Phase 6 implementation, vali
 ## Rationale
 
 Architectural critique from 2026-05-25 conversation: "Conflict detection is your shakiest component carrying your flashiest feature. Per-write conflict scanning on a small model is a precision/recall minefield; false-positive 'conflicts' erode trust. And it's the v0.4 Slack-alert demo. High risk concentrated on the thing you most want to show off."
+
+> **Validation gate moves to v0.2 per Phase 6 CONTEXT.md D-01.** v0.1 ships entity extraction + summarization + memorability scoring only. The 50-sample harness described above (25 genuine conflicts + 15 benign updates + 10 unrelated pairs) and the 3-way decision gate stay valid as written; v0.2 owns the execution.

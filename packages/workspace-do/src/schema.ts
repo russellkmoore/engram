@@ -183,3 +183,67 @@ export const V2_SQL = `
   ALTER TABLE blocks ADD COLUMN cold_storage INTEGER NOT NULL DEFAULT 0;
   CREATE INDEX IF NOT EXISTS idx_blocks_cold_storage ON blocks(cold_storage);
 ` as const;
+
+/**
+ * v3 migration DDL — adds `ingest_status` column to `blocks`.
+ *
+ * Phase 6 D-03 (CONTEXT.md): per-block enrichment state tracking with three
+ * values — `pending` (sync embed done, async enrichment not yet complete),
+ * `enriched` (Triage Worker successfully routed the block via
+ * `updateBlockEnrichment` / `moveToInbox` / `moveToColdStorage`), or `failed`
+ * (permanent failure after retry budget exhausted — set via the new
+ * `markIngestFailed` RPC). Replaces the v0.1-considered dedicated
+ * `engram-ingest-dlq` queue: a SQLite column is a queryable failure surface
+ * for the v0.2 inbox-UI "broken memories" view, with zero extra Worker /
+ * wrangler config cost.
+ *
+ * Design notes:
+ * - **Forward-only via `_schema_migrations` runner.** The runner in
+ *   `./migrations.ts` tracks applied versions in the `_schema_migrations`
+ *   table and skips already-applied entries — so re-executing this
+ *   migration on every DO cold-start is safe.
+ * - **ALTER TABLE ADD COLUMN is NOT idempotent at the SQL layer.** A naive
+ *   re-run would throw "duplicate column name: ingest_status". The version
+ *   check in the `_schema_migrations` table IS the idempotency guarantee
+ *   — the runner never calls `sql.exec(V3_SQL)` twice on the same SQLite
+ *   store. Same pattern as V2_SQL (cold_storage).
+ * - **DEFAULT 'pending'** ensures existing rows (inserted before this
+ *   migration) are treated as pre-enrichment, so the v0.2 Triage Worker
+ *   stuck-pending sweep Cron Worker can find and re-enqueue them
+ *   uniformly. New `remember()` writes also rely on this default — Phase 6
+ *   does NOT add an explicit `ingest_status` field to the `insertBlock`
+ *   call, the column default does the work and the `Memory` TS type stays
+ *   unchanged for v0.1 (the column is internal-only at this point).
+ * - **NOT NULL** is enforceable because every block must have an
+ *   enrichment state — there is no "unknown" disposition in v0.1.
+ * - **CREATE INDEX IF NOT EXISTS** is naturally idempotent. The supporting
+ *   index `idx_blocks_ingest_status` exists for the v0.2 inbox-UI "broken
+ *   memories" query (`WHERE ingest_status = 'failed'`) and for the v0.2
+ *   stuck-pending sweep Cron Worker query (`WHERE ingest_status = 'pending'
+ *   AND created_at < ?`); without it, both filters would scan the entire
+ *   `blocks` table as it grows.
+ * - **No DLQ queue in v0.1** (D-03). The Triage Worker's `markIngestFailed`
+ *   RPC writes to this column AND to Workers Analytics Engine AND to
+ *   `console.error` — three observability surfaces, no extra wrangler /
+ *   Cron / Worker plumbing.
+ * - **No positional `?` bindings.** Bind-free DDL string per Pitfall 8.
+ *
+ * Cross-plan contract:
+ * - Plan 06-01 (this plan) appends `{ version: 3, name: "v3_ingest_status",
+ *   sql: V3_SQL }` to the MIGRATIONS array in `./migrations.ts`.
+ * - Plan 06-03 (queries.ts) amends `updateBlockEnrichment` /
+ *   `moveToInbox` / `moveToColdStorage` UPDATE statements to set
+ *   `ingest_status = 'enriched'` as part of the same SQL UPDATE that
+ *   writes enrichment outputs.
+ * - Plan 06-03 (queries.ts + index.ts) adds the `markIngestFailed`
+ *   helper + RPC method: writes `ingest_status = 'failed'` plus
+ *   `properties = {error, failed_at}` for observability.
+ * - Plan 06-05 (integration tests) asserts the pending → enriched and
+ *   pending → failed lifecycle transitions end-to-end.
+ *
+ * @module @engram/workspace-do/schema
+ */
+export const V3_SQL = `
+  ALTER TABLE blocks ADD COLUMN ingest_status TEXT NOT NULL DEFAULT 'pending';
+  CREATE INDEX IF NOT EXISTS idx_blocks_ingest_status ON blocks(ingest_status);
+` as const;
