@@ -311,7 +311,7 @@ Plans:
 - **Touches IP-7 (silent partial failures)**: PIP-06 (`ingest_status`) is the schema-level mitigation; without it, blocks stuck at "phase 1 only" become invisible.
 - Triage Worker RPC into WorkspaceDO must respect the STO-07 workspace_id check; PIP-04's RPC calls always pass the workspace_id from the MemoryEvent.
 
-**Plans:** 1/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 
@@ -321,8 +321,8 @@ Plans:
 
 **Wave 2** (parallel — both depend on Wave 1; no file overlap)
 
-- [ ] 06-02-PLAN.md (Wave 2, autonomous) — scripts/setup-queue.sh idempotent provisioning + npm run setup:queue + mcp-server queues.producers binding (INGEST_QUEUE) + triage-worker queues.consumers binding (max_batch_size 10, max_retries 3, NO dead_letter_queue per D-03) + registerTools 4th param `getCtx` + EngramMcp.init wires `() => this.ctx` [PIP-01, PIP-02]
-- [ ] 06-03-PLAN.md (Wave 2, autonomous) — queries.ts pending→enriched in updateBlockEnrichment / moveToColdStorage / moveToInbox + createInboxEntry INSERT OR IGNORE (PIP-03 idempotency) + new markIngestFailed helper + WorkspaceDO.markIngestFailed RPC (STO-07 first line) + defense-in-depth.test.ts STO-07 gate on new RPC [PIP-03, PIP-04, PIP-05, PIP-06]
+- [x] 06-02-PLAN.md (Wave 2, autonomous) — scripts/setup-queue.sh idempotent provisioning + npm run setup:queue + mcp-server queues.producers binding (INGEST_QUEUE) + triage-worker queues.consumers binding (max_batch_size 10, max_retries 3, NO dead_letter_queue per D-03) + registerTools 4th param `getCtx` + EngramMcp.init wires `() => this.ctx` [PIP-01, PIP-02]
+- [x] 06-03-PLAN.md (Wave 2, autonomous) — queries.ts pending→enriched in updateBlockEnrichment / moveToColdStorage / moveToInbox + createInboxEntry INSERT OR IGNORE (PIP-03 idempotency) + new markIngestFailed helper + WorkspaceDO.markIngestFailed RPC (STO-07 first line) + defense-in-depth.test.ts STO-07 gate on new RPC [PIP-03, PIP-04, PIP-05, PIP-06]
 
 **Wave 3** (producer wiring + consumer permanent-failure paths — depends on Waves 1+2)
 
@@ -365,7 +365,7 @@ Plans:
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
-| 6. Async Pipeline        | 1/5 | In Progress|  |
+| 6. Async Pipeline        | 3/5 | In Progress|  |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
 
 ## Parallelization Notes
