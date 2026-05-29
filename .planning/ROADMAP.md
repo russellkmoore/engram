@@ -311,6 +311,27 @@ Plans:
 - **Touches IP-7 (silent partial failures)**: PIP-06 (`ingest_status`) is the schema-level mitigation; without it, blocks stuck at "phase 1 only" become invisible.
 - Triage Worker RPC into WorkspaceDO must respect the STO-07 workspace_id check; PIP-04's RPC calls always pass the workspace_id from the MemoryEvent.
 
+**Plans:** 5 plans across 4 waves
+
+Plans:
+
+**Wave 1** (doc touch-ups + v3 migration — no deps)
+
+- [ ] 06-01-PLAN.md (Wave 1, autonomous) — ROADMAP/REQUIREMENTS/pending-todo doc edits per D-01 (defer conflict detection to v0.2) + V3_SQL `ingest_status` migration (TEXT NOT NULL DEFAULT 'pending' + index) + schema.test.ts v3 column + 3-row `_schema_migrations` assertions [PIP-04, PIP-06]
+
+**Wave 2** (parallel — both depend on Wave 1; no file overlap)
+
+- [ ] 06-02-PLAN.md (Wave 2, autonomous) — scripts/setup-queue.sh idempotent provisioning + npm run setup:queue + mcp-server queues.producers binding (INGEST_QUEUE) + triage-worker queues.consumers binding (max_batch_size 10, max_retries 3, NO dead_letter_queue per D-03) + registerTools 4th param `getCtx` + EngramMcp.init wires `() => this.ctx` [PIP-01, PIP-02]
+- [ ] 06-03-PLAN.md (Wave 2, autonomous) — queries.ts pending→enriched in updateBlockEnrichment / moveToColdStorage / moveToInbox + createInboxEntry INSERT OR IGNORE (PIP-03 idempotency) + new markIngestFailed helper + WorkspaceDO.markIngestFailed RPC (STO-07 first line) + defense-in-depth.test.ts STO-07 gate on new RPC [PIP-03, PIP-04, PIP-05, PIP-06]
+
+**Wave 3** (producer wiring + consumer permanent-failure paths — depends on Waves 1+2)
+
+- [ ] 06-04-PLAN.md (Wave 3, autonomous) — remember() MemoryEvent assembly + getCtx().waitUntil(INGEST_QUEUE.send) + ingest() comment retarget per D-02 + extract.ts widen env to include WORKSPACE + markIngestFailed in Zod-permanent + non-429-last-attempt branches + triage-worker/index.ts try/catch around DO-RPC switch + attempts >= 2 pre-emption + markIngestFailed + message.ack (no silent drop) [PIP-02, PIP-03, PIP-04, PIP-05]
+
+**Wave 4** (behavioral verification — depends on Wave 3)
+
+- [ ] 06-05-PLAN.md (Wave 4, autonomous) — queue-integration.test.ts (replay-twice idempotency + ingest_status lifecycle: 3 happy paths + 2 failure paths + cold-storage/inbox orthogonality + markIngestFailed observability) + tools-integration.test.ts PIP-02 latency describe (remember() resolves before 200ms queue.send delay — ctx.waitUntil decoupling proof) [PIP-01, PIP-02, PIP-03, PIP-04, PIP-05, PIP-06]
+
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 
 ### Phase 7: Deploy + Acceptance
@@ -344,7 +365,7 @@ Plans:
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
-| 6. Async Pipeline        | 0/0            | Not started | —         |
+| 6. Async Pipeline        | 0/5            | Ready to execute | —    |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
 
 ## Parallelization Notes
