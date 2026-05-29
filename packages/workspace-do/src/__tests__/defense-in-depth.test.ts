@@ -174,6 +174,53 @@ describe("WorkspaceDO defense-in-depth (STO-07)", () => {
   });
 
   // -------------------------------------------------------------------------
+  // Phase 6 PIP-05 — markIngestFailed RPC (STO-07 gate)
+  // -------------------------------------------------------------------------
+
+  it("markIngestFailed passes when ctx.id.name === args.workspace_id (positive)", async () => {
+    const workspace_id = "ws-defense-markIngestFailed-positive";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    await runInDurableObject(env.WORKSPACE.get(id), (instance) => {
+      const ws = asWorkspaceDO(instance);
+      const block = makeBlock("blk-defense-markIngestFailed-001");
+      ws.insertBlock({ workspace_id, block });
+      expect(() => {
+        ws.markIngestFailed({ workspace_id, block_id: block.id, reason: "test" });
+      }).not.toThrow();
+    });
+  });
+
+  it("markIngestFailed throws McpError(InvalidRequest) on workspace_id mismatch (STO-07 gate)", async () => {
+    // STO-07 invariant: assertOwnsWorkspace MUST be the first executable line
+    // of markIngestFailed. A workspace-mismatch call must throw McpError
+    // BEFORE any SQLite write (verified indirectly: even though the block
+    // doesn't exist in this DO, we get McpError — not NotFoundError — proving
+    // the auth gate fired before the SQL UPDATE).
+    const id = env.WORKSPACE.idFromName("ws-pip05-correct");
+    await runInDurableObject(env.WORKSPACE.get(id), (instance) => {
+      const ws = asWorkspaceDO(instance);
+      const block = makeBlock("blk-defense-markIngestFailed-mismatch");
+      ws.insertBlock({ workspace_id: "ws-pip05-correct", block });
+
+      let caught: unknown = undefined;
+      try {
+        ws.markIngestFailed({
+          workspace_id: "ws-pip05-WRONG",
+          block_id: block.id,
+          reason: "should-not-write",
+        });
+      } catch (err) {
+        caught = err;
+      }
+      expect(caught).toBeInstanceOf(McpError);
+      expect((caught as McpError).code).toBe(ErrorCode.InvalidRequest);
+      expect((caught as McpError).message).toContain("Workspace mismatch");
+      expect((caught as McpError).message).toContain("ws-pip05-correct");
+      expect((caught as McpError).message).toContain("ws-pip05-WRONG");
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // NEGATIVE — mismatch throws McpError(InvalidRequest = -32600)
   // -------------------------------------------------------------------------
 

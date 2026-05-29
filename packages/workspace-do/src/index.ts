@@ -83,6 +83,7 @@ import {
   updateBlockEnrichment as updateBlockEnrichmentQuery,
   moveToInbox as moveToInboxQuery,
   moveToColdStorage as moveToColdStorageQuery,
+  markIngestFailed as markIngestFailedQuery,
 } from "./queries.js";
 import type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
 
@@ -309,12 +310,49 @@ export class WorkspaceDO extends DurableObject<unknown> {
     memorability: number;
   }): void {
     this.assertOwnsWorkspace(args.workspace_id);
-    moveToColdStorageQuery(this.ctx.storage.sql, {
+    // Build opts conditionally so only defined keys are passed — strict
+    // exactOptionalPropertyTypes forbids `{ key: undefined }` literals (same
+    // pattern as listConflicts above). Phase 6 06-03 Rule 3 fix: the prior
+    // shape (`properties: args.properties, ...`) tripped TS2379 under strict
+    // exactOptionalPropertyTypes because Record<string, unknown> | undefined
+    // is not assignable to the helper's optional `properties?: Record<string,
+    // unknown>` parameter.
+    const opts: {
+      block_id: string;
+      properties?: Record<string, unknown>;
+      summary?: string;
+      confidence?: number;
+      memorability: number;
+    } = { block_id: args.block_id, memorability: args.memorability };
+    if (args.properties !== undefined) opts.properties = args.properties;
+    if (args.summary !== undefined) opts.summary = args.summary;
+    if (args.confidence !== undefined) opts.confidence = args.confidence;
+    moveToColdStorageQuery(this.ctx.storage.sql, opts);
+  }
+
+  /**
+   * Marks a block as permanently failed enrichment (PIP-05). Called by the
+   * Triage Worker after retry budget exhausts — Zod parse fail attempts >= 2,
+   * non-retryable Workers AI errors, or DO-RPC failure after Queue retry
+   * budget. Writes `ingest_status = 'failed'` and overwrites properties with
+   * `{error: reason, failed_at: <ms>}` for observability surfaced by the v0.2
+   * inbox UI "broken memories" view. Throws NotFoundError if the block does
+   * not exist (the Triage Worker catches this and falls through to
+   * `message.ack()` so the Queue does not infinite-retry — see Phase 6
+   * CONTEXT.md §"Claude's Discretion → Idempotency on duplicate Queue delivery").
+   *
+   * STO-07: assertOwnsWorkspace is the FIRST EXECUTABLE LINE — the Triage
+   * Worker passes `event.workspace_id` from the Queue message body, which
+   * was populated by the mcp-server producer from `props.workspace_id`
+   * (defense-in-depth pair with the JWT validation at the Worker layer).
+   *
+   * @requirement PIP-05 / D-03
+   */
+  markIngestFailed(args: { workspace_id: string; block_id: string; reason: string }): void {
+    this.assertOwnsWorkspace(args.workspace_id);
+    markIngestFailedQuery(this.ctx.storage.sql, {
       block_id: args.block_id,
-      properties: args.properties,
-      summary: args.summary,
-      confidence: args.confidence,
-      memorability: args.memorability,
+      reason: args.reason,
     });
   }
 }
