@@ -311,7 +311,7 @@ Plans:
 - **Touches IP-7 (silent partial failures)**: PIP-06 (`ingest_status`) is the schema-level mitigation; without it, blocks stuck at "phase 1 only" become invisible.
 - Triage Worker RPC into WorkspaceDO must respect the STO-07 workspace_id check; PIP-04's RPC calls always pass the workspace_id from the MemoryEvent.
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 
@@ -326,7 +326,7 @@ Plans:
 
 **Wave 3** (producer wiring + consumer permanent-failure paths — depends on Waves 1+2)
 
-- [ ] 06-04-PLAN.md (Wave 3, autonomous) — remember() MemoryEvent assembly + getCtx().waitUntil(INGEST_QUEUE.send) + ingest() comment retarget per D-02 + extract.ts widen env to include WORKSPACE + markIngestFailed in Zod-permanent + non-429-last-attempt branches + triage-worker/index.ts try/catch around DO-RPC switch + attempts >= 2 pre-emption + markIngestFailed + message.ack (no silent drop) [PIP-02, PIP-03, PIP-04, PIP-05]
+- [x] 06-04-PLAN.md (Wave 3, autonomous) — remember() MemoryEvent assembly + getCtx().waitUntil(INGEST_QUEUE.send) + ingest() comment retarget per D-02 + extract.ts widen env to include WORKSPACE + markIngestFailed in Zod-permanent + non-429-last-attempt branches + triage-worker/index.ts try/catch around DO-RPC switch + attempts >= 2 pre-emption + markIngestFailed + message.ack (no silent drop) [PIP-02, PIP-03, PIP-04, PIP-05]
 
 **Wave 4** (behavioral verification — depends on Wave 3)
 
@@ -365,7 +365,7 @@ Plans:
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
-| 6. Async Pipeline        | 3/5 | In Progress|  |
+| 6. Async Pipeline        | 4/5 | In Progress|  |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
 
 ## Parallelization Notes
