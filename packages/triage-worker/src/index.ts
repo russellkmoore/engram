@@ -43,6 +43,9 @@ import type {
 import type { MemoryEvent } from "@engram/types";
 import { extractAndScore } from "./extract.js";
 import { routeByMemorability } from "./memorability.js";
+import { writeAnalytics, workspaceTag } from "./analytics.js";
+
+const ANALYTICS_ENV_TAG = "engram-prod" as const;
 
 // ---------------------------------------------------------------------------
 // Env — Worker binding interface
@@ -89,18 +92,28 @@ export default {
     for (const message of batch.messages as Message<MemoryEvent>[]) {
       const event = message.body;
 
+      // Memoize workspaceTag per-message: SHA-256 is called once here and
+      // reused by every writeAnalytics call within this message processing
+      // (extract.ts + the DO-RPC switch below).
+      const wsTag = await workspaceTag(event.workspace_id);
+
       // extractAndScore handles its own retry/ack on 429 and Zod failures.
       // Returns null when it called retry or ack itself — caller must skip.
-      const parsed = await extractAndScore(env, event, {
-        attempts: (message as { attempts?: number }).attempts,
-        ack: () => {
-          message.ack();
+      const parsed = await extractAndScore(
+        env,
+        event,
+        {
+          attempts: (message as { attempts?: number }).attempts,
+          ack: () => {
+            message.ack();
+          },
+          retry: (opts: { delaySeconds: number }) => {
+            message.retry(opts);
+          },
+          body: event,
         },
-        retry: (opts: { delaySeconds: number }) => {
-          message.retry(opts);
-        },
-        body: event,
-      });
+        wsTag,
+      );
 
       if (parsed === null) {
         // extractAndScore called retry or ack — skip this message.
@@ -120,6 +133,7 @@ export default {
 
       const stub = env.WORKSPACE.get(env.WORKSPACE.idFromName(event.workspace_id));
       const decision = routeByMemorability(parsed.memorability);
+      const rpcStart = Date.now();
 
       switch (decision) {
         case "store-normal":
@@ -198,6 +212,13 @@ export default {
           });
           break;
       }
+
+      // Analytics: one DO RPC datapoint per message, distinguishable by decision.
+      writeAnalytics(env, {
+        blobs: ["triage-worker", `do-rpc-${decision}`, wsTag, "success"],
+        doubles: [Date.now() - rpcStart, 0, 0, 0],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
 
       // Message was successfully processed — acknowledge it.
       message.ack();

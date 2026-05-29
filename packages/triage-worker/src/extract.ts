@@ -30,11 +30,14 @@
  *
  * @module @engram/triage-worker/extract
  */
-import type { Ai } from "@cloudflare/workers-types";
+import type { Ai, AnalyticsEngineDataset } from "@cloudflare/workers-types";
 import type { MemoryEvent } from "@engram/types";
 import { TriageOutput, TRIAGE_JSON_SCHEMA } from "./schemas.js";
 import { SYSTEM_PROMPT } from "./prompts.js";
 import { CLASSIFIER_MODEL, detectRateLimit, isRateLimitError } from "./ai-helper.js";
+import { writeAnalytics } from "./analytics.js";
+
+const ANALYTICS_ENV_TAG = "engram-prod" as const;
 
 // ---------------------------------------------------------------------------
 // Message — queue message shape (subset of Cloudflare Queues Message<T>)
@@ -74,14 +77,19 @@ export interface Message {
  * @returns `TriageOutput` on success; `null` when retry or ack was triggered.
  */
 export async function extractAndScore(
-  env: { AI: Ai },
+  env: { AI: Ai; ANALYTICS?: AnalyticsEngineDataset },
   event: MemoryEvent,
   message: Message,
+  // wsTag is memoized per-message in index.ts queue() handler to avoid
+  // recomputing sha256(workspace_id) on every analytics call. Tests that don't
+  // exercise the analytics path can omit this; the default is a fixed sentinel.
+  wsTag = "test-ws",
 ): Promise<TriageOutput | null> {
   // ---------------------------------------------------------------------------
   // Step 1: call Workers AI with structured JSON output
   // ---------------------------------------------------------------------------
 
+  const aiStart = Date.now();
   let aiResp: unknown;
   try {
     aiResp = await env.AI.run(
@@ -104,10 +112,20 @@ export async function extractAndScore(
         id: event.id,
         attempts: message.attempts ?? 0,
       });
+      writeAnalytics(env, {
+        blobs: ["triage-worker", CLASSIFIER_MODEL, wsTag, "retry-429"],
+        doubles: [Date.now() - aiStart, event.content.length, message.attempts ?? 0, 1],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
       message.retry({ delaySeconds: 30 });
       return null;
     }
     // Non-429 throw — let it bubble. Queue runtime's max_retries machinery applies.
+    writeAnalytics(env, {
+      blobs: ["triage-worker", CLASSIFIER_MODEL, wsTag, "throw"],
+      doubles: [Date.now() - aiStart, event.content.length, message.attempts ?? 0, 0],
+      indexes: [ANALYTICS_ENV_TAG],
+    });
     throw err;
   }
 
@@ -119,6 +137,11 @@ export async function extractAndScore(
     console.warn("triage:ai-429-envelope", {
       id: event.id,
       attempts: message.attempts ?? 0,
+    });
+    writeAnalytics(env, {
+      blobs: ["triage-worker", CLASSIFIER_MODEL, wsTag, "retry-429"],
+      doubles: [Date.now() - aiStart, event.content.length, message.attempts ?? 0, 1],
+      indexes: [ANALYTICS_ENV_TAG],
     });
     message.retry({ delaySeconds: 30 });
     return null;
@@ -134,6 +157,7 @@ export async function extractAndScore(
   // runtime enforcement.
   const candidate = (aiResp as { response?: unknown }).response ?? aiResp;
   const parsed = TriageOutput.safeParse(candidate);
+  const aiLatency = Date.now() - aiStart;
 
   if (!parsed.success) {
     if (!message.attempts || message.attempts < 2) {
@@ -145,13 +169,18 @@ export async function extractAndScore(
         attempts: message.attempts ?? 0,
         firstIssue: parsed.error.issues[0],
       });
+      writeAnalytics(env, {
+        blobs: ["triage-worker", "zod-parse-fail", wsTag, "retry-5s"],
+        doubles: [aiLatency, event.content.length, message.attempts ?? 0, 0],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
       message.retry({ delaySeconds: 5 });
       return null;
     }
 
     // Second failure (attempts >= 2) — permanent failure. Ack + log.
     // PIP-05 DLQ-equivalent: the message is removed from the queue and logged
-    // for offline analysis. Plan 05-07 wires Analytics Engine writeDataPoint here.
+    // for offline analysis.
     console.error("triage:zod-parse-failed-permanent", {
       id: event.id,
       attempts: message.attempts,
@@ -159,9 +188,21 @@ export async function extractAndScore(
       firstIssue: parsed.error.issues[0],
       sample: JSON.stringify(candidate).slice(0, 500),
     });
+    writeAnalytics(env, {
+      blobs: ["triage-worker", "zod-parse-fail", wsTag, "ack-permanent"],
+      doubles: [aiLatency, event.content.length, message.attempts, 0],
+      indexes: [ANALYTICS_ENV_TAG],
+    });
     message.ack();
     return null;
   }
+
+  // Success — the AI call returned valid JSON that parsed cleanly.
+  writeAnalytics(env, {
+    blobs: ["triage-worker", CLASSIFIER_MODEL, wsTag, "success"],
+    doubles: [aiLatency, event.content.length, message.attempts ?? 0, 0],
+    indexes: [ANALYTICS_ENV_TAG],
+  });
 
   return parsed.data;
 }
