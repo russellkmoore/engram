@@ -131,97 +131,159 @@ export default {
       // `getAgentByName` because triage-worker does not import the `agents` SDK.
       // -----------------------------------------------------------------------
 
+      // Phase 6 PIP-05 / CONTEXT.md "Claude's Discretion → Queues consumer config":
+      // pre-empt the silent-drop-on-retry-exhaustion failure mode. The Queues runtime
+      // silently acks at attempts === max_retries; we mark failed + ack ourselves on
+      // the LAST allowed attempt (wrangler.jsonc max_retries=3, 0-indexed attempts
+      // → pre-empt at attempts >= 2).
+      const attempts = (message as { attempts?: number }).attempts ?? 0;
+      const isLastAttempt = attempts >= 2;
+
       const stub = env.WORKSPACE.get(env.WORKSPACE.idFromName(event.workspace_id));
       const decision = routeByMemorability(parsed.memorability);
       const rpcStart = Date.now();
 
-      switch (decision) {
-        case "store-normal":
-          // memorability > 0.8 — store with enrichment directly
-          await (
-            stub as unknown as {
-              updateBlockEnrichment: (args: {
-                workspace_id: string;
-                block_id: string;
-                properties: Record<string, unknown>;
-                summary: string;
-                confidence: number;
-              }) => Promise<void>;
-            }
-          ).updateBlockEnrichment({
-            workspace_id: event.workspace_id,
-            block_id: event.id,
-            properties: parsed.extracted_fields,
-            summary: parsed.summary,
-            confidence: parsed.confidence,
-          });
-          break;
+      try {
+        switch (decision) {
+          case "store-normal":
+            // memorability > 0.8 — store with enrichment directly
+            await (
+              stub as unknown as {
+                updateBlockEnrichment: (args: {
+                  workspace_id: string;
+                  block_id: string;
+                  properties: Record<string, unknown>;
+                  summary: string;
+                  confidence: number;
+                }) => Promise<void>;
+              }
+            ).updateBlockEnrichment({
+              workspace_id: event.workspace_id,
+              block_id: event.id,
+              properties: parsed.extracted_fields,
+              summary: parsed.summary,
+              confidence: parsed.confidence,
+            });
+            break;
 
-        case "inbox":
-          // memorability 0.4–0.8 — stage for human review
-          await (
-            stub as unknown as {
-              moveToInbox: (args: {
-                workspace_id: string;
-                block_id: string;
-                entry: {
-                  content: string;
-                  proposed_type: string;
-                  proposed_properties: Record<string, unknown>;
-                  memorability_score: number;
-                  source: string;
-                };
-              }) => Promise<void>;
-            }
-          ).moveToInbox({
-            workspace_id: event.workspace_id,
-            block_id: event.id,
-            entry: {
-              content: event.content,
-              proposed_type: parsed.classified_type,
-              proposed_properties: parsed.extracted_fields,
-              memorability_score: parsed.memorability,
-              source: event.source,
-            },
-          });
-          break;
+          case "inbox":
+            // memorability 0.4–0.8 — stage for human review
+            await (
+              stub as unknown as {
+                moveToInbox: (args: {
+                  workspace_id: string;
+                  block_id: string;
+                  entry: {
+                    content: string;
+                    proposed_type: string;
+                    proposed_properties: Record<string, unknown>;
+                    memorability_score: number;
+                    source: string;
+                  };
+                }) => Promise<void>;
+              }
+            ).moveToInbox({
+              workspace_id: event.workspace_id,
+              block_id: event.id,
+              entry: {
+                content: event.content,
+                proposed_type: parsed.classified_type,
+                proposed_properties: parsed.extracted_fields,
+                memorability_score: parsed.memorability,
+                source: event.source,
+              },
+            });
+            break;
 
-        case "cold-storage":
-          // memorability < 0.4 — CONTEXT.md D-07 cardinal-sin clause:
-          // NEVER discardWithLog. moveToColdStorage preserves the block in
-          // SQLite forever (no TTL in v0.1); cold blocks are excluded from
-          // default recall() results.
-          await (
-            stub as unknown as {
-              moveToColdStorage: (args: {
-                workspace_id: string;
-                block_id: string;
-                properties?: Record<string, unknown>;
-                summary?: string;
-                confidence?: number;
-                memorability: number;
-              }) => Promise<void>;
-            }
-          ).moveToColdStorage({
-            workspace_id: event.workspace_id,
-            block_id: event.id,
-            properties: parsed.extracted_fields,
-            summary: parsed.summary,
-            confidence: parsed.confidence,
-            memorability: parsed.memorability,
-          });
-          break;
+          case "cold-storage":
+            // memorability < 0.4 — CONTEXT.md D-07 cardinal-sin clause:
+            // NEVER discardWithLog. moveToColdStorage preserves the block in
+            // SQLite forever (no TTL in v0.1); cold blocks are excluded from
+            // default recall() results.
+            await (
+              stub as unknown as {
+                moveToColdStorage: (args: {
+                  workspace_id: string;
+                  block_id: string;
+                  properties?: Record<string, unknown>;
+                  summary?: string;
+                  confidence?: number;
+                  memorability: number;
+                }) => Promise<void>;
+              }
+            ).moveToColdStorage({
+              workspace_id: event.workspace_id,
+              block_id: event.id,
+              properties: parsed.extracted_fields,
+              summary: parsed.summary,
+              confidence: parsed.confidence,
+              memorability: parsed.memorability,
+            });
+            break;
+        }
+
+        // Analytics: one DO RPC datapoint per message, distinguishable by decision.
+        writeAnalytics(env, {
+          blobs: ["triage-worker", `do-rpc-${decision}`, wsTag, "success"],
+          doubles: [Date.now() - rpcStart, 0, 0, 0],
+          indexes: [ANALYTICS_ENV_TAG],
+        });
+
+        // Message was successfully processed — acknowledge it.
+        message.ack();
+      } catch (err) {
+        // Phase 6 PIP-05: DO RPC threw — assertOwnsWorkspace mismatch,
+        // NotFoundError (block deleted between sync write and queue consume),
+        // workerd SQLite drift, or cross-Worker DO outage. On the LAST allowed
+        // attempt, mark failed + ack ourselves so the Queues runtime does NOT
+        // silently drop on retry exhaustion. Otherwise consume one retry slot.
+        const reason = err instanceof Error ? err.message : String(err);
+        console.error("triage:do-rpc-failed", {
+          id: event.id,
+          decision,
+          attempts,
+          reason,
+        });
+        writeAnalytics(env, {
+          blobs: ["triage-worker", `do-rpc-${decision}`, wsTag, "throw"],
+          doubles: [Date.now() - rpcStart, 0, attempts, 1],
+          indexes: [ANALYTICS_ENV_TAG],
+        });
+
+        if (isLastAttempt) {
+          // markIngestFailed is itself a DO RPC — if IT throws we have no
+          // recourse and must still ack. Wrap in inner try/catch.
+          try {
+            await (
+              stub as unknown as {
+                markIngestFailed: (args: {
+                  workspace_id: string;
+                  block_id: string;
+                  reason: string;
+                }) => Promise<void>;
+              }
+            ).markIngestFailed({
+              workspace_id: event.workspace_id,
+              block_id: event.id,
+              reason: `do-rpc-${decision}: ${reason}`,
+            });
+            writeAnalytics(env, {
+              blobs: ["triage-worker", `ingest-failed-do-rpc-${decision}`, wsTag, "marked"],
+              doubles: [0, 0, attempts, 1],
+              indexes: [ANALYTICS_ENV_TAG],
+            });
+          } catch (markErr) {
+            console.error("triage:mark-failed-also-threw", {
+              id: event.id,
+              reason: markErr instanceof Error ? markErr.message : String(markErr),
+            });
+          }
+          message.ack();
+        } else {
+          // Retry budget remains — let Queues runtime retry per max_retries config.
+          message.retry({ delaySeconds: 30 });
+        }
       }
-
-      // Analytics: one DO RPC datapoint per message, distinguishable by decision.
-      writeAnalytics(env, {
-        blobs: ["triage-worker", `do-rpc-${decision}`, wsTag, "success"],
-        doubles: [Date.now() - rpcStart, 0, 0, 0],
-        indexes: [ANALYTICS_ENV_TAG],
-      });
-
-      // Message was successfully processed — acknowledge it.
-      message.ack();
     }
   },
 };
