@@ -87,24 +87,40 @@ If Q2 is No and Q3 is No → Keep with Claude (context-prep overhead exceeds sav
 
 ## End-of-Phase Summary
 
-> Fill in after `/gsd:verify-work 5` passes. Do not pre-populate.
+> Filled 2026-05-28 after `/gsd:verify-work 5` passed.
 
-- **Total code-producing tasks:** _TBD_
-- **Routed to cf-code-assist:** _TBD_ (`X/N`, `XX%`)
-- **Kept with Claude:** _TBD_
-- **Mixed (re-routed):** _TBD_
-- **Total approx tokens saved via cf-code-assist:** _TBD_
+- **Total rows logged:** 39 (across 7 plans)
+- **Code-producing tasks:** 37 (excludes 2 supply-chain audit rows: `05-04-T1` zod-to-json-schema install, `05-06-T1` promptfoo install — both classified as human-verification checkpoints, not code generation)
+- **Routed to cf-code-assist (executed):** 2 / 37 (~5%) — `05-01-T1` (`generateCode` for foundation prep) + `05-01-T7b` (`scaffoldTests` for RED stubs)
+- **cf-code-assist INTENDED but MCP unavailable → fell back to Claude:** 10 / 37 (~27%)
+  - `generateCode` candidates (5): `05-02-T2` vectorize-helper, `05-02-T3` ai-helper, `05-02-T4` hybrid-rank, `05-04-T4` extract.ts, `05-07-T1` analytics.ts siblings
+  - `scaffoldTests` candidates (3): `05-06-T2-harness` recall-f1 harness, `05-06-T3-emb` embedding-consistency, `05-06-T3-mem` memorability-calibration
+  - `generateTypes` candidates (1): `05-04-T3-schemas` TriageOutput Zod schemas
+  - `generateWorkerBoilerplate` candidates (1): `05-04-T5` triage-worker queue consumer entry
+- **Kept with Claude (intentionally, cf-code-assist rules disqualified):** 25 / 37 (~68%) — cross-file synthesis (Q1=Y forces Claude), byte-frozen string contracts, multi-file coordination, hand-curated content
+- **Total approx tokens saved via cf-code-assist:** ~7,500 (the 2 rows that actually routed)
+- **Total approx tokens forgone (intended → fell back to Claude):** ~33,500
 
-### Honest post-mortem (fill after /gsd:verify-work 5)
+### Honest post-mortem
 
-_Did the projected 40–60% cf-code-assist routing materialize? Which task shapes routed cleanly vs. required Claude fallback? What lessons carry forward to Phase 6?_
+**The projected 40–60% cf-code-assist routing did NOT materialize in practice.** The plan's hypothesis was that Phase 5 would be content-generation-shaped and route 40–60% to cf-code-assist via the MCP server. In reality:
+
+1. **cf-code-assist MCP was effectively unavailable** during execution. Even when individual task routing classifications were clean Y/Y/Y candidates (e.g., the vectorize-helper / ai-helper / hybrid-rank trio in Plan 05-02 with stable specs and ~80-120 line mechanical diffs), no MCP route was established in the executor's tool surface. ~27% of code-producing tasks (10 rows) were INTENDED to route but couldn't.
+2. **More tasks than projected required cross-file synthesis** — the contract-integration shape of Phase 5 turned out heavier than the content-generation shape. Byte-frozen META_GAPS strings (Plan 05-03 / 05-05), cross-file `EMBEDDING_MODEL` identity invariants (Plan 05-04 / 05-06), and the sibling-pattern `analytics.ts` write helpers (Plan 05-07) all required Q1=Y "synthesis step is cross-file" answers, which force Claude per the routing rule. 25 rows (68%) fell into this bucket — appropriately.
+3. **Hand-curated content was higher than projected.** The 20-example reference corpus (Plan 05-06 Task 2) and the `SYSTEM_PROMPT` byte-frozen prose (Plan 05-04) are both load-bearing content where cf-code-assist would risk fabrication or paraphrase drift. These correctly stayed on Claude.
+
+**Lessons forward to Phase 6:**
+
+- The 3-question checklist is **load-bearing** and worked correctly — when Q1 = Y, Claude was the right call every time, and Phase 5 had ~25 such tasks.
+- **MCP availability needs to be checked at the orchestrator level, not assumed.** Many of the 10 "intended but fell back" rows could have been re-routed if there had been a runtime check ("is cf-code-assist MCP reachable?") at phase start. Phase 6 should add this check to the executor's pre-flight.
+- **Phase 6 (Async Pipeline) is projected as cross-cutting contract work** (queue producer + consumer + DO updates + analytics wiring). Expect ~70% Claude routing if the phase ships as planned — that would be ABOVE the lower projection but is structurally honest, not a routing failure.
 
 ### Metric labels (copy from Phase 4)
 
 | Metric | Value |
 |--------|-------|
 | Projected cf-code-assist % | 40–60% |
-| Actual cf-code-assist % | _TBD_ |
-| Clearest wins | _TBD_ |
-| Notable misses | _TBD_ |
-| Tokens saved (est.) | _TBD_ |
+| Actual cf-code-assist % | **5%** (2/37 code-producing tasks) |
+| Clearest wins | None executed — both routed tasks (`05-01-T1`, `05-01-T7b`) were small mechanical fits; no large-diff cf-code-assist runs proved out the upper-end savings projection |
+| Notable misses | (a) `05-02-T2..T4` helpers — best-fit Y/Y/Y candidates that never reached cf-code-assist; (b) `05-04-T3-schemas` TriageOutput — `generateTypes` should have made this a 1-shot; (c) `05-07-T1` analytics.ts siblings — `generateCode` would have shipped both files from one schema spec |
+| Tokens saved (est.) | ~7,500 actually saved + ~33,500 forgone |

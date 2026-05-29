@@ -64,7 +64,7 @@ Russell's call: **keep AI integration in v0.1** (Vectorize + Workers AI ship now
 - [ ] **AI-03**: `remember()` synchronously generates an embedding via `env.AI.run('@cf/baai/bge-base-en-v1.5', ...)`, stamps `embedding_model='@cf/baai/bge-base-en-v1.5'` and `embedding_version=1` on the row, and upserts the vector to Vectorize in the workspace namespace
 - [ ] **AI-04**: `recall()` calls `env.AI.run('@cf/baai/bge-base-en-v1.5', ...)` on the query, queries Vectorize for top-K matches in the workspace namespace, hydrates block records from SQLite, returns ranked results
 - [ ] **AI-05**: Entity extraction runs in the Triage Worker (not on the sync write path) via `env.AI.run('@cf/meta/llama-3.1-8b-instruct', ...)` with structured JSON output; results update `blocks.properties` and `blocks.summary`
-- [ ] **AI-06**: Memorability scoring runs in the Triage Worker; scores >0.8 are stored normally, 0.4-0.8 land in the `inbox` table, <0.4 are discarded with a log line
+- [ ] **AI-06**: Memorability scoring runs in the Triage Worker; scores >0.8 are stored normally, 0.4-0.8 land in the `inbox` table, <0.4 are moved to **cold-storage** (per CONTEXT.md D-07 cardinal-sin clause: never discard memories — cold-storage preserves blocks in SQLite forever and excludes them from default `recall()` results; `include_cold: true` flag lands in v0.2)
 - [ ] **AI-07**: Workers AI rate-limit handling: 429 responses from `env.AI.run()` trigger Queue message retry with `message.retry({delaySeconds: 30})` rather than failing the consumer batch
 - [ ] **AI-08**: `forget()` deletes the corresponding Vectorize vector via the workspace namespace; round-trip test verifies deletion (recall after forget returns zero)
 
