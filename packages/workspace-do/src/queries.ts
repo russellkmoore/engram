@@ -468,10 +468,18 @@ export function listMemoryTypes(sql: SqlStorage): MemoryType[] {
  * `null` (not `undefined`) for missing fields they want persisted — the
  * `InboxEntry.proposed_properties` field is declared `| null` so strict TS
  * catches the mistake at the call-site.
+ *
+ * Phase 6 PIP-03 / IP-1: `INSERT OR IGNORE` makes the helper safe for
+ * at-least-once Queue delivery. `inbox.id` equals `block.id` (per
+ * `moveToInbox` composition), so a duplicate Queue message would otherwise
+ * raise a UNIQUE constraint failure on the inbox.id PK — the OR IGNORE
+ * clause makes the second insert a no-op, preserving the single-row
+ * invariant (`SELECT COUNT(*) FROM inbox WHERE id = ?` always returns 1
+ * after the first successful enqueue).
  */
 export function createInboxEntry(sql: SqlStorage, entry: InboxEntry): void {
   sql.exec(
-    "INSERT INTO inbox (id, content, proposed_type, proposed_properties, memorability_score, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    "INSERT OR IGNORE INTO inbox (id, content, proposed_type, proposed_properties, memorability_score, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
     entry.id,
     entry.content,
     entry.proposed_type,
@@ -602,8 +610,11 @@ export function updateBlockEnrichment(
     confidence: number;
   },
 ): void {
+  // Phase 6 D-03: pending → enriched transition is atomic with the enrichment
+  // write. The literal `'enriched'` is a SQL string constant — no positional
+  // binding (`?`) needed, so the existing binding order is preserved.
   const result = sql.exec(
-    "UPDATE blocks SET properties = ?, summary = ?, confidence = ?, updated_at = ? WHERE id = ?",
+    "UPDATE blocks SET properties = ?, summary = ?, confidence = ?, ingest_status = 'enriched', updated_at = ? WHERE id = ?",
     JSON.stringify(args.properties),
     args.summary,
     args.confidence,
@@ -651,6 +662,19 @@ export function moveToInbox(
     created_at: Date.now(),
   };
   createInboxEntry(sql, inboxEntry);
+
+  // Phase 6 D-03: mark the source block as enriched once the inbox row lands.
+  // Belt-and-suspenders with createInboxEntry's INSERT OR IGNORE — even on
+  // duplicate Queue delivery (same block_id), this UPDATE is idempotent
+  // (second call overwrites with the same value).
+  const result = sql.exec(
+    "UPDATE blocks SET ingest_status = 'enriched', updated_at = ? WHERE id = ?",
+    Date.now(),
+    args.block_id,
+  );
+  if (result.rowsWritten === 0) {
+    throw new NotFoundError("block", args.block_id);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -683,11 +707,64 @@ export function moveToColdStorage(
   },
 ): void {
   const propertiesJson = args.properties !== undefined ? JSON.stringify(args.properties) : null;
+  // Phase 6 D-03 orthogonality: cold-storage + enriched always co-occur.
+  // NEVER cold-storage + failed. The Triage Worker's memorability < 0.4 path
+  // and `markIngestFailed` path are mutually exclusive by code convention:
+  // moveToColdStorage is the ONLY writer of cold_storage=1, and it sets
+  // ingest_status='enriched' atomically as part of the same UPDATE.
   const result = sql.exec(
-    "UPDATE blocks SET cold_storage = 1, properties = COALESCE(?, properties), summary = COALESCE(?, summary), confidence = COALESCE(?, confidence), updated_at = ? WHERE id = ?",
+    "UPDATE blocks SET cold_storage = 1, ingest_status = 'enriched', properties = COALESCE(?, properties), summary = COALESCE(?, summary), confidence = COALESCE(?, confidence), updated_at = ? WHERE id = ?",
     propertiesJson,
     args.summary ?? null,
     args.confidence ?? null,
+    Date.now(),
+    args.block_id,
+  );
+  if (result.rowsWritten === 0) {
+    throw new NotFoundError("block", args.block_id);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 13. markIngestFailed — permanent enrichment failure (PIP-05 / D-03)
+// ---------------------------------------------------------------------------
+
+/**
+ * Marks a block as permanently failed enrichment. Called by the Triage Worker
+ * after the retry budget exhausts (Zod parse fail attempts >= 2, non-retryable
+ * Workers AI errors, or DO-RPC failure after Queue retry budget).
+ *
+ * Writes `ingest_status = 'failed'` AND replaces `properties` with
+ * `JSON.stringify({error: args.reason, failed_at: Date.now()})` for
+ * observability. The original properties (if any) are intentionally
+ * OVERWRITTEN, not COALESCE-merged: at the failed state there is no useful
+ * enrichment to preserve, and the error info is the only useful payload for
+ * v0.2 inbox UI "broken memories" surface.
+ *
+ * D-03 orthogonality: this helper NEVER touches `cold_storage` — by
+ * convention, no block can ever be both cold-storage AND failed.
+ * `moveToColdStorage` is the only writer of `cold_storage=1` and it pairs
+ * the write with `ingest_status='enriched'`.
+ *
+ * Throws `NotFoundError("block", args.block_id)` on zero `rowsWritten`.
+ * Mirrors the `stampEmbedding` NotFoundError contract — when the Triage
+ * Worker fires after the block was deleted via `forget()`, the consumer
+ * catches the throw and falls through to `message.ack()` so the Queue does
+ * not infinitely retry.
+ *
+ * Sync, single-statement `.exec()`, positional `?` bindings only (D-01 +
+ * Pitfall 8). JSON.stringify at the helper boundary (D-03).
+ *
+ * @requirement PIP-05 / D-03
+ */
+export function markIngestFailed(
+  sql: SqlStorage,
+  args: { block_id: string; reason: string },
+): void {
+  const properties = JSON.stringify({ error: args.reason, failed_at: Date.now() });
+  const result = sql.exec(
+    "UPDATE blocks SET ingest_status = 'failed', properties = ?, updated_at = ? WHERE id = ?",
+    properties,
     Date.now(),
     args.block_id,
   );
