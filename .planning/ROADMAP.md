@@ -311,13 +311,13 @@ Plans:
 - **Touches IP-7 (silent partial failures)**: PIP-06 (`ingest_status`) is the schema-level mitigation; without it, blocks stuck at "phase 1 only" become invisible.
 - Triage Worker RPC into WorkspaceDO must respect the STO-07 workspace_id check; PIP-04's RPC calls always pass the workspace_id from the MemoryEvent.
 
-**Plans:** 5 plans across 4 waves
+**Plans:** 1/5 plans executed
 
 Plans:
 
 **Wave 1** (doc touch-ups + v3 migration — no deps)
 
-- [ ] 06-01-PLAN.md (Wave 1, autonomous) — ROADMAP/REQUIREMENTS/pending-todo doc edits per D-01 (defer conflict detection to v0.2) + V3_SQL `ingest_status` migration (TEXT NOT NULL DEFAULT 'pending' + index) + schema.test.ts v3 column + 3-row `_schema_migrations` assertions [PIP-04, PIP-06]
+- [x] 06-01-PLAN.md (Wave 1, autonomous) — ROADMAP/REQUIREMENTS/pending-todo doc edits per D-01 (defer conflict detection to v0.2) + V3_SQL `ingest_status` migration (TEXT NOT NULL DEFAULT 'pending' + index) + schema.test.ts v3 column + 3-row `_schema_migrations` assertions [PIP-04, PIP-06]
 
 **Wave 2** (parallel — both depend on Wave 1; no file overlap)
 
@@ -365,7 +365,7 @@ Plans:
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
-| 6. Async Pipeline        | 0/5            | Ready to execute | —    |
+| 6. Async Pipeline        | 1/5 | In Progress|  |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
 
 ## Parallelization Notes
