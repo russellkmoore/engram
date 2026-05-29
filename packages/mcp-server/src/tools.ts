@@ -81,6 +81,7 @@ import {
 } from "./envelope.js";
 import { safeRun, EMBEDDING_MODEL, EMBEDDING_VERSION, CLASSIFIER_MODEL } from "./ai-helper.js";
 import { vectorizeUpsert, vectorizeDelete, vectorizeQuery } from "./vectorize-helper.js";
+import { writeAnalytics, workspaceTag } from "./analytics.js";
 import { hybridRank } from "./hybrid-rank.js";
 import type { Memory } from "@engram/types";
 import type { WorkspaceDO, LexicalSearchHit } from "@engram/workspace-do";
@@ -144,6 +145,12 @@ function formatBlocksForSynthesis(memories: LexicalSearchHit[], query: string): 
   });
   return lines.join("\n");
 }
+
+/**
+ * Analytics Engine environment tag (AI-SPEC.md §7 indexes[0]).
+ * TODO: derive from env.ENVIRONMENT if Phase 7 adds staging/dev split.
+ */
+const ANALYTICS_ENV_TAG = "engram-prod" as const;
 
 /**
  * Tool description for `recall()` — D-02 discoverability triad surface #1.
@@ -305,8 +312,33 @@ export function registerTools(
       // On 429: safeRun throws RateLimitError; mapToMcpError below surfaces as InternalError.
       // Inline 429 retry is intentionally absent — remember() is interactive (user retries).
       // Plan 05-04's queue consumer is the only call site that catches RateLimitError.
-       
-      const embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [contentForEmbed] });
+      //
+      // workspaceTag is memoized here — computed ONCE for all analytics calls in this handler.
+      // The ~1-3ms Web Crypto overhead is one-time per remember() invocation (T-05-07-LAT: OK).
+      const wsTag = await workspaceTag(props.workspace_id);
+      const embedStart = Date.now();
+      let embedResp: Awaited<ReturnType<typeof safeRun>>;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [contentForEmbed] });
+      } catch (err) {
+        // Instrument on error path too (retry-429 or throw outcome).
+        const embedOutcome =
+          err != null && typeof err === "object" && "isRateLimit" in err ? "retry-429" : "throw";
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        writeAnalytics(env, {
+          blobs: ["mcp-server", EMBEDDING_MODEL, wsTag, embedOutcome],
+          doubles: [Date.now() - embedStart, contentForEmbed.length, 0, embedOutcome === "retry-429" ? 1 : 0],
+          indexes: [ANALYTICS_ENV_TAG],
+        });
+        throw err; // re-throw so mapToMcpError handles it
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      writeAnalytics(env, {
+        blobs: ["mcp-server", EMBEDDING_MODEL, wsTag, "success"],
+        doubles: [Date.now() - embedStart, contentForEmbed.length, 0, 0],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
       const vector = embedResp.data?.[0];
       if (vector?.length !== 768) {
         throw new Error(
@@ -325,7 +357,8 @@ export function registerTools(
 
       // Step 4: Upsert vector to Vectorize under workspace namespace (AI-02 isolation).
       // vectorizeUpsert stamps namespace = workspaceId unconditionally (Plan 05-02).
-       
+      const upsertStart = Date.now();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await vectorizeUpsert(env, props.workspace_id, [
         {
           id,
@@ -337,6 +370,12 @@ export function registerTools(
           },
         },
       ]);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      writeAnalytics(env, {
+        blobs: ["mcp-server", "vectorize-upsert", wsTag, "success"],
+        doubles: [Date.now() - upsertStart, 768, 0, 0],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
       // === End Phase 5 AI-03 additions ===
 
       // Surface truncation in meta.gaps if content was truncated for embedding.
@@ -379,8 +418,30 @@ export function registerTools(
         : args.query;
 
       // === AI-04 Step 1: embed the query with the SAME model as remember (dimension #2 identity) ===
-       
-      const embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [queryForEmbed] });
+      // workspaceTag memoized here — computed ONCE for all analytics calls in recall handler.
+      const wsTag = await workspaceTag(props.workspace_id);
+      const recallEmbedStart = Date.now();
+      let embedResp: Awaited<ReturnType<typeof safeRun>>;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [queryForEmbed] });
+      } catch (err) {
+        const recallEmbedOutcome =
+          err != null && typeof err === "object" && "isRateLimit" in err ? "retry-429" : "throw";
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        writeAnalytics(env, {
+          blobs: ["mcp-server", EMBEDDING_MODEL, wsTag, recallEmbedOutcome],
+          doubles: [Date.now() - recallEmbedStart, queryForEmbed.length, 0, recallEmbedOutcome === "retry-429" ? 1 : 0],
+          indexes: [ANALYTICS_ENV_TAG],
+        });
+        throw err;
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      writeAnalytics(env, {
+        blobs: ["mcp-server", EMBEDDING_MODEL, wsTag, "success"],
+        doubles: [Date.now() - recallEmbedStart, queryForEmbed.length, 0, 0],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
       const queryVector = embedResp.data?.[0];
       if (queryVector?.length !== 768) {
         throw new Error(
@@ -390,11 +451,22 @@ export function registerTools(
 
       // === AI-04 Step 2: Vectorize query in workspace namespace (AI-02 isolation via helper) ===
       // topK explicit (Pitfall 7); metadata filter on type when args.types supplied (RESEARCH §Phase 5 Ranking Strategy #2)
-       
+      const topK = args.limit ?? 25;
+      const vectorizeQueryStart = Date.now();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const result = await vectorizeQuery(env, props.workspace_id, queryVector, {
-        topK: args.limit ?? 25,
+        topK,
         filter: args.types?.length ? { type: { $in: args.types } } : undefined,
         returnMetadata: "all",
+      });
+
+      // Instrument Vectorize query — zero-match outcome is a critical signal (T-05-07-LAT / AI-SPEC §7).
+      const vectorizeQueryOutcome = result.matches.length === 0 ? "zero-match" : "success";
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      writeAnalytics(env, {
+        blobs: ["mcp-server", "vectorize-query", wsTag, vectorizeQueryOutcome],
+        doubles: [Date.now() - vectorizeQueryStart, topK, 0, 0],
+        indexes: [ANALYTICS_ENV_TAG],
       });
 
       // === AI-04 Step 3: hydrate full blocks from SQLite (cold_storage excluded by getBlocksByIds) ===
@@ -414,21 +486,39 @@ export function registerTools(
         // AI-SPEC.md §4b "Context Window Strategy": cap synthesis input at ~6K tokens.
         // Drop trailing memories first (lowest-ranked position after hybridRank).
         const trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
+        const synthStart = Date.now();
+        const synthInput = formatBlocksForSynthesis(trimmedForSynth, args.query);
         try {
-           
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
             messages: [
               { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
-              { role: "user", content: formatBlocksForSynthesis(trimmedForSynth, args.query) },
+              { role: "user", content: synthInput },
             ],
             temperature: 0.3,
             max_tokens: 1024,
           });
           synthesis = typeof synthResp.response === "string" ? synthResp.response : null;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          writeAnalytics(env, {
+            blobs: ["mcp-server", CLASSIFIER_MODEL, wsTag, "success"],
+            doubles: [Date.now() - synthStart, synthInput.length, 0, 0],
+            indexes: [ANALYTICS_ENV_TAG],
+          });
         } catch (synthErr) {
           // Per CONTEXT.md D-07 honest-stubs posture — synthesis failures leave synthesis=null;
           // meta.gaps surfaces the failure rather than crashing the recall.
           console.warn("recall:synthesis-failed", { synthErr });
+          const synthOutcome =
+            synthErr != null && typeof synthErr === "object" && "isRateLimit" in synthErr
+              ? "retry-429"
+              : "synthesis-failed";
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          writeAnalytics(env, {
+            blobs: ["mcp-server", CLASSIFIER_MODEL, wsTag, synthOutcome],
+            doubles: [Date.now() - synthStart, 0, 0, synthOutcome === "retry-429" ? 1 : 0],
+            indexes: [ANALYTICS_ENV_TAG],
+          });
           synthesis = null;
         }
       }
@@ -509,8 +599,17 @@ export function registerTools(
       //   (b) SQLite delete fails after Vectorize succeeds → orphan SQLite row. Harmless because
       //       recall via Vectorize no longer finds the vector. Background sweep (Wave 6) cleans up.
       // Vectorize deleteByIds is idempotent — forgetting an id not in the index returns success.
-       
+      // workspaceTag memoized here — only 1 analytics call in forget handler.
+      const forgetWsTag = await workspaceTag(props.workspace_id);
+      const deleteStart = Date.now();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await vectorizeDelete(env, props.workspace_id, [args.id]);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      writeAnalytics(env, {
+        blobs: ["mcp-server", "vectorize-delete", forgetWsTag, "success"],
+        doubles: [Date.now() - deleteStart, 1, 0, 0],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
 
       // === Phase 4 path preserved: SQLite cascade ===
       // Pitfall 4: deleteBlock returns {blocks_deleted: 0, relations_deleted: 0} on bogus id — do NOT synthetically throw NotFoundError. Echo the truth (idempotent semantics; CONTEXT.md "forget(cascade) semantics").
