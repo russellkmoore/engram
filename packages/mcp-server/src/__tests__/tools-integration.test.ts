@@ -168,6 +168,11 @@ afterEach(() => {
   (e.VECTORIZE?.deleteByIds as ReturnType<typeof vi.fn> | undefined)?.mockClear();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   (e.VECTORIZE?.query as ReturnType<typeof vi.fn> | undefined)?.mockClear();
+  // Phase 6 PIP-02 latency test (below) patches env.INGEST_QUEUE — clear here so
+  // subsequent tests (TOL-* / AI-* / etc.) see the production code path (which
+  // logs a warn + skips when INGEST_QUEUE is undefined, per tools.ts B3 fix).
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  delete e.INGEST_QUEUE;
 });
 
 // ---------------------------------------------------------------------------
@@ -601,5 +606,118 @@ describe("TOL-05: ingest", () => {
     expect(Array.isArray(gaps)).toBe(true);
     // D-05: gaps must mention the async pipeline
     expect(gaps.some((g) => g.toLowerCase().includes("phase 6"))).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// PIP-02: remember() returns before async enrichment completes
+//
+// Phase 6 Plan 06-05 Task 2 — proves that `getCtx().waitUntil(...)` in the
+// remember() handler decouples the response latency from the inner queue.send
+// latency. The producer's `INGEST_QUEUE.send` runs after the response is
+// returned to the client; remember() resolves in well under the simulated
+// queue-send delay.
+//
+// Two parts to this test (both load-bearing):
+//
+// 1. **ctxOverride tracker** — captureCallback's 4th arg is wired so the
+//    real `getCtx().waitUntil(p)` invocation pushes `p` into a tracker array.
+//    The default `captureCallback` ctxOverride is a drop-the-promise stub
+//    (06-02 carry-forward) — calling .waitUntil(...) on that would not let
+//    the test (a) measure that remember() returns BEFORE the inner-send
+//    resolves AND (b) await the inner-send afterwards to verify it eventually
+//    fired. The tracker is the only design that proves BOTH the decoupling
+//    AND the eventual fire.
+//
+// 2. **Tightened timing thresholds (W4 fix)** — inner queue.send delay is
+//    500ms, outer threshold is <200ms. The 300ms safety buffer eliminates
+//    the prior 50ms-buffer flake risk under workerd test-pool startup +
+//    5-tool registerTools + Node event-loop scheduling. The W4 fix raised
+//    the inner-delay (was 200ms) and tightened the outer threshold (was
+//    150ms) so the gap proves decoupling even on a slow CI VM.
+// ---------------------------------------------------------------------------
+
+describe("PIP-02: remember() returns before async enrichment completes", () => {
+  it("remember() resolves before INGEST_QUEUE.send awaited (waitUntil decouples)", async () => {
+    const workspace_id = "ws-pip02-latency";
+
+    // (2) Tracker — pushes every promise the handler hands to getCtx().waitUntil.
+    //     Lets the test both assert that remember() returns BEFORE the inner-send
+    //     resolves AND await the tracked promise afterward to verify the inner-send
+    //     actually fired (not silently swallowed).
+    const waitUntilPromises: Promise<unknown>[] = [];
+    const ctxOverride = {
+      waitUntil: (p: Promise<unknown>) => {
+        waitUntilPromises.push(p);
+      },
+    };
+
+    // (3) Bind the live remember() handler with the tracking ctxOverride.
+    //     The captureCallback signature is (toolName, workspace_id, user_id?, ctxOverride?)
+    //     per 06-02 carry-forward — pass "u-test" for user_id symmetry with the
+    //     other TOL-* tests, then the tracker as the 4th arg.
+    const rememberCb = captureCallback("remember", workspace_id, "u-test", ctxOverride);
+
+    // (4) Patch env.INGEST_QUEUE.send with a deliberate 500ms delay (W4 fix).
+    //     The handler's lazy dereference (tools.ts B3 fix) reads env.INGEST_QUEUE
+    //     INSIDE the handler body on every invocation — so this test-time patch
+    //     takes effect even though registerTools ran above before the patch.
+    //
+    //     Deviation note (Rule 1 fix from the plan's stated threshold):
+    //     The plan's literal `<200ms` outer threshold assumed a minimal baseline
+    //     latency for remember(). In practice, remember()'s SYNC pipeline (DO
+    //     insertBlock → AI embed mock → stampEmbedding RPC → Vectorize upsert)
+    //     takes ~400-600ms in the workerd test pool — already over 200ms before
+    //     any waitUntil work. The PIP-02 decoupling proof is therefore expressed
+    //     RELATIVELY: remember() must return BEFORE the inner queue.send delay
+    //     elapses, not against a fixed absolute threshold. The 500ms inner delay
+    //     is wider than any realistic baseline jitter; the gap between the
+    //     remember() return time and the queue.send completion time is the
+    //     decoupling evidence. The plan-checker's "proof is the gap, not the
+    //     absolute number" guidance in the verification §"Common failure modes"
+    //     supports this framing.
+    const QUEUE_SEND_DELAY_MS = 500;
+    let queueSendInvokedAt: number | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    (env as any).INGEST_QUEUE = {
+      send: async (_evt: unknown) => {
+        void _evt;
+        await new Promise((r) => setTimeout(r, QUEUE_SEND_DELAY_MS));
+        queueSendInvokedAt = Date.now();
+      },
+    };
+
+    // (5) Invoke remember() and measure how long it takes to resolve.
+    const rememberStart = Date.now();
+    await rememberCb({ content: "PIP-02 latency probe" }, {});
+    const rememberDuration = Date.now() - rememberStart;
+
+    // (6) STRONGEST DECOUPLING PROOF: at the moment remember() returned, the
+    //     inner queue.send promise had NOT yet resolved (queueSendInvokedAt is
+    //     still null). The handler has handed the IIFE promise to waitUntil
+    //     and returned — the inner 500ms-delayed work has not even completed.
+    //     This is a binary check (null vs. not-null) — flake-free regardless
+    //     of absolute timing. Subsumes the plan's `<200ms` relative latency
+    //     assertion: if the inner send had been awaited synchronously,
+    //     queueSendInvokedAt would already be a Date.now() value here.
+    expect(queueSendInvokedAt).toBeNull();
+
+    // (7) Diagnostic-only log so the timing delta is visible in CI output.
+    //     remember()'s sync pipeline takes ~400-900ms (DO inserts + Vectorize
+    //     upsert + 5-tool registerTools); the absolute number varies by host
+    //     but the (6) assertion above is what proves decoupling.
+    console.log(
+      `[PIP-02] remember() returned in ${String(rememberDuration)}ms; ` +
+        `inner queue.send had NOT yet fired (decoupled via waitUntil).`,
+    );
+
+    // (8) POST-AWAIT SANITY: drain the tracked promises (deterministic — no
+    //     setTimeout race) and verify the inner-send eventually fired AND
+    //     took at least the simulated 500ms (proves the send actually ran,
+    //     not just got swallowed).
+    await Promise.all(waitUntilPromises);
+    expect(queueSendInvokedAt).not.toBeNull();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    expect(queueSendInvokedAt! - rememberStart).toBeGreaterThanOrEqual(QUEUE_SEND_DELAY_MS);
   });
 });

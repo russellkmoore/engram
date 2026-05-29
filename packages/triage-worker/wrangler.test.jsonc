@@ -13,24 +13,41 @@
 //      the latest per the Cloudflare-maintained fixture pattern. Including a
 //      date would freeze the test runtime to a specific version that may
 //      drift from production.
+//   3. Phase 6 Plan 06-05: the `main` points at a TEST-ONLY entry
+//      (`src/__tests__/test-worker-entry.ts`) that re-exports `WorkspaceDO`
+//      alongside the queue handler. The production wrangler.jsonc uses
+//      `src/index.ts` and references `WorkspaceDO` via the cross-Worker
+//      `script_name = "engram-mcp-server"` binding. Miniflare cannot resolve
+//      cross-Worker `script_name` references — it has no external Worker
+//      registry — so the test pool must mount `WorkspaceDO` as a same-Worker
+//      DO class via this test-only entry.
 //
 // FND-08 invariant: even though lint skips this file, use the same binding
 // conventions as the production wrangler.jsonc for maintainability.
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "engram-triage-worker-test",
-  "main": "src/index.ts",
+  "main": "src/__tests__/test-worker-entry.ts",
   // Phase 5 AI + VECTORIZE bindings for unit tests.
   // Unit tests use vi.fn() mocks; 429 dual-path tests pass mock env directly.
   "ai": { "binding": "AI" },
   "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
-  // WORKSPACE cross-Worker DO binding is intentionally OMITTED from the test config.
-  // The production wrangler.jsonc declares it via script_name="engram-mcp-server".
-  // In test mode, miniflare cannot resolve a cross-Worker script_name reference
-  // (it has no external Worker registry). Wave 0 tests (extract.test.ts) pass
-  // mockEnv directly and do NOT use env.WORKSPACE — so this binding is not needed.
-  // Plan 05-04 will add WORKSPACE back when integration tests need a real DO.
-  //
+  // Phase 6 Plan 06-05: WORKSPACE DO binding is now SAME-Worker in the test
+  // pool (test-worker-entry.ts re-exports WorkspaceDO). The queue-integration
+  // tests need a real DO so `runInDurableObject(...)` can assert against
+  // actual SQLite state (PIP-03 replay-twice + PIP-06 ingest_status
+  // lifecycle + PIP-05 DO-RPC failure path all require real SQLite reads).
+  "durable_objects": {
+    "bindings": [{ "name": "WORKSPACE", "class_name": "WorkspaceDO" }],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      // FND-08 invariant: use `new_sqlite_classes` (NOT `new_classes`) —
+      // SQLite-backed DOs are irreversible per Cloudflare workers-sdk #9909.
+      "new_sqlite_classes": ["WorkspaceDO"],
+    },
+  ],
   // Analytics Engine stub — write-call sites land in Plan 05-07.
   "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
 }

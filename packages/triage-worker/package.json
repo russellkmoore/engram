@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.16.10",
+    "@engram/workspace-do": "*",
     "promptfoo": "^0.121.13",
     "vitest": "^4.1.7"
   }
