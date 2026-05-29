@@ -91,7 +91,12 @@ export class EngramMcp extends McpAgent<Env, unknown, EngramProps> {
      Mirrors the pattern used in packages/mcp-server/src/tools.ts for the
      stub callbacks. */
   async init(): Promise<void> {
-    registerTools(this.server, () => this.props, this.env);
+    registerTools(
+      this.server,
+      () => this.props,
+      this.env,
+      () => this.ctx,
+    );
   }
   /* eslint-enable @typescript-eslint/require-await */
 }

@@ -92,7 +92,17 @@ function captureRegistrations(): RegisteredToolCall[] {
   const spy = vi.spyOn(McpServer.prototype, "registerTool");
   try {
     const server = new McpServer({ name: "engram-mcp-server-test", version: "0.0.1" });
-    registerTools(server, () => undefined, {} as Env);
+    registerTools(
+      server,
+      () => undefined,
+      {} as Env,
+      () =>
+        ({
+          waitUntil: (p: Promise<unknown>) => {
+            void p;
+          },
+        }) as unknown as DurableObjectState,
+    );
     const captured: RegisteredToolCall[] = spy.mock.calls.map((call) => {
       const [name, config, callback] = call as unknown as [
         string,
@@ -122,7 +132,17 @@ function captureCallback(
   const spy = vi.spyOn(McpServer.prototype, "registerTool");
   try {
     const server = new McpServer({ name: "engram-mcp-server-test", version: "0.0.1" });
-    registerTools(server, () => ({ workspace_id, user_id }), env as Env);
+    registerTools(
+      server,
+      () => ({ workspace_id, user_id }),
+      env,
+      () =>
+        ({
+          waitUntil: (p: Promise<unknown>) => {
+            void p;
+          },
+        }) as unknown as DurableObjectState,
+    );
     let foundCallback: ((args: unknown, extra: unknown) => Promise<unknown>) | undefined;
     for (const rawCall of spy.mock.calls) {
       const [callName, , callCb] = rawCall as unknown as [

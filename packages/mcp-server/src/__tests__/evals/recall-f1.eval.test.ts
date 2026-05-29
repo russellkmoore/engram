@@ -40,7 +40,17 @@ function captureCallback(
   const spy = vi.spyOn(McpServer.prototype, "registerTool");
   try {
     const server = new McpServer({ name: "engram-eval", version: "0.0.1" });
-    registerTools(server, () => ({ workspace_id, user_id: "u-eval" }), env);
+    registerTools(
+      server,
+      () => ({ workspace_id, user_id: "u-eval" }),
+      env,
+      () =>
+        ({
+          waitUntil: (p: Promise<unknown>) => {
+            void p;
+          },
+        }) as unknown as DurableObjectState,
+    );
     for (const rawCall of spy.mock.calls) {
       const [callName, , callCb] = rawCall as unknown as [
         string,
