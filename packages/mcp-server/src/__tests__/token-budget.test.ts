@@ -86,7 +86,17 @@ function captureToolRegistrations(): { name: string; description: string }[] {
   const spy = vi.spyOn(McpServer.prototype, "registerTool");
   try {
     const server = new McpServer({ name: "test", version: "0.0.1" });
-    registerTools(server, () => undefined, env);
+    registerTools(
+      server,
+      () => undefined,
+      env,
+      () =>
+        ({
+          waitUntil: (p: Promise<unknown>) => {
+            void p;
+          },
+        }) as unknown as DurableObjectState,
+    );
     return spy.mock.calls.map((call) => {
       const [name, config] = call as unknown as [string, { description?: string }];
       return { name, description: config.description ?? "" };

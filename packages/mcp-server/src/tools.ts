@@ -179,12 +179,20 @@ const RECALL_TOOL_DESCRIPTION =
  * @param env      the Worker `Env`. Phase 3 stubs do not dereference it —
  *                 Phase 4 handlers will read `env.WORKSPACE` for the
  *                 `getAgentByName` lookup.
+ * @param getCtx   lazy closure returning the live `DurableObjectState` of the
+ *                 owning `EngramMcp` session DO. Used by Phase 6 Plan 06-04's
+ *                 `remember()` handler to invoke `getCtx().waitUntil(...)` for
+ *                 fire-and-forget Queue enqueue. Lazy pattern matches
+ *                 `getProps` — survives any future agents/mcp rebinding of
+ *                 `this.ctx` across token refresh (Pitfall 6).
  */
 export function registerTools(
   server: McpServer,
   getProps: () => EngramProps | undefined,
   env: Env,
+  getCtx: () => DurableObjectState,
 ): void {
+  void getCtx; // wired in Plan 06-04 — getCtx().waitUntil(env.INGEST_QUEUE.send(memoryEvent)) lands in remember() handler body
   // --------------------------------------------------------------------------
   // Phase-4-ready handler shape — DOCUMENTATION ONLY (Phase 3 stubs throw
   // before reaching any of this). Phase 4 plans (TOL-01..05) literally diff
@@ -319,13 +327,13 @@ export function registerTools(
       const embedStart = Date.now();
       let embedResp: Awaited<ReturnType<typeof safeRun>>;
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+         
         embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [contentForEmbed] });
       } catch (err) {
         // Instrument on error path too (retry-429 or throw outcome).
         const embedOutcome =
           err != null && typeof err === "object" && "isRateLimit" in err ? "retry-429" : "throw";
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+         
         writeAnalytics(env, {
           blobs: ["mcp-server", EMBEDDING_MODEL, wsTag, embedOutcome],
           doubles: [Date.now() - embedStart, contentForEmbed.length, 0, embedOutcome === "retry-429" ? 1 : 0],
@@ -333,7 +341,7 @@ export function registerTools(
         });
         throw err; // re-throw so mapToMcpError handles it
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       writeAnalytics(env, {
         blobs: ["mcp-server", EMBEDDING_MODEL, wsTag, "success"],
         doubles: [Date.now() - embedStart, contentForEmbed.length, 0, 0],
@@ -358,7 +366,7 @@ export function registerTools(
       // Step 4: Upsert vector to Vectorize under workspace namespace (AI-02 isolation).
       // vectorizeUpsert stamps namespace = workspaceId unconditionally (Plan 05-02).
       const upsertStart = Date.now();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       await vectorizeUpsert(env, props.workspace_id, [
         {
           id,
@@ -370,7 +378,7 @@ export function registerTools(
           },
         },
       ]);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       writeAnalytics(env, {
         blobs: ["mcp-server", "vectorize-upsert", wsTag, "success"],
         doubles: [Date.now() - upsertStart, 768, 0, 0],
@@ -423,12 +431,12 @@ export function registerTools(
       const recallEmbedStart = Date.now();
       let embedResp: Awaited<ReturnType<typeof safeRun>>;
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+         
         embedResp = await safeRun(env, EMBEDDING_MODEL, { text: [queryForEmbed] });
       } catch (err) {
         const recallEmbedOutcome =
           err != null && typeof err === "object" && "isRateLimit" in err ? "retry-429" : "throw";
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+         
         writeAnalytics(env, {
           blobs: ["mcp-server", EMBEDDING_MODEL, wsTag, recallEmbedOutcome],
           doubles: [Date.now() - recallEmbedStart, queryForEmbed.length, 0, recallEmbedOutcome === "retry-429" ? 1 : 0],
@@ -436,7 +444,7 @@ export function registerTools(
         });
         throw err;
       }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       writeAnalytics(env, {
         blobs: ["mcp-server", EMBEDDING_MODEL, wsTag, "success"],
         doubles: [Date.now() - recallEmbedStart, queryForEmbed.length, 0, 0],
@@ -453,7 +461,7 @@ export function registerTools(
       // topK explicit (Pitfall 7); metadata filter on type when args.types supplied (RESEARCH §Phase 5 Ranking Strategy #2)
       const topK = args.limit ?? 25;
       const vectorizeQueryStart = Date.now();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       const result = await vectorizeQuery(env, props.workspace_id, queryVector, {
         topK,
         filter: args.types?.length ? { type: { $in: args.types } } : undefined,
@@ -462,7 +470,7 @@ export function registerTools(
 
       // Instrument Vectorize query — zero-match outcome is a critical signal (T-05-07-LAT / AI-SPEC §7).
       const vectorizeQueryOutcome = result.matches.length === 0 ? "zero-match" : "success";
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       writeAnalytics(env, {
         blobs: ["mcp-server", "vectorize-query", wsTag, vectorizeQueryOutcome],
         doubles: [Date.now() - vectorizeQueryStart, topK, 0, 0],
@@ -489,7 +497,7 @@ export function registerTools(
         const synthStart = Date.now();
         const synthInput = formatBlocksForSynthesis(trimmedForSynth, args.query);
         try {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+           
           const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
             messages: [
               { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
@@ -499,7 +507,7 @@ export function registerTools(
             max_tokens: 1024,
           });
           synthesis = typeof synthResp.response === "string" ? synthResp.response : null;
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+           
           writeAnalytics(env, {
             blobs: ["mcp-server", CLASSIFIER_MODEL, wsTag, "success"],
             doubles: [Date.now() - synthStart, synthInput.length, 0, 0],
@@ -513,7 +521,7 @@ export function registerTools(
             synthErr != null && typeof synthErr === "object" && "isRateLimit" in synthErr
               ? "retry-429"
               : "synthesis-failed";
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+           
           writeAnalytics(env, {
             blobs: ["mcp-server", CLASSIFIER_MODEL, wsTag, synthOutcome],
             doubles: [Date.now() - synthStart, 0, 0, synthOutcome === "retry-429" ? 1 : 0],
@@ -602,9 +610,9 @@ export function registerTools(
       // workspaceTag memoized here — only 1 analytics call in forget handler.
       const forgetWsTag = await workspaceTag(props.workspace_id);
       const deleteStart = Date.now();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       await vectorizeDelete(env, props.workspace_id, [args.id]);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+       
       writeAnalytics(env, {
         blobs: ["mcp-server", "vectorize-delete", forgetWsTag, "success"],
         doubles: [Date.now() - deleteStart, 1, 0, 0],

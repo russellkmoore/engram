@@ -25,7 +25,16 @@
   // Analytics Engine stub for type-safety — write-call sites land in Plan 05-07.
   // Per 05-RESEARCH.md Open Question 9: declare binding in Wave 0 for Env interface.
   "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
-  // Queue consumer block lands in Phase 6 PIP-01.
-  // The bindings above are declared now so the Env interface is correct and
-  // triage-worker tests can import from env.WORKSPACE / env.AI / env.VECTORIZE.
+  // No DLQ per D-03: failure surface is blocks.ingest_status = 'failed' + Workers Analytics Engine + console.error.
+  // Phase 6 PIP-01 / CONTEXT.md D-03 + §"Claude's Discretion → Cloudflare Queues consumer config".
+  "queues": {
+    "consumers": [
+      {
+        "queue": "engram-ingest",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+        "max_retries": 3,
+      },
+    ],
+  },
 }

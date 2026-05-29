@@ -24,6 +24,7 @@
     "test": "npm run test --workspaces --if-present",
     "dev:mcp": "npm run dev --workspace @engram/mcp-server",
     "dev:triage": "npm run dev --workspace @engram/triage-worker",
+    "setup:queue": "bash scripts/setup-queue.sh",
     "setup:vectorize": "bash scripts/setup-vectorize.sh",
     "setup": "node -e \"console.log('Engram setup: see CONTRIBUTING.md for GSD plugin install steps.')\" && npm install && npm run types:gen && npm run setup:vectorize",
     "evals:vitest": "npm test --workspace=packages/mcp-server -- --run evals && npm test --workspace=packages/triage-worker -- --run evals",

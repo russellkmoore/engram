@@ -185,11 +185,25 @@ function captureCallback(
   toolName: string,
   workspace_id: string,
   user_id = "u-test",
+  ctxOverride?: { waitUntil: (p: Promise<unknown>) => void },
 ): (args: unknown, extra: unknown) => Promise<unknown> {
+  // Plan 06-02 B2 fix: forward-compat seat for Plan 06-05's PIP-02 latency test.
+  // Default drop-the-promise stub: safe because no current TOL-* test exercises
+  // the getCtx().waitUntil(...) call path (lands in Plan 06-04 / 06-05).
+  const defaultCtxStub = {
+    waitUntil: (p: Promise<unknown>) => {
+      void p;
+    },
+  };
   const spy = vi.spyOn(McpServer.prototype, "registerTool");
   try {
     const server = new McpServer({ name: "engram-mcp-server-test", version: "0.0.1" });
-    registerTools(server, () => ({ workspace_id, user_id }), env);
+    registerTools(
+      server,
+      () => ({ workspace_id, user_id }),
+      env,
+      () => (ctxOverride ?? defaultCtxStub) as unknown as DurableObjectState,
+    );
     let foundCallback: ((args: unknown, extra: unknown) => Promise<unknown>) | undefined;
     for (const rawCall of spy.mock.calls) {
       const [callName, , callCb] = rawCall as unknown as [
