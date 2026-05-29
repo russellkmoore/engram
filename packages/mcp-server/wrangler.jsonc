@@ -13,6 +13,12 @@
   "ai": { "binding": "AI" },
   "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
   "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
+  // Phase 6 PIP-01 / CONTEXT.md D-03: producer binding for the engram-ingest
+  // Queue. Consumer block (max_batch_size=10, max_batch_timeout=5, max_retries=3,
+  // no DLQ) lives on packages/triage-worker/wrangler.jsonc.
+  "queues": {
+    "producers": [{ "binding": "INGEST_QUEUE", "queue": "engram-ingest" }],
+  },
   "durable_objects": {
     "bindings": [
       { "name": "MCP_OBJECT", "class_name": "EngramMcp" },
