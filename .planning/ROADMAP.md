@@ -22,7 +22,7 @@
 - [x] **Phase 3: MCP Server Scaffold** — `EngramMcp extends McpAgent`, JWT-to-`props` middleware, two-DO topology, empty tool registrations, MCP Inspector connectivity (completed 2026-05-26)
 - [x] **Phase 4: Core Tools + Envelope** — `remember`/`recall`/`search`/`forget`/`ingest` with `EngramResponse` envelope, `McpError` shape, response-size budgets, transactional `forget`, cross-workspace penetration test (completed 2026-05-27)
 - [ ] **Phase 5: AI Integration** — Vectorize index + namespaces, `bge-base-en-v1.5` embeddings on sync write, semantic recall, Triage-Worker AI (entity extraction, memorability), 429-aware retry, vector delete on forget
-- [ ] **Phase 6: Async Pipeline** — `engram-ingest` Queue, producer wiring with `ctx.waitUntil`, Triage Worker consumer with idempotency + DLQ, `blocks.ingest_status` tracking, RPC back into WorkspaceDO
+- [x] **Phase 6: Async Pipeline** — `engram-ingest` Queue, producer wiring with `ctx.waitUntil`, Triage Worker consumer with idempotency + DLQ, `blocks.ingest_status` tracking, RPC back into WorkspaceDO (completed 2026-05-29)
 - [ ] **Phase 7: Deploy + Acceptance** — `wrangler deploy` for both Workers, Russell JWT + Claude Desktop config, end-to-end acceptance (store in conv A, recall in conv B), job-search agent flipped over, setup README
 
 ## Phase Details
@@ -311,7 +311,7 @@ Plans:
 - **Touches IP-7 (silent partial failures)**: PIP-06 (`ingest_status`) is the schema-level mitigation; without it, blocks stuck at "phase 1 only" become invisible.
 - Triage Worker RPC into WorkspaceDO must respect the STO-07 workspace_id check; PIP-04's RPC calls always pass the workspace_id from the MemoryEvent.
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -330,7 +330,7 @@ Plans:
 
 **Wave 4** (behavioral verification — depends on Wave 3)
 
-- [ ] 06-05-PLAN.md (Wave 4, autonomous) — queue-integration.test.ts (replay-twice idempotency + ingest_status lifecycle: 3 happy paths + 2 failure paths + cold-storage/inbox orthogonality + markIngestFailed observability) + tools-integration.test.ts PIP-02 latency describe (remember() resolves before 200ms queue.send delay — ctx.waitUntil decoupling proof) [PIP-01, PIP-02, PIP-03, PIP-04, PIP-05, PIP-06]
+- [x] 06-05-PLAN.md (Wave 4, autonomous) — queue-integration.test.ts (replay-twice idempotency + ingest_status lifecycle: 3 happy paths + 2 failure paths + cold-storage/inbox orthogonality + markIngestFailed observability) + tools-integration.test.ts PIP-02 latency describe (remember() resolves before 200ms queue.send delay — ctx.waitUntil decoupling proof) [PIP-01, PIP-02, PIP-03, PIP-04, PIP-05, PIP-06]
 
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 
@@ -365,7 +365,7 @@ Plans:
 | 3. MCP Server Scaffold   | 6/6 | Complete   | 2026-05-26 |
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
-| 6. Async Pipeline        | 4/5 | In Progress|  |
+| 6. Async Pipeline        | 5/5 | Complete   | 2026-05-29 |
 | 7. Deploy + Acceptance   | 0/0            | Not started | —         |
 
 ## Parallelization Notes
