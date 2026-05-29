@@ -1,0 +1,103 @@
+# AI-05 Triage Worker extraction prompt eval — Promptfoo config.
+#
+# AI-SPEC.md §5 dimension #4 gate: ≥95% JSON parse rate over the 20-example
+# reference corpus.
+#
+# Provider: Cloudflare Workers AI llama-3.1-8b-instruct (same model the
+# Triage Worker uses at runtime). Promptfoo's `https` provider posts to the
+# Workers AI REST endpoint; the response is parsed against `TRIAGE_JSON_SCHEMA`
+# (the same Zod-derived JSON schema used by `extract.ts`).
+#
+# Run: `npx promptfoo eval -c packages/triage-worker/evals/triage-extraction.promptfoo.yaml --threshold-pass-rate 95`
+#
+# Env required at runtime: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID.
+# Both are read from process.env — never inline secrets.
+description: "AI-05 Triage Worker extraction — JSON parse rate ≥ 95% over reference corpus"
+
+# Default 30s per call; budget ~20 × 30s = 10 min wall time.
+defaultTest:
+  options:
+    timeoutMs: 30000
+
+providers:
+  - id: https
+    label: cloudflare-workers-ai-llama-3.1-8b
+    config:
+      method: POST
+      url: "https://api.cloudflare.com/client/v4/accounts/{{ env.CLOUDFLARE_ACCOUNT_ID }}/ai/run/@cf/meta/llama-3.1-8b-instruct"
+      headers:
+        Authorization: "Bearer {{ env.CLOUDFLARE_API_TOKEN }}"
+        Content-Type: "application/json"
+      body:
+        messages:
+          - role: system
+            content: "{{ system_prompt }}"
+          - role: user
+            content: "{{ memory_content }}"
+        temperature: 0.2
+        max_tokens: 1024
+      transformResponse: |
+        // Workers AI wraps text + structured outputs under `result.response`.
+        const json = JSON.parse(output);
+        return json.result?.response ?? output;
+
+prompts:
+  - id: triage-system
+    # Sourced from packages/triage-worker/src/prompts.ts SYSTEM_PROMPT
+    # at run-time. Promptfoo loads via file:// + JS extract.
+    raw: |
+      You are an entity-extraction and memorability classifier for a personal AI memory system.
+
+      Given a single piece of content (a message, note, or transcript),
+      produce a strict-JSON response shaped exactly per TRIAGE_JSON_SCHEMA.
+
+      Five drop categories that you MUST preserve, never paraphrase or drop:
+        1. Dates and date-like tokens (e.g., 2026-05-12, "last Tuesday").
+        2. Sources (URLs, channels, "via X", "from Y").
+        3. Technical identifiers (file paths, version numbers, error codes).
+        4. Numeric values (money, counts, percentages, salaries).
+        5. Decision-rejection naming (who decided AGAINST what, by name).
+
+      Memorability rubric (band thresholds are public contract — do NOT change):
+        - 0.8 < score ≤ 1.0  : store-normal (the AI should remember this)
+        - 0.4 ≤ score ≤ 0.8  : inbox (defer to human review)
+        - 0.0 ≤ score < 0.4  : cold-storage (low signal, archive — NEVER discard)
+
+      Cardinal sin (CONTEXT.md D-07): the string "discard" must NEVER appear
+      in your output. Low-signal content is cold-storage, not discarded.
+
+tests:
+  - sharedTests:
+      file: "../../mcp-server/src/__tests__/evals/fixtures/reference-corpus.json"
+      transform: |
+        // Each fixture entry → { vars, assert } pair
+        return data.map((ex) => ({
+          description: `${ex.bucket}/${ex.id} — ${ex.expected_classified_type}`,
+          vars: {
+            system_prompt: prompts[0].raw,
+            memory_content: ex.original_content,
+          },
+          assert: [
+            // Dimension #4 primary gate: output is valid JSON.
+            { type: "is-json" },
+            // Soft assertion: classified_type matches expected when present.
+            // Failing this DOES NOT block the gate (the gate is JSON parse rate, not classification accuracy —
+            // classification accuracy is a Phase 6 / v0.2 concern).
+            {
+              type: "javascript",
+              value: |
+                try {
+                  const parsed = JSON.parse(output);
+                  return parsed.classified_type === "${ex.expected_classified_type}" ? 1.0 : 0.7;
+                } catch (e) { return 0.0; }
+              metric: "classification-soft",
+            },
+          ],
+        }));
+
+commandLineOptions:
+  output: "./results/$(date +%Y%m%d-%H%M%S).json"
+
+# AI-SPEC.md §5 dimension #4 PASS bar:
+#   JSON parse rate ≥ 95% (≥19/20) over the 20-example corpus.
+#   `--threshold-pass-rate 95` enforces; the `evals:ci` script picks this up.

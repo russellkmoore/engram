@@ -51,6 +51,9 @@ export default defineConfig({
             // ai-helper-identity.test.ts uses node:fs readFileSync for cross-package reads;
             // workerd runtime does not support this. Runs in lint-node pool below.
             "src/__tests__/ai-helper-identity.test.ts",
+            // embedding-consistency.test.ts (Plan 05-06 Task 3 — AI-SPEC §5 dimension #2)
+            // also reads triage-worker/src/ai-helper.ts via node:fs.
+            "src/__tests__/evals/embedding-consistency.test.ts",
           ],
         },
       },
@@ -67,6 +70,8 @@ export default defineConfig({
             // Cross-file model-constant identity test (AI-SPEC.md §5 dimension #2).
             // Reads triage-worker/src/ai-helper.ts via node:fs — cannot run in workerd pool.
             "src/__tests__/ai-helper-identity.test.ts",
+            // Plan 05-06 Task 3 dedicated AI-SPEC §5 dimension #2 eval framing.
+            "src/__tests__/evals/embedding-consistency.test.ts",
           ],
         },
       },
