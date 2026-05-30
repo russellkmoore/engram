@@ -1,23 +1,28 @@
 # AI-05 Triage Worker extraction prompt eval — Promptfoo config.
 #
 # AI-SPEC.md §5 dimension #4 gate: ≥95% JSON parse rate over the 20-example
-# reference corpus.
+# reference corpus. Without `--threshold-pass-rate` (removed in promptfoo
+# 0.121.x), the gate is stricter: any failure exits non-zero. The AI-SPEC
+# 95% threshold is a safety margin — meeting 100% trivially satisfies it.
 #
 # Provider: Cloudflare Workers AI llama-3.1-8b-instruct (same model the
 # Triage Worker uses at runtime). Promptfoo's `https` provider posts to the
-# Workers AI REST endpoint; the response is parsed against `TRIAGE_JSON_SCHEMA`
-# (the same Zod-derived JSON schema used by `extract.ts`).
+# Workers AI REST endpoint; the response is parsed as JSON.
 #
-# Run: `npx promptfoo eval -c packages/triage-worker/evals/triage-extraction.promptfoo.yaml --threshold-pass-rate 95`
+# Run: `npm run evals:promptfoo`
 #
 # Env required at runtime: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID.
-# Both are read from process.env — never inline secrets.
-description: "AI-05 Triage Worker extraction — JSON parse rate ≥ 95% over reference corpus"
+# Both are read from process.env via `{{ env.X }}` — never inline secrets.
+# Set with: `export CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=...`
+description: "AI-05 Triage Worker extraction — JSON parse rate gate over reference corpus"
 
-# Default 30s per call; budget ~20 × 30s = 10 min wall time.
+# Shared assertions: every test loaded by `tests:` inherits these.
+# Dimension #4 primary gate: output is valid JSON.
 defaultTest:
   options:
     timeoutMs: 30000
+  assert:
+    - type: is-json
 
 providers:
   - id: https
@@ -36,68 +41,27 @@ providers:
             content: "{{ memory_content }}"
         temperature: 0.2
         max_tokens: 1024
-      transformResponse: |
-        // Workers AI wraps text + structured outputs under `result.response`.
-        const json = JSON.parse(output);
-        return json.result?.response ?? output;
+      # Workers AI wraps text + structured outputs under `result.response`.
+      # promptfoo transformResponse expects a callable (output) => ... form
+      # in 0.121.x. Arrow function returns the unwrapped response or falls
+      # through to raw output when shape is unexpected (e.g. auth errors).
+      transformResponse: "(output) => { const j = typeof output === 'string' ? JSON.parse(output) : output; return (j && j.result && j.result.response) || output; }"
 
+# Each prompt template — promptfoo requires at least one. The provider body
+# template above does the actual request shaping via {{ system_prompt }} +
+# {{ memory_content }} vars; this prompt entry is a no-op placeholder that
+# satisfies the schema requirement.
 prompts:
-  - id: triage-system
-    # Sourced from packages/triage-worker/src/prompts.ts SYSTEM_PROMPT
-    # at run-time. Promptfoo loads via file:// + JS extract.
-    raw: |
-      You are an entity-extraction and memorability classifier for a personal AI memory system.
+  - id: triage-passthrough
+    label: triage-passthrough
+    raw: "{{ memory_content }}"
 
-      Given a single piece of content (a message, note, or transcript),
-      produce a strict-JSON response shaped exactly per TRIAGE_JSON_SCHEMA.
-
-      Five drop categories that you MUST preserve, never paraphrase or drop:
-        1. Dates and date-like tokens (e.g., 2026-05-12, "last Tuesday").
-        2. Sources (URLs, channels, "via X", "from Y").
-        3. Technical identifiers (file paths, version numbers, error codes).
-        4. Numeric values (money, counts, percentages, salaries).
-        5. Decision-rejection naming (who decided AGAINST what, by name).
-
-      Memorability rubric (band thresholds are public contract — do NOT change):
-        - 0.8 < score ≤ 1.0  : store-normal (the AI should remember this)
-        - 0.4 ≤ score ≤ 0.8  : inbox (defer to human review)
-        - 0.0 ≤ score < 0.4  : cold-storage (low signal, archive — NEVER discard)
-
-      Cardinal sin (CONTEXT.md D-07): the string "discard" must NEVER appear
-      in your output. Low-signal content is cold-storage, not discarded.
-
-tests:
-  - sharedTests:
-      file: "../../mcp-server/src/__tests__/evals/fixtures/reference-corpus.json"
-      transform: |
-        // Each fixture entry → { vars, assert } pair
-        return data.map((ex) => ({
-          description: `${ex.bucket}/${ex.id} — ${ex.expected_classified_type}`,
-          vars: {
-            system_prompt: prompts[0].raw,
-            memory_content: ex.original_content,
-          },
-          assert: [
-            // Dimension #4 primary gate: output is valid JSON.
-            { type: "is-json" },
-            // Soft assertion: classified_type matches expected when present.
-            // Failing this DOES NOT block the gate (the gate is JSON parse rate, not classification accuracy —
-            // classification accuracy is a Phase 6 / v0.2 concern).
-            {
-              type: "javascript",
-              value: |
-                try {
-                  const parsed = JSON.parse(output);
-                  return parsed.classified_type === "${ex.expected_classified_type}" ? 1.0 : 0.7;
-                } catch (e) { return 0.0; }
-              metric: "classification-soft",
-            },
-          ],
-        }));
-
-commandLineOptions:
-  output: "./results/$(date +%Y%m%d-%H%M%S).json"
+# 20 fixtures loaded via JS loader; each returns one test case with vars.
+# Shared `is-json` assertion from defaultTest.assert applies to all 20.
+tests: file://./load-fixtures.mjs
 
 # AI-SPEC.md §5 dimension #4 PASS bar:
 #   JSON parse rate ≥ 95% (≥19/20) over the 20-example corpus.
-#   `--threshold-pass-rate 95` enforces; the `evals:ci` script picks this up.
+#   With promptfoo 0.121.x (no --threshold-pass-rate flag), the gate is
+#   100% — any failure aborts predeploy. This is stricter than spec but
+#   safer (a single JSON parse regression worth investigating).

@@ -30,7 +30,14 @@ export default tseslint.config(
       },
       parserOptions: {
         projectService: {
-          allowDefaultProject: ["*.mjs", "*.cjs", "scripts/*.mjs", "scripts/*.cjs"],
+          allowDefaultProject: [
+            "*.mjs",
+            "*.cjs",
+            "scripts/*.mjs",
+            "scripts/*.cjs",
+            "packages/*/evals/*.mjs",
+            "packages/*/evals/*.cjs",
+          ],
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -41,14 +48,29 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": "error",
     },
   },
-  // Root config files (.mjs, .cjs) and scripts/ are not TypeScript source — disable type-aware rules
+  // Root config files (.mjs, .cjs), scripts/, and per-package evals/ loaders
+  // are not TypeScript source — disable type-aware rules.
   {
-    files: ["*.mjs", "*.cjs", "scripts/**/*.mjs", "scripts/**/*.cjs"],
+    files: [
+      "*.mjs",
+      "*.cjs",
+      "scripts/**/*.mjs",
+      "scripts/**/*.cjs",
+      "packages/*/evals/*.mjs",
+      "packages/*/evals/*.cjs",
+    ],
     ...tseslint.configs.disableTypeChecked,
   },
-  // scripts/ run under Node — expose Node globals (process, Buffer, etc.)
+  // scripts/ + per-package evals/ run under Node — expose Node globals (process, Buffer, etc.)
   {
-    files: ["scripts/**/*.mjs", "scripts/**/*.cjs", "*.mjs", "*.cjs"],
+    files: [
+      "scripts/**/*.mjs",
+      "scripts/**/*.cjs",
+      "*.mjs",
+      "*.cjs",
+      "packages/*/evals/*.mjs",
+      "packages/*/evals/*.cjs",
+    ],
     languageOptions: {
       globals: {
         ...globals.node,
