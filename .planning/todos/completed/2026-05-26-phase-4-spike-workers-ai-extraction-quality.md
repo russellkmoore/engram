@@ -41,3 +41,20 @@ Cost: ~1 day of work. Risk reduction: enormous — informs the most consequentia
 ## Rationale
 
 Architectural critique from 2026-05-25 conversation: "Doing it right would mean a throwaway spike on Workers AI extraction/scoring quality now — before you freeze the whole response envelope around a synthesis-only contract. If the small models can't extract a job posting cleanly, the entire 'return insights not data' thesis needs rethinking."
+
+---
+
+## Closure (2026-05-30)
+
+**Status:** Closed as retrospective lesson (ENG-13 cancelled — not future work).
+
+Phase 4 shipped without this spike. The envelope froze on synthesis-only.
+Phase 5 D-05 (verbosity: chunks default) + Phase 4 meta.gaps field partially
+mitigated the original risk. Phase 6 + 7 dogfooding produced real signal:
+extraction quality is "good enough" for v0.1 single-user — Apple posting
+captured cleanly + Anthropic posting auto-enriched with salary/location/visa/
+fit signals in production.
+
+**Lesson preserved in RETROSPECTIVE.md v0.1 section** under "What Was Inefficient":
+"The spike-before-envelope-freeze pattern is worth remembering for any future
+tool-surface freeze in v0.2+."
