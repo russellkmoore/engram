@@ -353,7 +353,7 @@ Plans:
 - `mcp-remote` is community-maintained (SUMMARY.md §9 risk flag). Watch Claude Desktop releases for native Streamable HTTP support and drop the proxy when it lands.
 - Russell's job-search agent rewire (DEP-04) is the first real-world stress test of the EngramResponse envelope shape and the recall semantic-vs-lexical promotion (P5). A regression here means scoping the issue immediately — do not let v0.1 close until DEP-04 holds for at least 3 consecutive working days (per REQUIREMENTS.md acceptance criteria).
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 
@@ -363,7 +363,7 @@ Plans:
 
 **Wave 2** (README hoist — depends on Wave 1)
 
-- [ ] 07-02-PLAN.md (Wave 2, autonomous) — root README.md restructure: Getting Started numbered Steps 1-4 (Install, Deploy, Configure Claude Desktop, First tool call OAuth bootstrap per D-02 with literal `Unknown OAuth subject` 403 body verbatim from oauth.ts:201) + new H2 `## Deploy` documenting all three scripts with cross-worker DO precondition + new H2 `## Troubleshooting` with 6 P1-P6 triaged entries (EXCLUDES the bootstrap-403 entry per D-02) + new H2 `## Reference` with down-links to per-package READMEs [DEP-02, DEP-05]
+- [x] 07-02-PLAN.md (Wave 2, autonomous) — root README.md restructure: Getting Started numbered Steps 1-4 (Install, Deploy, Configure Claude Desktop, First tool call OAuth bootstrap per D-02 with literal `Unknown OAuth subject` 403 body verbatim from oauth.ts:201) + new H2 `## Deploy` documenting all three scripts with cross-worker DO precondition + new H2 `## Troubleshooting` with 6 P1-P6 triaged entries (EXCLUDES the bootstrap-403 entry per D-02) + new H2 `## Reference` with down-links to per-package READMEs [DEP-02, DEP-05]
 
 **Wave 3** (HUMAN-UAT skeleton — depends on Wave 2)
 
@@ -386,7 +386,7 @@ Plans:
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
 | 6. Async Pipeline        | 5/5 | Complete   | 2026-05-29 |
-| 7. Deploy + Acceptance   | 1/4 | In Progress|  |
+| 7. Deploy + Acceptance   | 2/4 | In Progress|  |
 
 ## Parallelization Notes
 
