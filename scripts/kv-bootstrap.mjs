@@ -41,7 +41,16 @@
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, writeFileSync, unlinkSync, rmdirSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// ENG-7 fix: resolve the mcp-server package directory absolutely so the script
+// works regardless of where it's invoked from (repo root, packages/mcp-server,
+// or anywhere else). The wrangler binding `ENGRAM_IDENTITIES` is declared in
+// packages/mcp-server/wrangler.jsonc — wrangler must run with that dir as CWD
+// to resolve the binding by name.
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const MCP_SERVER_DIR = resolve(__dirname, "..", "packages", "mcp-server");
 
 const TAG = "[kv:bootstrap]";
 
@@ -180,12 +189,15 @@ try {
 
   // `npx` is used so the locally-installed wrangler from the repo's
   // `node_modules/.bin/` is resolved (the root package.json devDependency).
+  // ENG-7 fix: cwd MUST be packages/mcp-server so wrangler can resolve the
+  // ENGRAM_IDENTITIES binding from that package's wrangler.jsonc.
   process.stderr.write(
     `${TAG} seeding ENGRAM_IDENTITIES KV: sub=${sub} mode=${useLocal ? "local" : "remote"}\n`,
   );
   const result = spawnSync("npx", wranglerArgs, {
     stdio: ["ignore", "inherit", "inherit"],
     env: process.env,
+    cwd: MCP_SERVER_DIR,
   });
 
   if (result.error) {
