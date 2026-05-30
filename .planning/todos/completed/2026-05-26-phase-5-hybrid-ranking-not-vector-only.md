@@ -57,3 +57,17 @@ Update CLAUDE.md `## What Goes Where` to:
 ## Rationale
 
 Architectural critique from 2026-05-25 conversation: "Pure cosine similarity is a weak ranker for memory — recency, type, scope, and explicit relations all matter more than raw semantic proximity in many cases. You have the pieces (tags, relations, structured props) but the stated principle ignores them. You want hybrid ranking with recency decay, not vector-score-as-truth."
+
+---
+
+## Closure (2026-05-30, ENG-15 audit)
+
+**Status:** Resolved by Phase 5 AI-04. Audit confirmed:
+
+- `packages/mcp-server/src/hybrid-rank.ts` exists with `HYBRID_WEIGHTS` export
+- Formula: `cosine·1.0 + recency·0.15 + type_match·0.2 + scope_match·0.15` (4 signals, not vector-only)
+- 30-day half-life recency decay
+- Integrated into `recall()` at `packages/mcp-server/src/tools.ts:554`
+- CLAUDE.md "What Goes Where" updated this commit: "Semantic ranking → Vectorize + hybrid rerank†" with footnote pointing at hybrid-rank.ts
+
+The original todo asked for vector + recency + type + scope signals; all four shipped.

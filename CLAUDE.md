@@ -377,9 +377,11 @@ Adding a new connector = adding a new Cron Worker. No core changes needed.
 | Deduplication            | Triage Worker (Vectorize similarity) |
 | Memorability scoring     | Triage Worker (CF AI)                |
 | Query expansion          | MCP Server (CF AI before Vectorize)  |
-| Semantic ranking         | Vectorize                            |
+| Semantic ranking         | Vectorize + hybrid rerank†           |
 | Reasoning + synthesis    | Claude (via MCP response)            |
 | User interaction         | Claude                               |
+
+† Hybrid rerank lives in `packages/mcp-server/src/hybrid-rank.ts` — Vectorize cosine + recency (30-day half-life) + type_match + scope_match per `HYBRID_WEIGHTS` (1.0 / 0.15 / 0.2 / 0.15). Phase 5 AI-04.
 
 ### Never Do This
 
