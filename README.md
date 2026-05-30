@@ -186,6 +186,96 @@ For the full bootstrap rationale (why manual, why not auto), see [`packages/mcp-
 
 ---
 
+## Deploy
+
+Engram ships two Workers — `engram-mcp-server` (MCP host + OAuth + WorkspaceDO) and `engram-triage-worker` (Queue consumer for async enrichment). Three commands cover the day-1 happy path and day-N surgical re-deploys.
+
+### `npm run deploy` (the full chain)
+
+```bash
+npm run deploy
+```
+
+Runs in this order:
+
+1. **`predeploy` hook fires `npm run evals:ci`** — vitest evals + promptfoo against Workers AI. If any assertion fails, the deploy aborts before any `wrangler deploy` runs.
+2. **`npm run deploy:mcp`** — `wrangler deploy` for `packages/mcp-server`.
+3. **`npm run deploy:triage`** — `wrangler deploy` for `packages/triage-worker`.
+
+On green, both Workers are live at `https://engram-mcp-server.<your-subdomain>.workers.dev` and `https://engram-triage-worker.<your-subdomain>.workers.dev`.
+
+### `npm run deploy:mcp` / `npm run deploy:triage` (per-package, surgical)
+
+```bash
+npm run deploy:mcp      # rebuild + ship just the MCP server
+npm run deploy:triage   # rebuild + ship just the triage worker
+```
+
+These commands **skip the eval gate** — they exist for day-N "I know exactly what changed, evals passed last deploy, just push the fix" workflows. Use them after small surgical fixes; use the full `npm run deploy` whenever you want confidence the change hasn't regressed evals.
+
+**Important precondition for `deploy:triage`:** `engram-mcp-server` must have been deployed at least once. The triage Worker's `wrangler.jsonc` binds `WORKSPACE` to `WorkspaceDO` via `script_name: "engram-mcp-server"` (a cross-Worker Durable Object binding). If you deploy `triage-worker` first on a fresh Cloudflare account, `wrangler` rejects the binding with `Could not find a Worker with the name "engram-mcp-server"`. The `npm run deploy` wrapper enforces the correct order automatically — only worry about this if you're invoking `deploy:triage` directly.
+
+### Eval-gate failure handling
+
+If `npm run deploy` aborts at the `predeploy` step, the failure surface is the `evals:ci` output (vitest assertions + promptfoo pass-rate). LLM evals against Workers AI have inherent variance, so:
+
+1. **Re-run once** — many failures are transient.
+2. If it fails twice, run `npm run evals:ci` directly to see which assertion failed, and fix the regression before re-running `npm run deploy`.
+3. For a surgical re-deploy after a code fix that you know is unrelated to the eval-gate failure (e.g. a typo in a comment), use `npm run deploy:mcp` or `npm run deploy:triage` to skip the gate. Don't make this a habit — the gate exists to catch real regressions.
+
+---
+
+## Troubleshooting
+
+### `wrangler deploy` fails with "class not declared in any migration"
+
+A `wrangler.jsonc` `migrations` entry was likely renamed or deleted. Both Worker `wrangler.jsonc` files must declare their Durable Object classes under `new_sqlite_classes` (NOT `new_classes` — SQLite-backed DOs are irreversible). Run `npm run lint:wrangler` from the repo root; it fails loudly if any `wrangler.jsonc` regresses to `new_classes`. See [`packages/mcp-server/README.md` §Troubleshooting](./packages/mcp-server/README.md#troubleshooting) for the full migration entry shape.
+
+### `npm install` fails with engine constraint complaints
+
+`lint-staged@17` declares `node >=22.22.1` while the repo allows 22+. Use:
+
+```bash
+npm install --engine-strict=false
+```
+
+Pre-existing condition tracked outside this README; does not affect the Worker runtime.
+
+### KV namespace IDs in `wrangler.jsonc` point at someone else's account
+
+`packages/mcp-server/wrangler.jsonc` commits real KV namespace IDs for `OAUTH_KV` and `ENGRAM_IDENTITIES`. These are not secrets, but they ARE account-specific — a fresh Cloudflare account has different IDs. `wrangler deploy` does NOT fail on bad KV IDs at deploy time; the first `/authorize` request returns a 500 instead of the expected 403. See [`packages/mcp-server/README.md` §Create KV namespaces](./packages/mcp-server/README.md#create-kv-namespaces) for the procedure: `npx wrangler kv namespace create OAUTH_KV` (and `ENGRAM_IDENTITIES`), then paste the new IDs into `wrangler.jsonc`.
+
+### Claude Desktop ignores changes to `claude_desktop_config.json`
+
+Closing the Claude Desktop window does NOT reload the config on macOS — the app stays running in the background. **Fully quit** (Cmd+Q on macOS, right-click tray icon → Exit on Windows) and re-launch. Claude Desktop only reads `claude_desktop_config.json` at process start.
+
+### Tool calls fail with stale workspace_id after re-bootstrap
+
+`mcp-remote` caches JWTs in `~/.mcp-auth/`. If you re-ran `npm run kv:bootstrap` with a new `--workspace-id`, the cached JWT still encodes the old workspace. Clear the cache:
+
+```bash
+rm -rf ~/.mcp-auth/
+```
+
+Then fully quit + re-launch Claude Desktop to trigger a fresh OAuth flow.
+
+### `npm run deploy` aborts at the eval gate
+
+The `predeploy` hook runs `npm run evals:ci` (vitest + promptfoo). LLM evals have inherent variance; re-run `npm run deploy` once. If it fails twice, run `npm run evals:ci` directly to see the specific assertion failure, and fix the regression before re-deploying. For a surgical re-deploy after an unrelated code fix, use `npm run deploy:mcp` or `npm run deploy:triage` to skip the gate.
+
+---
+
+## Reference
+
+- [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) §"First-Time Setup" — full KV namespace creation procedure for a fresh Cloudflare account.
+- [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) §"Smoke Test: MCP Inspector" — pre-OAuth Worker liveness check using `npx @modelcontextprotocol/inspector`.
+- [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) §"OAuth Flow (under the hood)" — sequence diagram of the OAuth dance, including which library owns which endpoint.
+- [`CLAUDE.md`](./CLAUDE.md) §"MCP Tool Surface" — design rationale for the 5-tool v0.1 surface.
+- [`CLAUDE.md`](./CLAUDE.md) §"Architecture" — Durable Object topology and per-workspace SQLite isolation.
+- [`CLAUDE.md`](./CLAUDE.md) §"Tech Stack" — Cloudflare bindings the deployed Workers consume (KV, Vectorize, Queues, AI, Analytics Engine).
+
+---
+
 ## Tool Surface (v0.1)
 
 Engram exposes 5 MCP tools via the `EngramResponse<T>` envelope (see
