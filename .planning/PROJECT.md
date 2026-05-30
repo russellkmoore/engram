@@ -32,20 +32,32 @@ _Phase 1: Foundation (2026-05-25):_
 - CLAUDE.md aligned with v0.1 corrections (JSONC, two-DO topology, `McpAgent`, `search` without `format?`, ingest-worker deferred to v0.4)
 - FND-08 `wrangler.jsonc` lint blocking `new_classes` DO declarations, wired into CI
 
-### Active (v0.1 — MCP Foundation, target 2026-06-07)
+_Phase 2-7: v0.1 MCP Foundation (2026-05-30):_
 
-- [ ] Cloudflare Worker MCP server with `remember`, `recall`, `search`, `forget`, `ingest` tools
-- [ ] `WorkspaceDO` Durable Object owning per-workspace SQLite database
-- [ ] SQLite schema: `blocks`, `relations`, `tags`, `members`, `memory_types`, `inbox`, `conflicts`
-- [ ] System memory types seeded as data (`job_application`, `contact`, `company`, `project`, `research_note`, `decision_log`, `meeting_note`)
-- [ ] `MemoryEvent` universal intake primitive
-- [ ] Triage Worker skeleton consuming `MemoryEvent` from Queue
-- [ ] Cloudflare Workers AI integration: embeddings, entity extraction, summarization, memorability scoring
-- [ ] Vectorize integration for semantic search backing `recall` and `search`
-- [ ] JWT-per-workspace auth, single user (Russell), hosted on Russell's Cloudflare account
-- [ ] `EngramResponse` envelope wrapping every MCP tool return (result, context, meta, suggestions)
-- [ ] Russell's job-search agent can `remember()` a job posting and `recall()` it later via Claude in a new conversation
-- [ ] Wrangler deploy succeeds; MCP server reachable from Claude Desktop config
+- ✓ Cloudflare Worker MCP server with `remember`, `recall`, `search`, `forget`, `ingest` tools — v0.1 (Phase 3-4)
+- ✓ `WorkspaceDO` Durable Object owning per-workspace SQLite database — v0.1 (Phase 2)
+- ✓ SQLite schema: `blocks`, `relations`, `tags`, `members`, `memory_types`, `inbox`, `conflicts` — v0.1 (Phase 2)
+- ✓ System memory types seeded as data — v0.1 (Phase 2)
+- ✓ `MemoryEvent` universal intake primitive — v0.1 (Phase 1 + 6)
+- ✓ Triage Worker skeleton consuming `MemoryEvent` from Queue — v0.1 (Phase 5 + 6)
+- ✓ Cloudflare Workers AI integration: embeddings, entity extraction, summarization, memorability scoring — v0.1 (Phase 5; classification + hybrid ranking added)
+- ✓ Vectorize integration for semantic search backing `recall` and `search` — v0.1 (Phase 5; bge-base-en-v1.5, 768-dim cosine)
+- ✓ OAuth-per-workspace auth via Cloudflare Workers OAuth Provider + KV identity (more flexible than JWT-per-workspace originally scoped) — v0.1 (Phase 3 + 7)
+- ✓ `EngramResponse` envelope wrapping every MCP tool return — v0.1 (Phase 4)
+- ✓ Wrangler deploy succeeds; MCP server reachable from Claude Desktop config via `mcp-remote` bridge — v0.1 (Phase 7)
+- ✓ Russell's job-search agent can `remember()` a job posting and `recall()` it later via Claude in a new conversation — v0.1 verified via DEP-03 (Phase 7), substrate proven; Job Scout agent rewire deferred to that repo's own backlog (DEP-04 dropped from v0.1 scope)
+
+### Active (v0.2 — Intelligence Layer, target 2026-06-21)
+
+To be scoped via `/gsd:new-milestone v0.2`. Anticipated focus areas (from Phase 7 follow-ups + roadmap):
+
+- [ ] Semantic conflict detection (validated via 50-sample precision gate first — ENG-16)
+- [ ] Query expansion (CF AI rewrites query into 3-4 semantic variants before Vectorize search)
+- [ ] Embedding upgrade-path validation
+- [ ] Better first-run auth flow — `kv:bootstrap-interactive` (ENG-11, pulled forward from v0.4)
+- [ ] Recall envelope `type` field shape fix (ENG-8)
+- [ ] Promptfoo eval gate tightening (ENG-9) + wire into CI (ENG-10)
+- [ ] Close out Phase 5 deferred AI eval gates AI-04 / AI-05 / AI-06 (ENG-20)
 
 ### Out of Scope (v0.1)
 
@@ -57,6 +69,15 @@ _Phase 1: Foundation (2026-05-25):_
 - Real-time WebSocket sync — explicit anti-feature for v0.1, revisit later
 - Web/desktop UI for browsing memories — Engram is MCP-first; any UI is secondary
 - Mobile apps — out of scope entirely until post-v1.0
+
+## Current State
+
+**v0.1 MCP Foundation shipped 2026-05-30.** Both Workers (`engram-mcp-server` + `engram-triage-worker`) live on Russell's Cloudflare account. Claude Desktop connected via `mcp-remote` bridge + OAuth + KV-backed identity. Binding acceptance test (DEP-03) PASSED twice: remember in conv A → recall in fresh conv B 9+ hours later returns full structured fields. Triage Worker auto-enrichment demonstrably extracts salary/location/visa/fit-signals from job postings in production.
+
+- **Repo:** [github.com/russellkmoore/engram](https://github.com/russellkmoore/engram) (Apache-2.0)
+- **Deployed URLs:** `https://engram-mcp-server.russellkmoore.workers.dev`, `https://engram-triage-worker.russellkmoore.workers.dev`
+- **Single user:** Russell, workspace_id `russell-personal`
+- **14 deferred items** tracked as Linear issues ENG-7..20 for v0.2 triage
 
 ## Context
 
