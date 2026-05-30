@@ -17,6 +17,19 @@ updated: 2026-05-30T03:09:11Z
 
 [awaiting human testing]
 
+## Deployed URLs (DEP-01 satisfied 2026-05-30)
+
+- **mcp-server (producer):** `https://engram-mcp-server.russellkmoore.workers.dev`
+- **triage-worker (consumer):** `https://engram-triage-worker.russellkmoore.workers.dev`
+- **Cloudflare account:** `2b0a49e80e2c9fd83946bbcefb4c0e3d` (`russellkmoore@mac.com`)
+- **mcp-server version:** `1f209f19-3e59-4f1b-9d86-100e46f03f3a`
+- **triage-worker version:** `d4df0c97-7ba7-4c00-827e-cb5db1d9ccd3`
+- **Resources provisioned during deploy:**
+  - Queue `engram-ingest` (created via `npm run setup:queue`)
+  - Vectorize index `engram-memories` (created via `npm run setup:vectorize`; preset `@cf/baai/bge-base-en-v1.5`, metadata indexes `type` + `scope`)
+  - KV namespaces `OAUTH_KV` (81c76a03...) + `ENGRAM_IDENTITIES` (97f6ecf0...) already existed
+- **For Claude Desktop config:** point `mcp-remote` at `https://engram-mcp-server.russellkmoore.workers.dev/mcp` (see README §Getting Started → Step 3 for the snippet, Step 4 for OAuth bootstrap)
+
 ## Operator Notes (read before running)
 
 - **Redact OAuth `sub` values** if they appear in any conv excerpt you paste below. The `sub` is dynamic per `mcp-remote` registration (not a long-term secret), but exposing it in version control reveals identity-mapping shape. Use `<sub-redacted>` as the replacement marker.
