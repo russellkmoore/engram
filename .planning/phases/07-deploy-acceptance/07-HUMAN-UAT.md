@@ -1,21 +1,21 @@
 ---
-status: in_progress
+status: complete
 phase: 07-deploy-acceptance
-source: [REQUIREMENTS.md#DEP-03, REQUIREMENTS.md#DEP-04]
+source: [REQUIREMENTS.md#DEP-03]
 captured_by: russell
 started: 2026-05-30T03:09:11Z
-updated: 2026-05-30T03:09:11Z
+updated: 2026-05-30T17:30:00Z
 ---
 
 # Phase 7 HUMAN-UAT — Deploy + Acceptance
 
 > Created as an empty skeleton at plan-execute time per CONTEXT.md D-04 + planning_context Key Finding #5.
-> Russell populates each test entry's `Result:` + body fields DURING the 1-2 day acceptance window.
-> Phase 7 does not close until all three tests are `[pass]` per PATTERNS §"HUMAN-UAT.md gap-closure flow" — there is no "phase-passes-with-known-issues" escape hatch for DEP-03 (CONTEXT.md `<specifics>`).
+> Russell populated each test entry's `Result:` field across the 2026-05-30 acceptance window.
+> DEP-03 PASSED on both runs (Apple + Anthropic postings, ~9h wall-clock waits, fresh-session recalls). DEP-04 dropped from v0.1 scope by operator decision during execution.
 
 ## Current Test
 
-[awaiting human testing]
+[testing complete]
 
 ## Deployed URLs (DEP-01 satisfied 2026-05-30)
 
