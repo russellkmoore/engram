@@ -33,3 +33,30 @@ Decide BEFORE freezing schemas in Plan 02 / Plan 03 (zod definitions) of Phase 4
 ## Rationale
 
 Architectural critique from 2026-05-25 conversation: "You're trusting the weak model's judgment and hiding the evidence from the strong one." The fix is cheap now (parameter addition), expensive later (envelope migration after Claude Desktop adoption).
+
+---
+
+## Closure (2026-05-30, ENG-12 audit)
+
+**Status:** Resolved by Phase 5 D-01/D-02/D-03 for `recall()`. Better-than-asked shipped.
+
+### `recall()` escape hatch — SHIPPED
+
+- Schema: `verbosity: z.enum(["synthesis", "chunks", "both"]).optional().default("chunks")` (`packages/mcp-server/src/schemas.ts`)
+- Default is `chunks` (Phase 5 D-01 flipped from Phase 4 default of `both`) — raw memories + scored chunks, no LLM summary, no 2-5s synthesis latency
+- `synthesis` adds the LLM summary; `both` returns both
+- Implementation: `packages/mcp-server/src/tools.ts:556-584` — synthesis is OPT-IN, skipped on default
+- Tool description documents the parameter explicitly (`packages/mcp-server/src/tools.ts:165-167`)
+
+This is better than the todo's original `raw_chunks: boolean` proposal — three modes give Claude (and Russell) more flexibility, and the default-`chunks` posture means "raw + chunks unless you ask for synthesis" by default (Claude reads the chunks itself rather than relying on the small model's summary).
+
+### `reflect()` escape hatch — N/A in v0.1
+
+`reflect()` is a v0.3 MCP tool (Workspaces + Memory Types milestone), not yet implemented. When v0.3 ships `reflect()`, the verbosity pattern should be inherited from `recall()` (same shape, same default, same opt-in synthesis behavior). Note added to v0.3 prep below.
+
+### Carry-forward for v0.3
+
+When `reflect()` is implemented in v0.3, mirror the recall() verbosity pattern:
+- Add `verbosity?: "synthesis" | "chunks" | "both"` to `ReflectInputSchema`
+- Default to `chunks` (raw memories + scored chunks, no synthesis)
+- Synthesis is opt-in
