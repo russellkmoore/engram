@@ -1,0 +1,84 @@
+name: Eval Harness Health
+
+# ENG-10 (filed during v0.1 close): catch promptfoo schema drift + Workers AI
+# regressions BEFORE deploy time. The Phase 5 promptfoo YAML rotted silently
+# between Phase 5 ship and Phase 7 deploy — 4 schema/CLI defects accumulated
+# unnoticed because the harness never ran in CI. This workflow runs it on
+# every PR touching eval-relevant paths + nightly to catch dependency drift.
+#
+# Depends on ENG-9 (already landed): the wrapper script translates promptfoo
+# "abort scan" into non-zero exit, otherwise CI would silently pass on the
+# very class of failures this workflow is supposed to catch.
+#
+# Required repo secrets:
+#   CLOUDFLARE_API_TOKEN — needs `Workers AI:Read` scope at minimum
+#   CLOUDFLARE_ACCOUNT_ID
+# Add via: Settings → Secrets and variables → Actions → New repository secret.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/run-evals-promptfoo.sh"
+      - ".github/workflows/evals.yml"
+  schedule:
+    # Daily at 08:00 UTC (catches promptfoo / Workers AI / model-name drift overnight).
+    # Cost: 20 Workers AI calls/day × @cf/meta/llama-3.1-8b-instruct ≈ negligible at v0.1 scale.
+    - cron: "0 8 * * *"
+  workflow_dispatch: # allow manual trigger from Actions tab
+
+# Per-PR concurrency: cancel an in-flight run if the PR is updated.
+# Nightly cron runs are not cancelled (no `cancel-in-progress: true` for cron — each scheduled run is its own group).
+concurrency:
+  group: evals-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Wrangler types
+        run: npm run types:gen
+
+      - name: Vitest evals (cheap — no remote calls)
+        run: npm run evals:vitest
+
+      - name: Promptfoo evals (Workers AI 20 calls — ~5-10 min)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # Fail fast if secrets aren't configured rather than running and
+          # producing a confusing "all 20 failed with 401" report.
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets are not configured."
+            echo "::error::Add them via Settings → Secrets and variables → Actions. Token needs Workers AI:Read scope."
+            exit 1
+          fi
+          npm run evals:promptfoo
+
+      - name: Upload promptfoo logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptfoo-logs-${{ github.run_id }}
+          path: |
+            ~/.promptfoo/logs/
+            !~/.promptfoo/logs/*.gz
+          retention-days: 14
+          if-no-files-found: ignore
