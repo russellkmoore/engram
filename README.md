@@ -96,7 +96,7 @@ flowchart LR
 
 **Current milestone:** v0.1 — MCP Foundation (in progress, target 2026-06-07)
 
-Foundation scaffolding (Phase 1) complete. Working on WorkspaceDO + SQLite schema (Phase 2).
+Phases 1-6 complete (Foundation → WorkspaceDO + SQLite → MCP Server Scaffold → Core Tools + Envelope → AI Integration → Async Pipeline). Phase 7 (Deploy + Acceptance) is the active phase.
 
 See [.planning/ROADMAP.md](.planning/ROADMAP.md) for the full milestone arc.
 
@@ -109,23 +109,170 @@ See [.planning/ROADMAP.md](.planning/ROADMAP.md) for the full milestone arc.
 - Node 22+, npm 10+
 - A Cloudflare account (only needed for deploy; `wrangler dev` runs locally — no account required)
 
-### Install and run
+### 1. Install
 
 ```bash
 # Clone the repo
 gh repo clone russellkmoore/engram
 cd engram
 
-# Install all workspace dependencies
-npm install
+# One-command bootstrap: installs deps, generates types, provisions
+# Vectorize index + Queue (idempotent — safe to re-run).
+npm run setup
 
 # Verify the monorepo is healthy
 npm run typecheck && npm run lint && npm run lint:wrangler
-
-# Boot a Worker locally (no Cloudflare account needed)
-npm run dev:mcp       # engram-mcp-server on http://localhost:8787
-npm run dev:triage    # engram-triage-worker on http://localhost:8788
 ```
+
+`npm run setup` chains `npm install` + `npm run types:gen` + `npm run setup:vectorize` + `npm run setup:queue` + a completion echo. The setup scripts skip if their target already exists, so re-running on an established environment is a no-op.
+
+### 2. Deploy
+
+```bash
+npm run deploy
+```
+
+Ships both Workers to your Cloudflare account. The `predeploy` hook runs the eval gate (`npm run evals:ci`) first; on green, mcp-server deploys, then triage-worker. See [Deploy](#deploy) below for the full reference (surgical re-deploys, eval-gate failure handling, deploy-order invariant).
+
+### 3. Configure Claude Desktop
+
+Claude Desktop reads `claude_desktop_config.json` to learn about MCP servers. The file lives at:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Linux:** `~/.config/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add Engram to the `mcpServers` map:
+
+```json
+{
+  "mcpServers": {
+    "engram": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://engram-mcp-server.<your-subdomain>.workers.dev/mcp"]
+    }
+  }
+}
+```
+
+<!-- tested with mcp-remote@0.1.38 on Claude Desktop 2026-05-29 -->
+
+Replace `<your-subdomain>` with your Cloudflare account's `workers.dev` subdomain (visible in the Cloudflare dashboard under "Workers & Pages"). The `-y` flag auto-accepts the `npx` install prompt that Claude Desktop's subprocess context cannot answer.
+
+**Fully quit Claude Desktop** (Cmd+Q on macOS, right-click tray icon → Exit on Windows) and re-launch — Claude Desktop only reads `claude_desktop_config.json` at process start, and closing the window is not enough on macOS.
+
+### 4. First tool call (the OAuth bootstrap)
+
+The first time you ask Claude to use any Engram tool (e.g. "Engram, remember that I'm preparing for an interview"), `mcp-remote` opens a browser tab to your Worker's `/authorize` endpoint. Because `ENGRAM_IDENTITIES` (the KV that maps your OAuth subject to a workspace) is empty on a fresh install, you will see a 403 response with this body:
+
+```text
+Unknown OAuth subject: <some-long-string>. Bootstrap via npm run kv:bootstrap.
+```
+
+**This is expected — it's the bootstrap signal, not a bug.** Copy the `<some-long-string>` value (it's the OAuth `sub` claim from `mcp-remote`'s dynamic registration; safe to log — it is not a secret). Then from the engram repo root:
+
+```bash
+npm run kv:bootstrap -- \
+  --sub <some-long-string> \
+  --workspace-id <pick-an-identifier-for-your-workspace> \
+  --user-id <pick-an-identifier-for-yourself>
+```
+
+`--workspace-id` and `--user-id` are arbitrary — pick whatever identifiers you want; they become the `workspace_id` and `user_id` claims in every subsequent JWT. The script writes the identity to the production KV namespace via `wrangler kv key put`.
+
+**Fully quit Claude Desktop and re-launch.** On the next tool call, the OAuth flow succeeds, `mcp-remote` caches the resulting JWT in `~/.mcp-auth/`, and every subsequent tool call is one authenticated JSON-RPC request to `/mcp`.
+
+For the full bootstrap rationale (why manual, why not auto), see [`packages/mcp-server/README.md` §"Bootstrap the identity record"](./packages/mcp-server/README.md#bootstrap-the-identity-record).
+
+---
+
+## Deploy
+
+Engram ships two Workers — `engram-mcp-server` (MCP host + OAuth + WorkspaceDO) and `engram-triage-worker` (Queue consumer for async enrichment). Three commands cover the day-1 happy path and day-N surgical re-deploys.
+
+### `npm run deploy` (the full chain)
+
+```bash
+npm run deploy
+```
+
+Runs in this order:
+
+1. **`predeploy` hook fires `npm run evals:ci`** — vitest evals + promptfoo against Workers AI. If any assertion fails, the deploy aborts before any `wrangler deploy` runs.
+2. **`npm run deploy:mcp`** — `wrangler deploy` for `packages/mcp-server`.
+3. **`npm run deploy:triage`** — `wrangler deploy` for `packages/triage-worker`.
+
+On green, both Workers are live at `https://engram-mcp-server.<your-subdomain>.workers.dev` and `https://engram-triage-worker.<your-subdomain>.workers.dev`.
+
+### `npm run deploy:mcp` / `npm run deploy:triage` (per-package, surgical)
+
+```bash
+npm run deploy:mcp      # rebuild + ship just the MCP server
+npm run deploy:triage   # rebuild + ship just the triage worker
+```
+
+These commands **skip the eval gate** — they exist for day-N "I know exactly what changed, evals passed last deploy, just push the fix" workflows. Use them after small surgical fixes; use the full `npm run deploy` whenever you want confidence the change hasn't regressed evals.
+
+**Important precondition for `deploy:triage`:** `engram-mcp-server` must have been deployed at least once. The triage Worker's `wrangler.jsonc` binds `WORKSPACE` to `WorkspaceDO` via `script_name: "engram-mcp-server"` (a cross-Worker Durable Object binding). If you deploy `triage-worker` first on a fresh Cloudflare account, `wrangler` rejects the binding with `Could not find a Worker with the name "engram-mcp-server"`. The `npm run deploy` wrapper enforces the correct order automatically — only worry about this if you're invoking `deploy:triage` directly.
+
+### Eval-gate failure handling
+
+If `npm run deploy` aborts at the `predeploy` step, the failure surface is the `evals:ci` output (vitest assertions + promptfoo pass-rate). LLM evals against Workers AI have inherent variance, so:
+
+1. **Re-run once** — many failures are transient.
+2. If it fails twice, run `npm run evals:ci` directly to see which assertion failed, and fix the regression before re-running `npm run deploy`.
+3. For a surgical re-deploy after a code fix that you know is unrelated to the eval-gate failure (e.g. a typo in a comment), use `npm run deploy:mcp` or `npm run deploy:triage` to skip the gate. Don't make this a habit — the gate exists to catch real regressions.
+
+---
+
+## Troubleshooting
+
+### `wrangler deploy` fails with "class not declared in any migration"
+
+A `wrangler.jsonc` `migrations` entry was likely renamed or deleted. Both Worker `wrangler.jsonc` files must declare their Durable Object classes under `new_sqlite_classes` (NOT `new_classes` — SQLite-backed DOs are irreversible). Run `npm run lint:wrangler` from the repo root; it fails loudly if any `wrangler.jsonc` regresses to `new_classes`. See [`packages/mcp-server/README.md` §Troubleshooting](./packages/mcp-server/README.md#troubleshooting) for the full migration entry shape.
+
+### `npm install` fails with engine constraint complaints
+
+`lint-staged@17` declares `node >=22.22.1` while the repo allows 22+. Use:
+
+```bash
+npm install --engine-strict=false
+```
+
+Pre-existing condition tracked outside this README; does not affect the Worker runtime.
+
+### KV namespace IDs in `wrangler.jsonc` point at someone else's account
+
+`packages/mcp-server/wrangler.jsonc` commits real KV namespace IDs for `OAUTH_KV` and `ENGRAM_IDENTITIES`. These are not secrets, but they ARE account-specific — a fresh Cloudflare account has different IDs. `wrangler deploy` does NOT fail on bad KV IDs at deploy time; the first `/authorize` request returns a 500 instead of the expected 403. See [`packages/mcp-server/README.md` §Create KV namespaces](./packages/mcp-server/README.md#create-kv-namespaces) for the procedure: `npx wrangler kv namespace create OAUTH_KV` (and `ENGRAM_IDENTITIES`), then paste the new IDs into `wrangler.jsonc`.
+
+### Claude Desktop ignores changes to `claude_desktop_config.json`
+
+Closing the Claude Desktop window does NOT reload the config on macOS — the app stays running in the background. **Fully quit** (Cmd+Q on macOS, right-click tray icon → Exit on Windows) and re-launch. Claude Desktop only reads `claude_desktop_config.json` at process start.
+
+### Tool calls fail with stale workspace_id after re-bootstrap
+
+`mcp-remote` caches JWTs in `~/.mcp-auth/`. If you re-ran `npm run kv:bootstrap` with a new `--workspace-id`, the cached JWT still encodes the old workspace. Clear the cache:
+
+```bash
+rm -rf ~/.mcp-auth/
+```
+
+Then fully quit + re-launch Claude Desktop to trigger a fresh OAuth flow.
+
+### `npm run deploy` aborts at the eval gate
+
+The `predeploy` hook runs `npm run evals:ci` (vitest + promptfoo). LLM evals have inherent variance; re-run `npm run deploy` once. If it fails twice, run `npm run evals:ci` directly to see the specific assertion failure, and fix the regression before re-deploying. For a surgical re-deploy after an unrelated code fix, use `npm run deploy:mcp` or `npm run deploy:triage` to skip the gate.
+
+---
+
+## Reference
+
+- [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) §"First-Time Setup" — full KV namespace creation procedure for a fresh Cloudflare account.
+- [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) §"Smoke Test: MCP Inspector" — pre-OAuth Worker liveness check using `npx @modelcontextprotocol/inspector`.
+- [`packages/mcp-server/README.md`](./packages/mcp-server/README.md) §"OAuth Flow (under the hood)" — sequence diagram of the OAuth dance, including which library owns which endpoint.
+- [`CLAUDE.md`](./CLAUDE.md) §"MCP Tool Surface" — design rationale for the 5-tool v0.1 surface.
+- [`CLAUDE.md`](./CLAUDE.md) §"Architecture" — Durable Object topology and per-workspace SQLite isolation.
+- [`CLAUDE.md`](./CLAUDE.md) §"Tech Stack" — Cloudflare bindings the deployed Workers consume (KV, Vectorize, Queues, AI, Analytics Engine).
 
 ---
 
