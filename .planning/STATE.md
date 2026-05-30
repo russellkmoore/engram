@@ -90,6 +90,32 @@ From PROJECT.md + research SUMMARY.md §6 + Russell's overrides:
 
 None.
 
+## Deferred Items
+
+Items acknowledged at v0.1 milestone close on 2026-05-30. All tracked as Linear issues so they don't get lost — work them one-by-one in v0.2 or as time allows.
+
+From the artifact-open audit at milestone close:
+
+- **ENG-12** (todo) — Phase 4 raw_chunks escape hatch; likely already shipped via Phase 5 verbosity param — audit + close
+- **ENG-13** (todo) — Phase 4 prep spike retrospective; skipped at the time, not future work
+- **ENG-14** (todo) — Phase 5 cold-storage routing; audit + close (already shipped via D-07)
+- **ENG-15** (todo) — Phase 5 hybrid ranking; audit + close (already shipped via AI-04)
+- **ENG-16** (todo) — Phase 6 conflict detection precision validation (v0.2 prep)
+- **ENG-17** (seed) — SEED-001 cross-layer recall fan-out (v0.3 prep)
+- **ENG-18** (seed) — SEED-002 connector cost + throughput model (v0.4 prep)
+- **ENG-19** (uat_gap + verification) — Phase 1 GitHub-side visual checks + first CI run (5 scenarios)
+- **ENG-20** (verification) — Phase 5 AI eval gates AI-04/AI-05/AI-06 (deferred at Phase 5 close)
+
+Plus the 5 Phase 7 follow-ups filed during execution:
+
+- ENG-7: kv:bootstrap script CWD bug
+- ENG-8: Recall envelope `type` field parse-error inconsistency
+- ENG-9: Promptfoo eval gate silently passes on Workers AI 404 (High)
+- ENG-10: Wire promptfoo into CI to catch schema drift earlier
+- ENG-11: Better first-run auth flow — pull `kv:bootstrap-interactive` from v0.4 to v0.2 (High)
+
+Total deferred: 14 Linear issues (ENG-7..20). 4 marked High priority (ENG-9, ENG-11, ENG-16, ENG-18, ENG-20).
+
 ## Session Continuity
 
 ### Where to resume after a context reset
