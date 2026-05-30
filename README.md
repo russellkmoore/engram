@@ -96,7 +96,7 @@ flowchart LR
 
 **Current milestone:** v0.1 — MCP Foundation (in progress, target 2026-06-07)
 
-Foundation scaffolding (Phase 1) complete. Working on WorkspaceDO + SQLite schema (Phase 2).
+Phases 1-6 complete (Foundation → WorkspaceDO + SQLite → MCP Server Scaffold → Core Tools + Envelope → AI Integration → Async Pipeline). Phase 7 (Deploy + Acceptance) is the active phase.
 
 See [.planning/ROADMAP.md](.planning/ROADMAP.md) for the full milestone arc.
 
@@ -109,23 +109,80 @@ See [.planning/ROADMAP.md](.planning/ROADMAP.md) for the full milestone arc.
 - Node 22+, npm 10+
 - A Cloudflare account (only needed for deploy; `wrangler dev` runs locally — no account required)
 
-### Install and run
+### 1. Install
 
 ```bash
 # Clone the repo
 gh repo clone russellkmoore/engram
 cd engram
 
-# Install all workspace dependencies
-npm install
+# One-command bootstrap: installs deps, generates types, provisions
+# Vectorize index + Queue (idempotent — safe to re-run).
+npm run setup
 
 # Verify the monorepo is healthy
 npm run typecheck && npm run lint && npm run lint:wrangler
-
-# Boot a Worker locally (no Cloudflare account needed)
-npm run dev:mcp       # engram-mcp-server on http://localhost:8787
-npm run dev:triage    # engram-triage-worker on http://localhost:8788
 ```
+
+`npm run setup` chains `npm install` + `npm run types:gen` + `npm run setup:vectorize` + `npm run setup:queue` + a completion echo. The setup scripts skip if their target already exists, so re-running on an established environment is a no-op.
+
+### 2. Deploy
+
+```bash
+npm run deploy
+```
+
+Ships both Workers to your Cloudflare account. The `predeploy` hook runs the eval gate (`npm run evals:ci`) first; on green, mcp-server deploys, then triage-worker. See [Deploy](#deploy) below for the full reference (surgical re-deploys, eval-gate failure handling, deploy-order invariant).
+
+### 3. Configure Claude Desktop
+
+Claude Desktop reads `claude_desktop_config.json` to learn about MCP servers. The file lives at:
+
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Linux:** `~/.config/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+Add Engram to the `mcpServers` map:
+
+```json
+{
+  "mcpServers": {
+    "engram": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://engram-mcp-server.<your-subdomain>.workers.dev/mcp"]
+    }
+  }
+}
+```
+
+<!-- tested with mcp-remote@0.1.38 on Claude Desktop 2026-05-29 -->
+
+Replace `<your-subdomain>` with your Cloudflare account's `workers.dev` subdomain (visible in the Cloudflare dashboard under "Workers & Pages"). The `-y` flag auto-accepts the `npx` install prompt that Claude Desktop's subprocess context cannot answer.
+
+**Fully quit Claude Desktop** (Cmd+Q on macOS, right-click tray icon → Exit on Windows) and re-launch — Claude Desktop only reads `claude_desktop_config.json` at process start, and closing the window is not enough on macOS.
+
+### 4. First tool call (the OAuth bootstrap)
+
+The first time you ask Claude to use any Engram tool (e.g. "Engram, remember that I'm preparing for an interview"), `mcp-remote` opens a browser tab to your Worker's `/authorize` endpoint. Because `ENGRAM_IDENTITIES` (the KV that maps your OAuth subject to a workspace) is empty on a fresh install, you will see a 403 response with this body:
+
+```text
+Unknown OAuth subject: <some-long-string>. Bootstrap via npm run kv:bootstrap.
+```
+
+**This is expected — it's the bootstrap signal, not a bug.** Copy the `<some-long-string>` value (it's the OAuth `sub` claim from `mcp-remote`'s dynamic registration; safe to log — it is not a secret). Then from the engram repo root:
+
+```bash
+npm run kv:bootstrap -- \
+  --sub <some-long-string> \
+  --workspace-id <pick-an-identifier-for-your-workspace> \
+  --user-id <pick-an-identifier-for-yourself>
+```
+
+`--workspace-id` and `--user-id` are arbitrary — pick whatever identifiers you want; they become the `workspace_id` and `user_id` claims in every subsequent JWT. The script writes the identity to the production KV namespace via `wrangler kv key put`.
+
+**Fully quit Claude Desktop and re-launch.** On the next tool call, the OAuth flow succeeds, `mcp-remote` caches the resulting JWT in `~/.mcp-auth/`, and every subsequent tool call is one authenticated JSON-RPC request to `/mcp`.
+
+For the full bootstrap rationale (why manual, why not auto), see [`packages/mcp-server/README.md` §"Bootstrap the identity record"](./packages/mcp-server/README.md#bootstrap-the-identity-record).
 
 ---
 
