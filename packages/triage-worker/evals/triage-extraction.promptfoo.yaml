@@ -17,12 +17,40 @@
 description: "AI-05 Triage Worker extraction — JSON parse rate gate over reference corpus"
 
 # Shared assertions: every test loaded by `tests:` inherits these.
-# Dimension #4 primary gate: output is valid JSON.
+# Dimension #4 primary gate: output is valid JSON AND is a real model response
+# (NOT a Cloudflare API error envelope).
+#
+# ENG-9 fix: previously `is-json` alone passed on Cloudflare 404/401/500
+# responses because their error envelope `{"result":null,"success":false,...}`
+# is also valid JSON. The `not-cf-error-envelope` assertion below catches
+# these and fails loudly so the predeploy gate doesn't silently let deploys
+# through when Workers AI is unreachable / unauthenticated / misconfigured.
 defaultTest:
   options:
     timeoutMs: 30000
   assert:
     - type: is-json
+    - type: javascript
+      # Fail if output looks like a Cloudflare API error envelope.
+      # Cloudflare API failures have either `success: false` or `result: null`
+      # (typically both) at the top level. Real model responses (per the
+      # SYSTEM_PROMPT contract) are TriageOutput-shaped objects with
+      # `classified_type` + `memorability` — they never have `success: false`.
+      value: |
+        (function() {
+          try {
+            const o = typeof output === 'string' ? JSON.parse(output) : output;
+            if (o && (o.success === false || o.result === null)) {
+              return {
+                pass: false,
+                reason: 'Cloudflare API error envelope (not a model response). Check CLOUDFLARE_API_TOKEN scopes (needs Workers AI:Read), CLOUDFLARE_ACCOUNT_ID, and model name. Output: ' + JSON.stringify(o).slice(0, 200)
+              };
+            }
+            return { pass: true };
+          } catch (e) {
+            return { pass: false, reason: 'Output failed to parse as JSON: ' + e.message };
+          }
+        })()
 
 providers:
   - id: https
