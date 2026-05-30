@@ -344,14 +344,14 @@ Plans:
 1. `wrangler deploy` succeeds for both `packages/mcp-server/` and `packages/triage-worker/` against Russell's Cloudflare account; both Workers are live and reachable at `*.workers.dev` URLs.
 2. A JWT for Russell's single workspace is issued (via a documented script or runbook), pasted into Claude Desktop's MCP config via the `mcp-remote` bridge, and the connection is verified by listing the five Engram tools in Claude Desktop.
 3. **Acceptance test (the v0.1 done-state):** Russell asks Claude in conversation A to `remember` a job posting (URL + role + company). One or more hours later, in conversation B (no shared chat history), Russell asks "what job did I save earlier?" Claude calls `recall`, returns the correct posting with extracted fields, and Russell reads it back. Test passes on at least two consecutive runs.
-4. Russell's job-search agent is reconfigured to use Engram as its memory backend; the agent's existing job-storage flow continues to work end-to-end (no regression in the agent's capture path).
+4. ~~Russell's job-search agent is reconfigured to use Engram as its memory backend; the agent's existing job-storage flow continues to work end-to-end (no regression in the agent's capture path).~~ **DROPPED from v0.1 scope 2026-05-30 during Phase 7 execution** — the Job Scout rewire required a real rewrite of the agent (separate codebase), not the in-place capture-path swap originally scoped. Engram's substrate readiness is verified via SC #3 above; Job Scout integration lives in that repo's own backlog and exercises the same MCP tools already proven in production.
 5. Setup README documents prereqs (Cloudflare account, paid Workers plan, npm 10+), one-command bootstrap (`npm install && npm run setup`), Claude Desktop config snippet, and troubleshooting for the common errors observed during P1–P6.
 
 **Risk Notes:**
 
 - First production deploy exercises every irreversible decision at once. The CI lint from P1 (FND-08) is the last gate against `new_classes` regressions in any wrangler config that has been touched since.
 - `mcp-remote` is community-maintained (SUMMARY.md §9 risk flag). Watch Claude Desktop releases for native Streamable HTTP support and drop the proxy when it lands.
-- Russell's job-search agent rewire (DEP-04) is the first real-world stress test of the EngramResponse envelope shape and the recall semantic-vs-lexical promotion (P5). A regression here means scoping the issue immediately — do not let v0.1 close until DEP-04 holds for at least 3 consecutive working days (per REQUIREMENTS.md acceptance criteria).
+- ~~Russell's job-search agent rewire (DEP-04) is the first real-world stress test of the EngramResponse envelope shape and the recall semantic-vs-lexical promotion (P5). A regression here means scoping the issue immediately — do not let v0.1 close until DEP-04 holds for at least 3 consecutive working days (per REQUIREMENTS.md acceptance criteria).~~ DEP-04 dropped from v0.1 scope; risk no longer applies for this phase. The "first real-world stress test" of recall semantics was effectively done via DEP-03's two-run acceptance (~9.5 hour wall-clock waits, fresh-session recalls of distinct postings, full structured-field returns).
 
 **Plans:** 3/4 plans executed
 

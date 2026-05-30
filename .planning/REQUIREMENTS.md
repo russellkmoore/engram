@@ -82,7 +82,7 @@ Russell's call: **keep AI integration in v0.1** (Vectorize + Workers AI ship now
 - [ ] **DEP-01**: `wrangler deploy` succeeds for `packages/mcp-server/` and `packages/triage-worker/` against Russell's Cloudflare account; both Workers are live at `*.workers.dev` URLs
 - [ ] **DEP-02**: A JWT for Russell's single workspace is issued (script or doc), pasted into Claude Desktop's MCP config via `mcp-remote` bridge
 - [ ] **DEP-03**: Acceptance test (the v0.1 done-state): Russell, in a Claude conversation, asks Claude to `remember` a job posting (URL + role + company). In a separate Claude conversation 1+ hour later, Russell asks "what job did I save earlier?" and Claude calls `recall` and returns the correct posting with extracted fields.
-- [ ] **DEP-04**: Russell's job-search agent is reconfigured to use Engram as its memory backend; the agent's existing job-storage flow continues to work end-to-end
+- [~] **DEP-04**: ~~Russell's job-search agent is reconfigured to use Engram as its memory backend; the agent's existing job-storage flow continues to work end-to-end~~ — **DROPPED from v0.1 scope on 2026-05-30 during Phase 7 execution.** The Job Scout agent rewire turned out to require a real rewrite of the agent (separate codebase), not an in-place capture-path swap. Engram's substrate readiness is verified via DEP-03 — when Russell rewrites Job Scout to use Engram, that work lives in the Job Scout repo and exercises the SAME MCP tools already proven in production. No Engram-side work required.
 - [ ] **DEP-05**: Setup README documents: prereqs (Cloudflare account, paid Workers plan, npm 10+), one-command bootstrap (`npm install && npm run setup`), Claude Desktop config snippet, troubleshooting for common errors
 
 ## v1 Counts
