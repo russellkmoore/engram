@@ -54,6 +54,7 @@ function usage(stream) {
       `${TAG}   --local:        optional. Write to local-mode KV (.wrangler/state/v3/kv/) instead of remote (WR-08).\n` +
       `${TAG}   --dry-run:      optional. Print planned wrangler command WITHOUT executing it (identity JSON redacted).\n` +
       `${TAG}   --help:         print this usage and exit 1.\n` +
+      `${TAG} Discoverability: See README.md "Getting Started -> Step 4: First tool call" for the end-to-end bootstrap walkthrough.\n` +
       `${TAG} Exit codes: 0 success | 1 missing arg / --help | 2 wrangler subprocess failed.\n`,
   );
 }
