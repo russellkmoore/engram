@@ -353,6 +353,26 @@ Plans:
 - `mcp-remote` is community-maintained (SUMMARY.md §9 risk flag). Watch Claude Desktop releases for native Streamable HTTP support and drop the proxy when it lands.
 - Russell's job-search agent rewire (DEP-04) is the first real-world stress test of the EngramResponse envelope shape and the recall semantic-vs-lexical promotion (P5). A regression here means scoping the issue immediately — do not let v0.1 close until DEP-04 holds for at least 3 consecutive working days (per REQUIREMENTS.md acceptance criteria).
 
+**Plans:** 4 plans across 4 waves
+
+Plans:
+
+**Wave 1** (npm script wiring — no deps)
+
+- [ ] 07-01-PLAN.md (Wave 1, autonomous) — package.json setup chain extension per D-07 (chain setup:queue + completion echo) + deploy / deploy:mcp / deploy:triage scripts per D-08 (cross-worker DO deploy order: mcp-server BEFORE triage-worker) + scripts/kv-bootstrap.mjs `--help` discoverability hint pointing at README Step 4 [DEP-01, DEP-05]
+
+**Wave 2** (README hoist — depends on Wave 1)
+
+- [ ] 07-02-PLAN.md (Wave 2, autonomous) — root README.md restructure: Getting Started numbered Steps 1-4 (Install, Deploy, Configure Claude Desktop, First tool call OAuth bootstrap per D-02 with literal `Unknown OAuth subject` 403 body verbatim from oauth.ts:201) + new H2 `## Deploy` documenting all three scripts with cross-worker DO precondition + new H2 `## Troubleshooting` with 6 P1-P6 triaged entries (EXCLUDES the bootstrap-403 entry per D-02) + new H2 `## Reference` with down-links to per-package READMEs [DEP-02, DEP-05]
+
+**Wave 3** (HUMAN-UAT skeleton — depends on Wave 2)
+
+- [ ] 07-03-PLAN.md (Wave 3, autonomous) — create EMPTY 07-HUMAN-UAT.md skeleton with frontmatter (`status: in_progress`, `phase: 07-deploy-acceptance`, `source: [REQUIREMENTS.md#DEP-03, REQUIREMENTS.md#DEP-04]`) + 3 test stubs (DEP-03 Run 1, DEP-03 Run 2 with different posting per D-03, DEP-04 rewire smoke per D-06) with merged Phase 1 + Phase 3 evidence shape + operator-facing sub-redaction guidance + Summary block matching /gsd:audit-uat format. Skeleton structure only — Russell populates [pending] -> [pass/fail] entries DURING the 1-2 day acceptance window in Plan 04 [DEP-03, DEP-04]
+
+**Wave 4** (deploy execution + human-gated acceptance — depends on Waves 1-3)
+
+- [ ] 07-04-PLAN.md (Wave 4, checkpoint:human-verify + checkpoint:human-action) — Task 1: run `npm run deploy` from Plan 01 wrapper, verify both Workers live at *.workers.dev URLs (DEP-01) + Task 2 (human-verify): Russell configures Claude Desktop + walks OAuth bootstrap per README Steps 3+4, verifies 5 tools listed (DEP-02) + Task 3 (human-action): DEP-03 Run 1 + Run 2 over 1-2 day window with 1+ hour real wall-clock wait per D-03, populate 07-HUMAN-UAT.md entries + Task 4 (human-action): DEP-04 rewire smoke per D-06 (forward-only per D-05 — no pre-Engram file migration), populate Rewire smoke entry [DEP-01, DEP-02, DEP-03, DEP-04]
+
 **Linear:** Maps to milestone "v0.1 — MCP Foundation" (existing in workspace)
 **UI hint:** no
 
@@ -366,7 +386,7 @@ Plans:
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
 | 6. Async Pipeline        | 5/5 | Complete   | 2026-05-29 |
-| 7. Deploy + Acceptance   | 0/0            | Not started | —         |
+| 7. Deploy + Acceptance   | 0/4            | Ready to execute | —    |
 
 ## Parallelization Notes
 
