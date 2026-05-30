@@ -353,13 +353,13 @@ Plans:
 - `mcp-remote` is community-maintained (SUMMARY.md §9 risk flag). Watch Claude Desktop releases for native Streamable HTTP support and drop the proxy when it lands.
 - Russell's job-search agent rewire (DEP-04) is the first real-world stress test of the EngramResponse envelope shape and the recall semantic-vs-lexical promotion (P5). A regression here means scoping the issue immediately — do not let v0.1 close until DEP-04 holds for at least 3 consecutive working days (per REQUIREMENTS.md acceptance criteria).
 
-**Plans:** 4 plans across 4 waves
+**Plans:** 1/4 plans executed
 
 Plans:
 
 **Wave 1** (npm script wiring — no deps)
 
-- [ ] 07-01-PLAN.md (Wave 1, autonomous) — package.json setup chain extension per D-07 (chain setup:queue + completion echo) + deploy / deploy:mcp / deploy:triage scripts per D-08 (cross-worker DO deploy order: mcp-server BEFORE triage-worker) + scripts/kv-bootstrap.mjs `--help` discoverability hint pointing at README Step 4 [DEP-01, DEP-05]
+- [x] 07-01-PLAN.md (Wave 1, autonomous) — package.json setup chain extension per D-07 (chain setup:queue + completion echo) + deploy / deploy:mcp / deploy:triage scripts per D-08 (cross-worker DO deploy order: mcp-server BEFORE triage-worker) + scripts/kv-bootstrap.mjs `--help` discoverability hint pointing at README Step 4 [DEP-01, DEP-05]
 
 **Wave 2** (README hoist — depends on Wave 1)
 
@@ -386,7 +386,7 @@ Plans:
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
 | 6. Async Pipeline        | 5/5 | Complete   | 2026-05-29 |
-| 7. Deploy + Acceptance   | 0/4            | Ready to execute | —    |
+| 7. Deploy + Acceptance   | 1/4 | In Progress|  |
 
 ## Parallelization Notes
 
