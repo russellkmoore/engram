@@ -48,3 +48,19 @@ Cheap insurance against the cardinal sin. Cost: a column, a query path, a routin
 ## Rationale
 
 Architectural critique from 2026-05-25 conversation: "memorability < 0.4 → discard is the cardinal sin of a memory product. Silently losing something a user wanted to keep, based on a small model's score, will destroy trust faster than any other failure. Default to inbox/cold-storage, never hard-discard — at least until the scorer is proven."
+
+---
+
+## Closure (2026-05-30, ENG-14 audit)
+
+**Status:** Resolved by Phase 5 D-07. Audit confirmed all asks shipped:
+
+- `blocks.cold_storage` column added via v2 migration (`packages/workspace-do/src/schema.ts:146`)
+- v2 entry in `MIGRATIONS` runner (`packages/workspace-do/src/migrations.ts`)
+- `moveToColdStorage(workspace_id, block_id)` helper added (`packages/workspace-do/src/queries.ts:699`); ONLY writer of `cold_storage = 1`
+- Triage Worker routes `memorability < 0.4` to `moveToColdStorage`, NEVER discard (`packages/triage-worker/src/index.ts:17` cardinal-sin comment)
+- `routeByMemorability` predicate in `packages/triage-worker/src/memorability.ts` handles the routing
+- CLAUDE.md `## Ingest Pipeline` step 5 reflects cold-storage routing (NEVER discard)
+- Zero `discard*` calls in production code paths (verified by grep)
+
+The "cardinal sin" of silently losing user data is structurally prevented.
