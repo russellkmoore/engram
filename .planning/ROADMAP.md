@@ -353,7 +353,7 @@ Plans:
 - `mcp-remote` is community-maintained (SUMMARY.md §9 risk flag). Watch Claude Desktop releases for native Streamable HTTP support and drop the proxy when it lands.
 - Russell's job-search agent rewire (DEP-04) is the first real-world stress test of the EngramResponse envelope shape and the recall semantic-vs-lexical promotion (P5). A regression here means scoping the issue immediately — do not let v0.1 close until DEP-04 holds for at least 3 consecutive working days (per REQUIREMENTS.md acceptance criteria).
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 
@@ -367,7 +367,7 @@ Plans:
 
 **Wave 3** (HUMAN-UAT skeleton — depends on Wave 2)
 
-- [ ] 07-03-PLAN.md (Wave 3, autonomous) — create EMPTY 07-HUMAN-UAT.md skeleton with frontmatter (`status: in_progress`, `phase: 07-deploy-acceptance`, `source: [REQUIREMENTS.md#DEP-03, REQUIREMENTS.md#DEP-04]`) + 3 test stubs (DEP-03 Run 1, DEP-03 Run 2 with different posting per D-03, DEP-04 rewire smoke per D-06) with merged Phase 1 + Phase 3 evidence shape + operator-facing sub-redaction guidance + Summary block matching /gsd:audit-uat format. Skeleton structure only — Russell populates [pending] -> [pass/fail] entries DURING the 1-2 day acceptance window in Plan 04 [DEP-03, DEP-04]
+- [x] 07-03-PLAN.md (Wave 3, autonomous) — create EMPTY 07-HUMAN-UAT.md skeleton with frontmatter (`status: in_progress`, `phase: 07-deploy-acceptance`, `source: [REQUIREMENTS.md#DEP-03, REQUIREMENTS.md#DEP-04]`) + 3 test stubs (DEP-03 Run 1, DEP-03 Run 2 with different posting per D-03, DEP-04 rewire smoke per D-06) with merged Phase 1 + Phase 3 evidence shape + operator-facing sub-redaction guidance + Summary block matching /gsd:audit-uat format. Skeleton structure only — Russell populates [pending] -> [pass/fail] entries DURING the 1-2 day acceptance window in Plan 04 [DEP-03, DEP-04]
 
 **Wave 4** (deploy execution + human-gated acceptance — depends on Waves 1-3)
 
@@ -386,7 +386,7 @@ Plans:
 | 4. Core Tools + Envelope | 7/7 | Complete   | 2026-05-27 |
 | 5. AI Integration        | 0/7            | Ready to execute | —    |
 | 6. Async Pipeline        | 5/5 | Complete   | 2026-05-29 |
-| 7. Deploy + Acceptance   | 2/4 | In Progress|  |
+| 7. Deploy + Acceptance   | 3/4 | In Progress|  |
 
 ## Parallelization Notes
 
