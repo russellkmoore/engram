@@ -29,7 +29,6 @@
  *
  * @module @engram/mcp-server/hybrid-rank
  */
-import type { VectorizeMatches } from "@cloudflare/workers-types";
 import type { LexicalSearchHit } from "@engram/workspace-do";
 import type { RecallInput } from "./schemas.js";
 

@@ -104,13 +104,17 @@ import type { EngramProps } from "./index.js";
  * Per spike-findings-engram §6: preserve the 5 drop categories — dates, sources,
  * technical identifiers, numeric values, decision-rejection naming.
  */
+// ENG-22: `as const` can only apply to literals (enum members, string/number/
+// boolean/array/object literals) — not to a parenthesized concatenation expression.
+// Collapsed the string-concat into a single template literal so the assertion is
+// valid AND the prompt stays byte-stable for the spike-findings-engram §6 contract.
 const SYNTHESIS_SYSTEM_PROMPT =
-  (`You are Engram's recall synthesizer. Given a user query and the top-ranked memories that matched it, produce a 2-4 sentence summary that:\n` +
-    `- Directly answers the user's query when possible\n` +
-    `- Preserves dates, sources, technical identifiers, numeric values, and decision-rejection naming (5 drop categories per spike-findings-engram §6)\n` +
-    `- Cites memories by their position ("memory 1 / memory 2 / ...") when referring to specifics\n` +
-    `- Acknowledges gaps when the memories don't directly answer the query (do NOT fabricate)\n` +
-    `Output prose only; no markdown headers; no JSON; no bullet lists.`) as const;
+  `You are Engram's recall synthesizer. Given a user query and the top-ranked memories that matched it, produce a 2-4 sentence summary that:
+- Directly answers the user's query when possible
+- Preserves dates, sources, technical identifiers, numeric values, and decision-rejection naming (5 drop categories per spike-findings-engram §6)
+- Cites memories by their position ("memory 1 / memory 2 / ...") when referring to specifics
+- Acknowledges gaps when the memories don't directly answer the query (do NOT fabricate)
+Output prose only; no markdown headers; no JSON; no bullet lists.` as const;
 
 /**
  * Trims the ranked memories list to fit within maxTokens worth of synthesis input.
@@ -307,6 +311,19 @@ export function registerTools(
 
       // Step 1: Truncation — per CONTEXT.md Claude's Discretion §"Long-content truncation policy"
       // Full content already stored in SQLite above; only embedding side gets truncated.
+      //
+      // ENG-22: Memory.content is typed `string | null` (a block can exist
+      // without content, e.g. relation-only nodes in v0.3+). For the embed
+      // path we must have content — insertBlock above always populates it
+      // from args.content (required at remember() entry), so this null check
+      // is a defensive narrowing that doubles as a type guard for the rest
+      // of this function. If it ever fires it indicates a schema invariant
+      // break, not a user error.
+      if (block.content === null) {
+        throw new Error(
+          "remember(): block.content is null after insertBlock — schema invariant violated",
+        );
+      }
       const TRUNCATE_THRESHOLD = 1800;
       const contentForEmbed =
         block.content.length > TRUNCATE_THRESHOLD
@@ -527,9 +544,12 @@ export function registerTools(
       const topK = args.limit ?? 25;
       const vectorizeQueryStart = Date.now();
        
+      // ENG-22: with exactOptionalPropertyTypes, passing `filter: undefined` is
+      // rejected — must conditionally include the key via spread when args.types
+      // is set, omit entirely when empty/absent.
       const result = await vectorizeQuery(env, props.workspace_id, queryVector, {
         topK,
-        filter: args.types?.length ? { type: { $in: args.types } } : undefined,
+        ...(args.types?.length ? { filter: { type: { $in: args.types } } } : {}),
         returnMetadata: "all",
       });
 

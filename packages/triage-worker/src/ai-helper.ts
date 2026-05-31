@@ -38,7 +38,6 @@
  *
  * @module @engram/triage-worker/ai-helper
  */
-import type { Ai } from "@cloudflare/workers-types";
 
 // ---------------------------------------------------------------------------
 // Locked model-ID constants (AI-SPEC.md §3 Model Configuration table)

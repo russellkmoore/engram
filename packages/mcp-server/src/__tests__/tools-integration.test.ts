@@ -425,7 +425,7 @@ describe("TOL-04: forget round-trip", () => {
 
     // 2. add a relation directly via DO SQL (WorkspaceDO.relate() ships in v0.3;
     //    seed via raw SQL for now — this is a test-only path)
-    const wsNs = (env as Record<string, unknown>).WORKSPACE as DurableObjectNamespace;
+    const wsNs = (env as unknown as Record<string, unknown>).WORKSPACE as DurableObjectNamespace;
     await runInDurableObject(wsNs.get(wsNs.idFromName(workspace_id)), (instance: unknown) => {
       // Access the SQL storage directly via the ctx — test-only pattern
       const doInstance = instance as { ctx: { storage: { sql: SqlStorage } } };

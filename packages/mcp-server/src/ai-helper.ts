@@ -38,7 +38,6 @@
  *
  * @module @engram/mcp-server/ai-helper
  */
-import type { Ai } from "@cloudflare/workers-types";
 
 // ---------------------------------------------------------------------------
 // Locked model-ID constants (AI-SPEC.md §3 Model Configuration table)
@@ -219,7 +218,7 @@ export async function safeRun(
 ): Promise<AiBindingResponse> {
   let resp: AiBindingResponse;
   try {
-    resp = await env.AI.run(model as Parameters<Ai["run"]>[0], body);
+    resp = await env.AI.run(model, body);
   } catch (err) {
     if (isRateLimitError(err)) {
       throw new RateLimitError("thrown");

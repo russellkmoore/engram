@@ -29,7 +29,6 @@
  * @module @engram/triage-worker/schemas
  */
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 // ---------------------------------------------------------------------------
 // SYSTEM_MEMORY_TYPES — system-seeded memory type IDs (schema-as-data)
@@ -107,17 +106,29 @@ export type TriageOutput = z.infer<typeof TriageOutput>;
 // ---------------------------------------------------------------------------
 
 /**
- * JSON schema derived from TriageOutput via `zodToJsonSchema` with OpenAPI 3
- * target. Passed verbatim to:
+ * JSON schema derived from TriageOutput via Zod v4's native `z.toJSONSchema`.
+ * Passed verbatim to:
  *   `env.AI.run(CLASSIFIER_MODEL, { response_format: { type: "json_schema", json_schema: TRIAGE_JSON_SCHEMA } })`
  *
- * `$refStrategy: "none"` inlines all $refs — required because Workers AI
- * `response_format.json_schema` does not support `$ref` resolution.
+ * ENG-21 fix: previously this used `zodToJsonSchema` from the third-party
+ * `zod-to-json-schema@3.x` package, which is INCOMPATIBLE with zod@4 and
+ * silently returned `{}` (verified locally via repro script on 2026-05-31).
+ * That meant production was sending an EMPTY json_schema to Workers AI for
+ * the entire Phase 5/6/7 lifetime — the model wasn't constrained at all,
+ * only the SYSTEM_PROMPT was coaxing JSON-shaped output. The Zod gate at
+ * the runtime boundary in extract.ts was catching malformed outputs but
+ * we were paying for retries that should have been prevented by the
+ * structured-output constraint.
  *
- * `target: "openApi3"` produces OpenAPI 3 schema objects which Workers AI
- * accepts as the structured-output schema spec.
+ * Zod v4's built-in `z.toJSONSchema()` is the canonical converter, no
+ * third-party dep needed. It produces draft-2020-12 JSON Schema by default,
+ * which Workers AI's `response_format.json_schema` accepts.
+ *
+ * The `$schema` top-level field is harmless to Workers AI but adds bytes
+ * to every request — strip it via destructure to keep the constraint tight.
  */
-export const TRIAGE_JSON_SCHEMA = zodToJsonSchema(TriageOutput, {
-  target: "openApi3",
-  $refStrategy: "none",
-});
+export const TRIAGE_JSON_SCHEMA = (() => {
+  const { $schema, ...schema } = z.toJSONSchema(TriageOutput);
+  void $schema;
+  return schema;
+})();

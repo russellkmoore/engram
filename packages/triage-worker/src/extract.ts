@@ -30,7 +30,6 @@
  *
  * @module @engram/triage-worker/extract
  */
-import type { Ai, AnalyticsEngineDataset, DurableObjectNamespace } from "@cloudflare/workers-types";
 import type { MemoryEvent } from "@engram/types";
 import { TriageOutput, TRIAGE_JSON_SCHEMA } from "./schemas.js";
 import { SYSTEM_PROMPT } from "./prompts.js";
