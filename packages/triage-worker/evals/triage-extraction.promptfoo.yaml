@@ -40,15 +40,20 @@ defaultTest:
         (function() {
           const t = typeof output;
           const len = (t === 'string') ? output.length : (t === 'object' ? JSON.stringify(output).length : -1);
-          const peek = (t === 'string') ? output.slice(0, 120) : JSON.stringify(output).slice(0, 120);
-          const tail = (t === 'string') ? output.slice(-120) : JSON.stringify(output).slice(-120);
+          const peek = (t === 'string') ? output.slice(0, 200) : JSON.stringify(output).slice(0, 200);
+          const tail = (t === 'string') ? output.slice(-200) : JSON.stringify(output).slice(-200);
+          // ENG-20 debug: console.error always fires regardless of pass/fail so
+          // we can see exactly what the assertion is receiving in the GitHub
+          // Actions log (promptfoo's table reporter truncates reason text).
+          console.error('[ASSERT-DEBUG] type=' + t + ' len=' + len + ' head=' + JSON.stringify(peek) + ' tail=' + JSON.stringify(tail));
           let parsed;
           try {
             parsed = (t === 'string') ? JSON.parse(output) : output;
           } catch (e) {
+            console.error('[ASSERT-DEBUG] parse-error: ' + e.message);
             return {
               pass: false,
-              reason: 'parse-failed | type=' + t + ' | len=' + len + ' | head=' + peek + ' | tail=' + tail + ' | err=' + e.message
+              reason: 'parse-failed | type=' + t + ' | len=' + len + ' | err=' + e.message
             };
           }
           if (parsed && (parsed.success === false || parsed.result === null)) {
@@ -60,7 +65,7 @@ defaultTest:
           if (!parsed || typeof parsed !== 'object') {
             return {
               pass: false,
-              reason: 'parsed-but-not-object | type=' + typeof parsed + ' | value=' + String(parsed).slice(0, 200)
+              reason: 'parsed-but-not-object | type=' + typeof parsed
             };
           }
           return { pass: true };
