@@ -68,7 +68,11 @@ providers:
           - role: user
             content: "{{ memory_content }}"
         temperature: 0.2
-        max_tokens: 1024
+        # ENG-20 followup: bumped 1024→4096 because response_format.json_schema
+        # produces more verbose JSON (full entities array + extracted_fields +
+        # summary up to 800 chars). 1024 was clipping mid-JSON and producing
+        # unparseable truncated output → is-json assertion failed at 0/20.
+        max_tokens: 4096
         # ENG-20 followup: mirror production's call shape. The Triage Worker
         # at runtime calls `env.AI.run(CLASSIFIER_MODEL, { response_format })`
         # with the JSON schema below — this CONSTRAINS the model to emit
@@ -136,7 +140,14 @@ providers:
       # promptfoo transformResponse expects a callable (output) => ... form
       # in 0.121.x. Arrow function returns the unwrapped response or falls
       # through to raw output when shape is unexpected (e.g. auth errors).
-      transformResponse: "(output) => { const j = typeof output === 'string' ? JSON.parse(output) : output; return (j && j.result && j.result.response) || output; }"
+      #
+      # ENG-20 followup: when response_format.json_schema is set, Workers AI
+      # returns `result.response` as an already-PARSED object (not a string).
+      # promptfoo's is-json assertion expects a STRING to JSON.parse, so an
+      # object value silently fails the assertion. Stringify defensively so
+      # is-json always sees a string regardless of which response shape
+      # Workers AI emits.
+      transformResponse: "(output) => { const j = typeof output === 'string' ? JSON.parse(output) : output; const r = (j && j.result && j.result.response) || output; return typeof r === 'string' ? r : JSON.stringify(r); }"
 
 # Each prompt template — promptfoo requires at least one. The provider body
 # template above does the actual request shaping via {{ system_prompt }} +
