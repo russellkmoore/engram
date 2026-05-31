@@ -134,22 +134,50 @@ npm run deploy
 
 Ships both Workers to your Cloudflare account. The `predeploy` hook runs the eval gate (`npm run evals:ci`) first; on green, mcp-server deploys, then triage-worker. See [Deploy](#deploy) below for the full reference (surgical re-deploys, eval-gate failure handling, deploy-order invariant).
 
-### 3. Configure Claude Desktop
+### 3. Bootstrap Claude Desktop + KV (one interactive command)
 
-Claude Desktop reads `claude_desktop_config.json` to learn about MCP servers. The file lives at:
+ENG-11 ships a single interactive script that does the entire first-run dance for you — merging Claude Desktop's config (preserving any other MCPs you have configured), prompting for sensible defaults derived from `git config user.email`, and writing the OAuth identity record into KV after you trigger the first 403.
 
-- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Linux:** `~/.config/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+```bash
+npm run kv:bootstrap-interactive
+```
 
-Add Engram to the `mcpServers` map:
+The script walks you through:
+
+1. **Auto-detects** the deployed Worker URL via `wrangler deployments list` (or prompts if it can't find one).
+2. **Suggests defaults** for `workspace_id` and `user_id` derived from your `git config user.email` — press Enter to accept or type your own.
+3. **Merges** the Engram MCP entry into `claude_desktop_config.json` with a timestamped `.bak` backup. **All your existing MCP servers and top-level preferences are preserved** — the script only adds/replaces the `engram` key under `mcpServers`.
+4. **Pauses** while you:
+   - Fully quit Claude Desktop (Cmd+Q on macOS, tray-icon → Exit on Windows) and relaunch
+   - Trigger any Engram tool in a fresh conversation (e.g. "Engram, recall my latest job applications")
+   - Copy the resulting `Unknown OAuth subject: …` error message
+5. **Paste** that error (or just the sub token) back into the script. It extracts the `sub`, writes the identity to KV via the existing `kv:bootstrap` script (preserving the T-03-KV-LEAK security posture), and polls KV until propagation completes.
+
+That's it. Re-trigger any Engram tool in Claude Desktop — no second restart needed; KV is read on every `/authorize` call.
+
+**Useful flags** (pass after a `--`):
+
+```bash
+# Override the auto-detected worker URL
+npm run kv:bootstrap-interactive -- --worker-url https://engram-mcp-server.example.workers.dev
+
+# Skip the config edit (just do the KV write — useful if you already edited config manually)
+npm run kv:bootstrap-interactive -- --skip-config-edit
+
+# Plan-only mode — prints what it would do, writes nothing
+npm run kv:bootstrap-interactive -- --dry-run
+```
+
+> **Want the manual path instead?** `npm run kv:bootstrap` is still the building block — see [`packages/mcp-server/README.md` §"Bootstrap the identity record"](./packages/mcp-server/README.md#bootstrap-the-identity-record) for the original 8-step flow (useful for CI / automation / power users).
+
+The `engram` entry the script writes looks like this — drop it into `claude_desktop_config.json` manually if you'd rather skip the interactive flow:
 
 ```json
 {
   "mcpServers": {
     "engram": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://engram-mcp-server.<your-subdomain>.workers.dev/mcp"]
+      "args": ["mcp-remote", "https://engram-mcp-server.<your-subdomain>.workers.dev/mcp"]
     }
   }
 }
@@ -157,32 +185,13 @@ Add Engram to the `mcpServers` map:
 
 <!-- tested with mcp-remote@0.1.38 on Claude Desktop 2026-05-29 -->
 
-Replace `<your-subdomain>` with your Cloudflare account's `workers.dev` subdomain (visible in the Cloudflare dashboard under "Workers & Pages"). The `-y` flag auto-accepts the `npx` install prompt that Claude Desktop's subprocess context cannot answer.
+The file lives at:
 
-**Fully quit Claude Desktop** (Cmd+Q on macOS, right-click tray icon → Exit on Windows) and re-launch — Claude Desktop only reads `claude_desktop_config.json` at process start, and closing the window is not enough on macOS.
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Linux:** `~/.config/Claude/claude_desktop_config.json`
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
-### 4. First tool call (the OAuth bootstrap)
-
-The first time you ask Claude to use any Engram tool (e.g. "Engram, remember that I'm preparing for an interview"), `mcp-remote` opens a browser tab to your Worker's `/authorize` endpoint. Because `ENGRAM_IDENTITIES` (the KV that maps your OAuth subject to a workspace) is empty on a fresh install, you will see a 403 response with this body:
-
-```text
-Unknown OAuth subject: <some-long-string>. Bootstrap via npm run kv:bootstrap.
-```
-
-**This is expected — it's the bootstrap signal, not a bug.** Copy the `<some-long-string>` value (it's the OAuth `sub` claim from `mcp-remote`'s dynamic registration; safe to log — it is not a secret). Then from the engram repo root:
-
-```bash
-npm run kv:bootstrap -- \
-  --sub <some-long-string> \
-  --workspace-id <pick-an-identifier-for-your-workspace> \
-  --user-id <pick-an-identifier-for-yourself>
-```
-
-`--workspace-id` and `--user-id` are arbitrary — pick whatever identifiers you want; they become the `workspace_id` and `user_id` claims in every subsequent JWT. The script writes the identity to the production KV namespace via `wrangler kv key put`.
-
-**Fully quit Claude Desktop and re-launch.** On the next tool call, the OAuth flow succeeds, `mcp-remote` caches the resulting JWT in `~/.mcp-auth/`, and every subsequent tool call is one authenticated JSON-RPC request to `/mcp`.
-
-For the full bootstrap rationale (why manual, why not auto), see [`packages/mcp-server/README.md` §"Bootstrap the identity record"](./packages/mcp-server/README.md#bootstrap-the-identity-record).
+After any manual edit, **fully quit Claude Desktop and re-launch** — Claude Desktop only reads `claude_desktop_config.json` at process start, and closing the window is not enough on macOS.
 
 ---
 
