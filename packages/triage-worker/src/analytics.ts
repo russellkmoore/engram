@@ -28,7 +28,6 @@
  *
  * @module @engram/triage-worker/analytics
  */
-import type { AnalyticsEngineDataset } from "@cloudflare/workers-types";
 
 // ---------------------------------------------------------------------------
 // Type aliases — match AI-SPEC.md §7 schema slot counts exactly

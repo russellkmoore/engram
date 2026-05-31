@@ -32,14 +32,6 @@
  *
  * @module @engram/triage-worker
  */
-import type {
-  Ai,
-  DurableObjectNamespace,
-  VectorizeIndex,
-  AnalyticsEngineDataset,
-  MessageBatch,
-  Message,
-} from "@cloudflare/workers-types";
 import type { MemoryEvent } from "@engram/types";
 import { extractAndScore } from "./extract.js";
 import { routeByMemorability } from "./memorability.js";
@@ -130,8 +122,13 @@ export default {
         parsed = await extractAndScore(
           env,
           event,
+          // ENG-22: `attempts` is required `number` on the Message contract per
+          // exactOptionalPropertyTypes, but the wrangler-generated Message type
+          // doesn't expose it directly on the binding. Default to 1 (first
+          // attempt) when the runtime didn't surface a value — that's the
+          // common case on first delivery.
           {
-            attempts: (message as { attempts?: number }).attempts,
+            attempts: (message as { attempts?: number }).attempts ?? 1,
             ack: () => {
               message.ack();
             },

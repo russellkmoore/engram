@@ -230,7 +230,7 @@ describe("buildRecallResponse — D-01 default flip + D-02 discoverability triad
   it("default verbosity 'chunks' → synthesis null, meta.gaps includes opt-in hint, suggestions.actions present", () => {
     const envelope = buildRecallResponse({ memories: [], verbosity: "chunks" });
     // synthesis must be null when verbosity="chunks"
-    expect((envelope.result as Record<string, unknown>).synthesis).toBeNull();
+    expect((envelope.result as unknown as Record<string, unknown>).synthesis).toBeNull();
     // meta.gaps must contain the opt-in hint so Claude knows synthesis is available
     expect(envelope.meta.gaps).toContain(META_GAPS.recallChunksOmittedSynthesis);
     // suggestions.actions must guide caller to opt in
@@ -245,7 +245,7 @@ describe("buildRecallResponse — D-01 default flip + D-02 discoverability triad
       verbosity: "synthesis",
       synthesis: "Summary here",
     });
-    expect((envelope.result as Record<string, unknown>).synthesis).toBe("Summary here");
+    expect((envelope.result as unknown as Record<string, unknown>).synthesis).toBe("Summary here");
     expect(envelope.meta.gaps).not.toContain(META_GAPS.recallChunksOmittedSynthesis);
     expect(envelope.suggestions).toBeUndefined();
   });
@@ -256,7 +256,9 @@ describe("buildRecallResponse — D-01 default flip + D-02 discoverability triad
       verbosity: "both",
       synthesis: "Both mode summary",
     });
-    expect((envelope.result as Record<string, unknown>).synthesis).toBe("Both mode summary");
+    expect((envelope.result as unknown as Record<string, unknown>).synthesis).toBe(
+      "Both mode summary",
+    );
     expect(envelope.meta.gaps).not.toContain(META_GAPS.recallChunksOmittedSynthesis);
   });
 });

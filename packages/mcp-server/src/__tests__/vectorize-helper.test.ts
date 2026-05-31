@@ -17,7 +17,7 @@
  *
  * @module @engram/mcp-server/__tests__/vectorize-helper
  */
-/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/require-await, @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/require-await */
 // Rationale: vectorize-helper.ts does not exist yet (Plan 05-02 deliverable). TypeScript
 // resolves all imports from ../vectorize-helper.js as error-typed, triggering no-unsafe-*
 // and require-await rules. Tests are intentionally RED until Plan 05-02 ships.
@@ -42,8 +42,12 @@ describe("vectorize-helper (AI-02 namespace mandatory)", () => {
 
   it("rejects namespace > 64 bytes", () => {
     const big = "x".repeat(65);
+    // ENG-22: the namespace check runs before any binding call, so the mock
+    // never gets hit — but the type still needs to satisfy VectorizeIndex.
+    // Cast via unknown since {} doesn't structurally match the new (longer)
+    // VectorizeIndex interface from wrangler-generated types.
     expect(() =>
-      vectorizeQuery({ VECTORIZE: {} }, big, [], {
+      vectorizeQuery({ VECTORIZE: {} as unknown as VectorizeIndex }, big, [], {
         topK: 1,
       }),
     ).toThrow(/64-byte namespace/);
@@ -60,10 +64,17 @@ describe("vectorize-helper (AI-02 namespace mandatory)", () => {
       } as unknown as VectorizeIndex,
     };
     // Caller deliberately omits namespace — the helper must stamp it.
+    //
+    // ENG-22: vectorizeUpsert's vectors arg type is `Omit<VectorizeVector, "namespace">`,
+    // explicitly disallowing the `namespace` field at the type level (that's
+    // the whole point — the helper owns namespace stamping). The "WRONG"
+    // namespace below is INTENTIONAL test behavior: we want to prove the
+    // helper overrides any caller-supplied value. Cast `as never[]` to
+    // bypass the compile-time refusal — runtime is what's under test.
     await vectorizeUpsert(mockEnv, "ws-ns-test", [
       { id: "v1", values: [0.1, 0.2] },
       { id: "v2", values: [0.3, 0.4], namespace: "WRONG-SHOULD-BE-OVERWRITTEN" },
-    ]);
+    ] as never[]);
     expect(upserted.every((v) => v.namespace === "ws-ns-test")).toBe(true);
   });
 

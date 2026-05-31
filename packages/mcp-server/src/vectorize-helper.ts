@@ -36,7 +36,6 @@
  *
  * @module @engram/mcp-server/vectorize-helper
  */
-import type { VectorizeIndex, VectorizeMatches, VectorizeVector } from "@cloudflare/workers-types";
 
 /** Maximum namespace byte length enforced by Vectorize. */
 const NAMESPACE_MAX_BYTES = 64;
@@ -128,7 +127,11 @@ export function vectorizeUpsert(
     ...v,
     namespace: workspaceId,
   }));
-  return env.VECTORIZE.upsert(stamped) as Promise<{ mutationId: string }>;
+  // ENG-22: Workers runtime types `VectorizeVectorMutation` now omits
+  // `mutationId` from its interface (it's present at runtime but typed as
+  // an empty/different shape). The double-cast via `unknown` is the standard
+  // pattern when source/target don't sufficiently overlap per TS rules.
+  return env.VECTORIZE.upsert(stamped) as unknown as Promise<{ mutationId: string }>;
 }
 
 /**
@@ -152,5 +155,5 @@ export function vectorizeDelete(
   if (ids.length === 0) {
     return Promise.resolve({ mutationId: "noop" });
   }
-  return env.VECTORIZE.deleteByIds(ids) as Promise<{ mutationId: string }>;
+  return env.VECTORIZE.deleteByIds(ids) as unknown as Promise<{ mutationId: string }>;
 }

@@ -15,7 +15,7 @@
  *
  * @module @engram/mcp-server/__tests__/hybrid-rank
  */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
+
 // Rationale: hybrid-rank.ts does not exist yet (Plan 05-02 deliverable). TypeScript
 // resolves all imports from ../hybrid-rank.js as error-typed, triggering no-unsafe-*
 // rules. Tests are intentionally RED until Plan 05-02 ships.
@@ -120,10 +120,17 @@ describe("hybridRank (AI-04 formula)", () => {
       { id: "b", score: 0.85 },
       { id: "c", score: 0.8 },
     ];
-    const ranked = hybridRank(vectorMatches, blocks, {});
+    // ENG-22: hybridRank's blocks parameter is typed LexicalSearchHit[] but the
+    // test fixture builds RankableMemory[] (a leaner shape sufficient for the
+    // ranking algorithm). Cast to `never[]` to match the existing pattern at
+    // line ~113 of this file — algorithm correctness is what's under test.
+    const ranked = hybridRank(vectorMatches, blocks as never[], {});
     const scores = ranked.map((r) => (r as { _score?: number })._score ?? 0);
     for (let i = 1; i < scores.length; i++) {
-      expect(scores[i]).toBeLessThanOrEqual(scores[i - 1]);
+      // ENG-22: noUncheckedIndexedAccess types these as number|undefined; the
+      // `?? 0` above guarantees runtime non-null, and `?? 0` here satisfies
+      // TS without tripping the no-non-null-assertion ESLint rule.
+      expect(scores[i] ?? 0).toBeLessThanOrEqual(scores[i - 1] ?? 0);
     }
   });
 });
