@@ -162,12 +162,22 @@ function emailToSlug(email) {
 function detectWorkerUrl() {
   // Try `wrangler deployments list` to find the deployed engram-mcp-server URL.
   // Falls back to null on any failure — caller prompts.
+  //
+  // ENG-11 followup: this is silently best-effort. In practice it usually fails
+  // because users without `wrangler login` (CI users, CF Workers Builds users,
+  // anyone whose CLOUDFLARE_API_TOKEN lacks `Workers Scripts: Read` scope)
+  // can't list deployments. Auth-error stderr is silenced so the user doesn't
+  // see scary "Authentication error" messages from a probe — the prompt will
+  // ask for the URL anyway.
+  //
+  // It ALSO can't auto-detect custom domains (they're not in the deployments
+  // list output) — the caller surfaces a hint in the prompt instead.
   const result = spawnSync(
     "npx",
     ["wrangler", "deployments", "list", "--name", "engram-mcp-server"],
-    { encoding: "utf8", cwd: MCP_SERVER_DIR },
+    { encoding: "utf8", cwd: MCP_SERVER_DIR, stdio: ["ignore", "pipe", "ignore"] },
   );
-  if (result.status !== 0) return null;
+  if (result.status !== 0 || !result.stdout) return null;
   // Wrangler output varies by version; look for any *.workers.dev URL.
   const match = result.stdout.match(/(https:\/\/[a-z0-9.-]+\.workers\.dev)/i);
   return match ? match[1] : null;
@@ -365,6 +375,13 @@ async function main() {
     let workerUrl = cli.workerUrl;
     if (!workerUrl) {
       const detected = detectWorkerUrl();
+      if (!detected) {
+        log("Could not auto-detect Worker URL (no wrangler auth, or no deployments found).");
+        log("Hint: use your custom domain (e.g. https://engram-mcp.example.com)");
+        log(
+          "      or the workers.dev URL (e.g. https://engram-mcp-server.<your-cf-subdomain>.workers.dev).",
+        );
+      }
       workerUrl = await prompt(rl, "Deployed Worker URL", detected ?? "");
       if (!workerUrl) {
         err("Worker URL is required. Deploy first via `npm run deploy`, then re-run.");
@@ -427,8 +444,17 @@ async function main() {
     log("The error will look like:");
     log("  Unknown OAuth subject: <some-token>. Bootstrap via npm run kv:bootstrap.");
     log("");
-    log("Paste the error message (or just the sub token) and press Enter on a blank line:");
+    log("Paste the error message (or just the sub token) and press Enter on a blank line.");
+    log(
+      "If Engram is already working (no 403 appeared), just press Enter on an empty line to exit.",
+    );
     const pasted = await readMultilineUntilBlank(rl);
+    if (!pasted.trim()) {
+      log("");
+      log("No error pasted. Assuming Engram is already bootstrapped and working — nothing to do.");
+      log("If you wanted to re-bootstrap with new IDs, re-run and paste the 403 error.");
+      process.exit(0);
+    }
     const sub = extractSubFromErrorText(pasted);
     if (!sub) {
       err("Could not find an OAuth sub in the pasted text.");
@@ -473,12 +499,14 @@ async function main() {
 
 async function readMultilineUntilBlank(rl) {
   // Read lines from stdin until we hit a blank line; return the joined buffer.
-  // This lets the user paste a multi-line error block (typical for mcp-remote
-  // wrapping the 403 in additional context).
+  // First blank line exits IMMEDIATELY (empty return) — caller treats empty
+  // input as "user has nothing to paste, probably already bootstrapped".
+  // Subsequent blank lines after content also exit (lets the user paste a
+  // multi-line error block from mcp-remote and end with an empty line).
   const lines = [];
   while (true) {
     const line = await rl.question("");
-    if (line.trim() === "" && lines.length > 0) break;
+    if (line.trim() === "") break;
     lines.push(line);
   }
   return lines.join("\n");

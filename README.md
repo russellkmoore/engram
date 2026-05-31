@@ -224,6 +224,23 @@ These commands **skip the eval gate** — they exist for day-N "I know exactly w
 
 **Important precondition for `deploy:triage`:** `engram-mcp-server` must have been deployed at least once. The triage Worker's `wrangler.jsonc` binds `WORKSPACE` to `WorkspaceDO` via `script_name: "engram-mcp-server"` (a cross-Worker Durable Object binding). If you deploy `triage-worker` first on a fresh Cloudflare account, `wrangler` rejects the binding with `Could not find a Worker with the name "engram-mcp-server"`. The `npm run deploy` wrapper enforces the correct order automatically — only worry about this if you're invoking `deploy:triage` directly.
 
+### Custom domains (optional)
+
+By default each Worker is reachable at its `*.workers.dev` URL (e.g. `engram-mcp-server.<your-cf-subdomain>.workers.dev`). If you own a domain that's already on Cloudflare DNS, you can map a friendlier hostname to each Worker.
+
+**Use the Cloudflare Dashboard, not `wrangler.jsonc`.** Custom domains are per-account infrastructure — committing them to git would break every fork (each user owns a different domain). The Dashboard path keeps your custom domain out of the repo:
+
+1. <https://dash.cloudflare.com> → **Workers & Pages** → click the worker (e.g. `engram-mcp-server`)
+2. **Settings** tab → **Domains & Routes** → **Add** → **Custom Domain**
+3. Enter your hostname (e.g. `engram-mcp.example.com`)
+4. Save → Cloudflare auto-creates the CNAME in your zone and provisions a TLS cert (~30 sec)
+
+Repeat per Worker if you want both fronted by your domain.
+
+**Caveat for `engram-triage-worker`:** triage is a Queue consumer with no production HTTP surface. A custom domain on it is purely cosmetic — DNS-clarity in your zone, but it'll return 404 to any actual HTTP request. Most users only need to give `engram-mcp-server` a custom domain.
+
+After the domain is live, point `claude_desktop_config.json` at `https://<your-custom-domain>/mcp` instead of the `workers.dev` URL. The `kv:bootstrap-interactive` script prompts for the URL — paste your custom domain when asked.
+
 ### Eval-gate failure handling
 
 If `npm run deploy` aborts at the `predeploy` step, the failure surface is the `evals:ci` output (vitest assertions + promptfoo pass-rate). LLM evals against Workers AI have inherent variance, so:
