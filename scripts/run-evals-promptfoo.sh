@@ -43,13 +43,16 @@ if grep -qE "Aborting scan|Scan stopped|Target is unavailable" "$LOG"; then
 fi
 
 # ENG-20 followup: extract pass rate from promptfoo summary block. promptfoo's
-# output ends with:
+# output ends with one of:
 #   Results:
-#     N passed (P%)
-#     ✗ M failed (Q%)
+#     ✓ N passed (P%)       <- with checkmark prefix when N > 0
+#     N passed (P%)         <- plain when N == 0
+#     ✗ M failed (Q%)       <- with X-mark when M > 0
+#     M failed (Q%)         <- plain when M == 0
 #     0 errors (0%)
-# Parse the "N passed (P%)" line for the pass-rate percentage.
-PASS_LINE=$(grep -E "^  [0-9]+ passed \([0-9]+%\)" "$LOG" | tail -1)
+# Regex tolerates any optional non-digit prefix (whitespace, ✓, ✗) so it
+# matches both checkmark-prefixed and plain rows.
+PASS_LINE=$(grep -E "[0-9]+ passed \([0-9]+%\)" "$LOG" | tail -1)
 if [ -z "$PASS_LINE" ]; then
   echo ""
   echo "[evals:promptfoo] FAIL — could not parse pass-rate from promptfoo output."
