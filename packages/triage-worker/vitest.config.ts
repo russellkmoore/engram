@@ -25,5 +25,18 @@ export default defineConfig({
   ],
   test: {
     include: ["src/__tests__/**/*.test.ts"],
+    exclude: [
+      // ENG-20 (CI): memorability-calibration needs remote-mode wrangler
+      // bindings (real AI). cloudflare-vitest-pool tries to open a remote
+      // proxy session at file-load time, which fails in CI because that path
+      // requires interactive `wrangler login` OAuth — not satisfiable by
+      // CLOUDFLARE_API_TOKEN alone. Tests inside are currently `it.skip`
+      // (real-corpus fixtures haven't landed), so excluding the file loses
+      // zero coverage. When ENG-20 closes (fixtures land + .skip removed),
+      // re-include AND grow a separate CI surface that can run it — see the
+      // mirror exclude in packages/mcp-server/vitest.config.ts for the
+      // recommended pattern.
+      "src/__tests__/evals/memorability-calibration.eval.test.ts",
+    ],
   },
 });

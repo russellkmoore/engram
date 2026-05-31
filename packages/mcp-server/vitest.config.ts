@@ -54,6 +54,18 @@ export default defineConfig({
             // embedding-consistency.test.ts (Plan 05-06 Task 3 — AI-SPEC §5 dimension #2)
             // also reads triage-worker/src/ai-helper.ts via node:fs.
             "src/__tests__/evals/embedding-consistency.test.ts",
+            // ENG-20 (CI): recall-f1 needs remote-mode wrangler bindings (real
+            // Vectorize + AI). cloudflare-vitest-pool tries to open a remote
+            // proxy session at file-load time, which fails in CI because that
+            // path requires interactive `wrangler login` OAuth — not satisfiable
+            // by CLOUDFLARE_API_TOKEN alone. Tests inside are currently
+            // `it.skip` (real-corpus fixtures haven't landed), so excluding the
+            // file loses zero coverage. When ENG-20 closes (fixtures land +
+            // .skip removed), re-include here AND grow a separate CI surface
+            // that can run it — e.g. a nightly job on a runner where
+            // `wrangler login` is feasible, or a CF Workers Builds gate where
+            // the binding is native.
+            "src/__tests__/evals/recall-f1.eval.test.ts",
           ],
         },
       },
