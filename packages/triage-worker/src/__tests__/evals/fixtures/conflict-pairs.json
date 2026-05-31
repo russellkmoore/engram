@@ -1,0 +1,85 @@
+{
+  "_meta": {
+    "issue": "ENG-16",
+    "spec_source": ".planning/todos/pending/2026-05-26-phase-6-validate-conflict-detection-precision.md",
+    "target_size": 50,
+    "category_split": {
+      "contradiction": 25,
+      "benign_update": 15,
+      "unrelated": 10
+    },
+    "current_size": 9,
+    "status": "SEED — replace synthetic placeholders with real labeled pairs from Russell's corpus before running the precision gate. The 9 entries below prove the harness runs end-to-end against Workers AI; they are NOT a substitute for the 50-pair validation set.",
+    "labeling_guide": {
+      "category": "one of contradiction | benign_update | unrelated",
+      "memory_a": "first memory body, plain text",
+      "memory_b": "second memory body, plain text",
+      "note": "(optional) why this pair is labeled this way — helps debug false-positives during eval"
+    }
+  },
+  "pairs": [
+    {
+      "id": "seed-c-01",
+      "category": "contradiction",
+      "memory_a": "Hired Alice Wong as CTO on 2026-03-15. Reports to CEO; cap-table allocation 2.5%.",
+      "memory_b": "Alice Wong left the company on 2026-04-01. Exit interview cited family relocation.",
+      "note": "Cannot currently be CTO AND no longer at the company."
+    },
+    {
+      "id": "seed-c-02",
+      "category": "contradiction",
+      "memory_a": "Project Atlas deadline is 2026-09-30. Owner: Bob Smith. Status: on track.",
+      "memory_b": "Project Atlas was cancelled in Q2 2026 due to budget reallocation.",
+      "note": "Cannot have an active deadline AND be cancelled."
+    },
+    {
+      "id": "seed-c-03",
+      "category": "contradiction",
+      "memory_a": "Decided to standardize on PostgreSQL for all new services. Rationale: existing Ops expertise.",
+      "memory_b": "Decided to move all new services to DynamoDB after the latency spike in v3.2.",
+      "note": "Mutually exclusive standardization decisions for the same scope."
+    },
+    {
+      "id": "seed-bu-01",
+      "category": "benign_update",
+      "memory_a": "Alice Wong is Senior Engineer at Acme Corp, joined 2024-08-01.",
+      "memory_b": "Alice Wong was promoted to CTO at Acme Corp on 2026-03-15.",
+      "note": "Same person, same company, sequential roles — promotion is forward-in-time."
+    },
+    {
+      "id": "seed-bu-02",
+      "category": "benign_update",
+      "memory_a": "Project Atlas owner is Bob Smith as of project kickoff.",
+      "memory_b": "Project Atlas owner transferred from Bob Smith to Carol Lee on 2026-04-10.",
+      "note": "Ownership transferred forward; B supersedes A but doesn't contradict the past state."
+    },
+    {
+      "id": "seed-bu-03",
+      "category": "benign_update",
+      "memory_a": "Job application: Staff Engineer at Cloudflare, applied 2026-03-01, status: submitted.",
+      "memory_b": "Job application: Staff Engineer at Cloudflare — phone screen scheduled for 2026-03-12.",
+      "note": "Same application progressing forward through the pipeline."
+    },
+    {
+      "id": "seed-u-01",
+      "category": "unrelated",
+      "memory_a": "Lunch meeting with Dave on Friday at noon to discuss the partner pitch.",
+      "memory_b": "Shipped the GraphQL N+1 query fix on the public API; latency dropped from 800ms to 90ms.",
+      "note": "Different people, different topics, no factual overlap."
+    },
+    {
+      "id": "seed-u-02",
+      "category": "unrelated",
+      "memory_a": "Recommended book: The Pragmatic Programmer by Hunt & Thomas, 20th anniversary edition.",
+      "memory_b": "Slack thread on #onboarding-feedback about the 2-week ramp-up survey results.",
+      "note": "Different domains entirely."
+    },
+    {
+      "id": "seed-u-03",
+      "category": "unrelated",
+      "memory_a": "Contact: Sarah Chen, VP Engineering at Stripe, met at QCon SF 2025.",
+      "memory_b": "Research note: arXiv 2024.04812 — attention sinks in long-context transformers.",
+      "note": "Different person and different topic."
+    }
+  ]
+}
