@@ -5,6 +5,7 @@ planted: 2026-05-26
 planted_during: Phase 3 (MCP Server Scaffold) — v0.1
 trigger_when: v0.3 — Workspaces + Project DOs (before any UserDO / TeamDO / ProjectDO work begins)
 scope: medium
+design_analysis: SEED-001-DESIGN-ANALYSIS.md  # ENG-17 — read this before v0.3 milestone planning
 ---
 
 # SEED-001: Cross-layer recall must fan out across UserDO + TeamDO + ProjectDO and re-rank merged results
