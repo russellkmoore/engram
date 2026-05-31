@@ -45,22 +45,25 @@ fi
 # ENG-20 followup: extract pass rate from promptfoo summary block. promptfoo's
 # output ends with one of:
 #   Results:
-#     ✓ N passed (P%)       <- with checkmark prefix when N > 0
-#     N passed (P%)         <- plain when N == 0
-#     ✗ M failed (Q%)       <- with X-mark when M > 0
-#     M failed (Q%)         <- plain when M == 0
+#     ✓ N passed (P%)       <- N > 0, integer percent
+#     ✓ N passed (P.PP%)    <- N > 0, decimal percent (e.g. 95.00%)
+#     N passed (P%)         <- N == 0
+#     ✗ M failed (Q%)       <- M > 0
+#     M failed (Q%)         <- M == 0
 #     0 errors (0%)
-# Regex tolerates any optional non-digit prefix (whitespace, ✓, ✗) so it
-# matches both checkmark-prefixed and plain rows.
-PASS_LINE=$(grep -E "[0-9]+ passed \([0-9]+%\)" "$LOG" | tail -1)
+# Regex tolerates: optional checkmark/whitespace prefix, integer OR decimal
+# percent. Bash arithmetic needs integers, so we take only the integer part
+# of the percent (truncating decimal) for the threshold comparison.
+PASS_LINE=$(grep -E "[0-9]+ passed \([0-9]+(\.[0-9]+)?%\)" "$LOG" | tail -1)
 if [ -z "$PASS_LINE" ]; then
   echo ""
   echo "[evals:promptfoo] FAIL — could not parse pass-rate from promptfoo output."
-  echo "  promptfoo exit: $PROMPTFOO_EXIT. Expected '  N passed (P%)' line."
+  echo "  promptfoo exit: $PROMPTFOO_EXIT. Expected '  N passed (P%)' or '  N passed (P.PP%)' line."
   echo "  Output format may have changed (promptfoo version bump?)."
   exit 1
 fi
-PASS_PCT=$(echo "$PASS_LINE" | grep -oE "\([0-9]+%\)" | grep -oE "[0-9]+")
+# Extract the integer portion of the percent — handles both "(95%)" and "(95.00%)".
+PASS_PCT=$(echo "$PASS_LINE" | grep -oE "\([0-9]+(\.[0-9]+)?%\)" | grep -oE "^\(?[0-9]+" | grep -oE "[0-9]+")
 
 if [ -z "$PASS_PCT" ] || [ "$PASS_PCT" -lt "$THRESHOLD" ]; then
   echo ""
