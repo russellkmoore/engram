@@ -5,6 +5,7 @@ planted: 2026-05-26
 planted_during: Phase 3 (MCP Server Scaffold) — v0.1
 trigger_when: v0.4 — Connectors + Alerts (BEFORE any connector phase is planned)
 scope: small
+design_analysis: SEED-002-DESIGN-ANALYSIS.md  # ENG-18 — read this before v0.4 milestone planning
 ---
 
 # SEED-002: Model connector load + cost + throughput BEFORE v0.4 connectors ship
