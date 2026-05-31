@@ -608,13 +608,37 @@ export function updateBlockEnrichment(
     properties: Record<string, unknown>;
     summary: string;
     confidence: number;
+    /**
+     * Classifier's resolved memory type (e.g. `job_application`).
+     *
+     * ENG-8 fix: previously the Triage Worker's `parsed.classified_type` was
+     * dropped on the floor in the store-normal branch — `blocks.type` stayed
+     * `null` if the user didn't pass `args.type` at `remember()` time, while
+     * Claude saw `properties` enrichment land. The recall shape was
+     * inconsistent (Apple posting had `type: null` while Anthropic had
+     * `type: "job_application"` because Claude pre-classified for the latter).
+     *
+     * Conservative COALESCE semantic: user-asserted `args.type` at remember()
+     * time wins; the classifier's `type` only fills nulls. This respects
+     * explicit user intent while ensuring classification is never lost.
+     *
+     * Optional so existing call sites without classification context still
+     * compile; pass `undefined` to leave `blocks.type` untouched.
+     */
+    type?: string;
   },
 ): void {
   // Phase 6 D-03: pending → enriched transition is atomic with the enrichment
   // write. The literal `'enriched'` is a SQL string constant — no positional
   // binding (`?`) needed, so the existing binding order is preserved.
+  //
+  // ENG-8 fix: `type = COALESCE(type, ?)` — keep existing type if non-null
+  // (respects user-asserted type at remember() time), else use classifier's
+  // resolved type. The COALESCE pattern mirrors moveToColdStorage's existing
+  // posture for optional enrichment values.
   const result = sql.exec(
-    "UPDATE blocks SET properties = ?, summary = ?, confidence = ?, ingest_status = 'enriched', updated_at = ? WHERE id = ?",
+    "UPDATE blocks SET type = COALESCE(type, ?), properties = ?, summary = ?, confidence = ?, ingest_status = 'enriched', updated_at = ? WHERE id = ?",
+    args.type ?? null,
     JSON.stringify(args.properties),
     args.summary,
     args.confidence,

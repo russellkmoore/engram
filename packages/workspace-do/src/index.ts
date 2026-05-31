@@ -250,8 +250,12 @@ export class WorkspaceDO extends DurableObject<unknown> {
   }
 
   /**
-   * Overwrites `properties`, `summary`, and `confidence` on an existing block
-   * with AI-enriched values from the Triage Worker. Throws NotFoundError on miss.
+   * Overwrites `properties`, `summary`, `confidence`, and (ENG-8) optionally
+   * `type` on an existing block with AI-enriched values from the Triage Worker.
+   * Throws NotFoundError on miss.
+   *
+   * ENG-8: `type` is optional and applied via COALESCE in the underlying SQL
+   * — user-asserted `type` at remember() time wins; classifier fills nulls.
    *
    * @requirement AI-05
    */
@@ -261,6 +265,8 @@ export class WorkspaceDO extends DurableObject<unknown> {
     properties: Record<string, unknown>;
     summary: string;
     confidence: number;
+    /** ENG-8: classifier's resolved memory type. COALESCE'd into blocks.type. */
+    type?: string;
   }): void {
     this.assertOwnsWorkspace(args.workspace_id);
     updateBlockEnrichmentQuery(this.ctx.storage.sql, {
@@ -268,6 +274,7 @@ export class WorkspaceDO extends DurableObject<unknown> {
       properties: args.properties,
       summary: args.summary,
       confidence: args.confidence,
+      ...(args.type !== undefined && { type: args.type }),
     });
   }
 

@@ -215,7 +215,14 @@ export default {
       try {
         switch (decision) {
           case "store-normal":
-            // memorability > 0.8 — store with enrichment directly
+            // memorability > 0.8 — store with enrichment directly.
+            //
+            // ENG-8 fix: previously `parsed.classified_type` was dropped here.
+            // The inbox branch persisted it into `inbox.proposed_type`, but the
+            // store-normal branch wrote only `properties / summary / confidence`,
+            // leaving `blocks.type` as whatever the user passed at remember()
+            // time (often null). Pass `type` so the DO can COALESCE it into
+            // `blocks.type` — user-asserted type wins, classifier fills nulls.
             await (
               stub as unknown as {
                 updateBlockEnrichment: (args: {
@@ -224,6 +231,7 @@ export default {
                   properties: Record<string, unknown>;
                   summary: string;
                   confidence: number;
+                  type?: string;
                 }) => Promise<void>;
               }
             ).updateBlockEnrichment({
@@ -232,6 +240,7 @@ export default {
               properties: parsed.extracted_fields,
               summary: parsed.summary,
               confidence: parsed.confidence,
+              type: parsed.classified_type,
             });
             break;
 

@@ -332,6 +332,95 @@ describe("WorkspaceDO typed query helpers (STO-06)", () => {
     });
   });
 
+  // ENG-8: updateBlockEnrichment must persist the classifier's `type` via
+  // COALESCE — fill nulls when the user didn't pass `type` at remember() time,
+  // but never overwrite an explicit user-asserted type. Before the fix the
+  // classifier's resolved `parsed.classified_type` was dropped on the floor
+  // in the Triage Worker's store-normal branch, leaving `blocks.type` null
+  // forever and producing the recall-envelope shape inconsistency that
+  // surfaced as ENG-8.
+  it("updateBlockEnrichment with type=<classifier> fills blocks.type when it was NULL (ENG-8)", async () => {
+    const workspace_id = "ws-eng8-fill-null";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      // Simulate the remember()-without-type path: insert, then clear type to
+      // null via direct SQL. The makeBlock helper's `??` coalesce prevents
+      // passing null through the overrides, so we set the precondition
+      // directly. The shape this mimics is `tools.ts:285` writing
+      // `type: args.type ?? null` when Claude did not classify pre-call.
+      const block = makeBlock({ id: "blk-eng8-null-001" });
+      ws.insertBlock({ workspace_id, block });
+      state.storage.sql.exec("UPDATE blocks SET type = NULL WHERE id = ?", block.id);
+
+      const before = state.storage.sql.exec("SELECT type FROM blocks WHERE id = ?", block.id).one();
+      expect(before.type).toBeNull();
+
+      ws.updateBlockEnrichment({
+        workspace_id,
+        block_id: block.id,
+        properties: { company: "Apple", role: "SWE" },
+        summary: "Apple SWE posting",
+        confidence: 0.92,
+        type: "job_application",
+      });
+
+      const after = state.storage.sql.exec("SELECT type FROM blocks WHERE id = ?", block.id).one();
+      expect(after.type).toBe("job_application");
+    });
+  });
+
+  it("updateBlockEnrichment with type=<classifier> preserves user-asserted type via COALESCE (ENG-8)", async () => {
+    const workspace_id = "ws-eng8-preserve-user";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      // Simulate the remember()-WITH-explicit-type path: user said it's a
+      // meeting_note, classifier later disagrees and says job_application.
+      // COALESCE(type, ?) keeps the user-asserted value.
+      const block = makeBlock({ id: "blk-eng8-userwins-001", type: "meeting_note" });
+      ws.insertBlock({ workspace_id, block });
+
+      ws.updateBlockEnrichment({
+        workspace_id,
+        block_id: block.id,
+        properties: { ai_extracted: true },
+        summary: "enriched",
+        confidence: 0.85,
+        type: "job_application",
+      });
+
+      const after = state.storage.sql.exec("SELECT type FROM blocks WHERE id = ?", block.id).one();
+      // User intent wins — classifier never overrides an explicit assertion.
+      expect(after.type).toBe("meeting_note");
+    });
+  });
+
+  it("updateBlockEnrichment with type omitted leaves blocks.type untouched (ENG-8 back-compat)", async () => {
+    const workspace_id = "ws-eng8-omit";
+    const id = env.WORKSPACE.idFromName(workspace_id);
+    const stub = env.WORKSPACE.get(id);
+    await runInDurableObject(stub, (instance, state) => {
+      const ws = asWorkspaceDO(instance);
+      const block = makeBlock({ id: "blk-eng8-omit-001", type: "contact" });
+      ws.insertBlock({ workspace_id, block });
+
+      // Pre-ENG-8 call shape — no `type` arg. Must not regress.
+      ws.updateBlockEnrichment({
+        workspace_id,
+        block_id: block.id,
+        properties: { ai_extracted: true },
+        summary: "enriched",
+        confidence: 0.9,
+      });
+
+      const after = state.storage.sql.exec("SELECT type FROM blocks WHERE id = ?", block.id).one();
+      expect(after.type).toBe("contact");
+    });
+  });
+
   it("moveToColdStorage sets BOTH cold_storage=1 AND ingest_status='enriched' (D-03 orthogonality)", async () => {
     const workspace_id = "ws-pip-moveToColdStorage-status";
     const id = env.WORKSPACE.idFromName(workspace_id);
