@@ -388,7 +388,15 @@ async function main() {
         process.exit(1);
       }
     }
-    // Normalize: strip trailing slash, strip /mcp suffix (we add it).
+    // Normalize: auto-prepend https:// if scheme missing (common user error
+    // observed during ENG-11 dry-run testing — writing a scheme-less URL into
+    // claude_desktop_config.json's args produces a "Server disconnected" error
+    // from mcp-remote because it can't establish a transport). Strip trailing
+    // slash and any /mcp suffix (we add it back when writing the config).
+    if (!/^https?:\/\//i.test(workerUrl)) {
+      log(`No scheme detected, prepending https:// (input: "${workerUrl}")`);
+      workerUrl = `https://${workerUrl}`;
+    }
     workerUrl = workerUrl.replace(/\/+$/, "").replace(/\/mcp$/, "");
     log(`Worker URL: ${workerUrl}`);
 
