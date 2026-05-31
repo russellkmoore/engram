@@ -1,10 +1,8 @@
-<!-- TODO: confirm owner after first push -->
+# Engram
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![CI](https://github.com/russellkmoore/engram/actions/workflows/ci.yml/badge.svg)](https://github.com/russellkmoore/engram/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/badge/version-0.1.0--alpha-green.svg)](package.json)
-
-# Engram
 
 Open-source, MCP-native second brain for AI assistants — persistent memory that the user owns and any MCP client can query.
 
