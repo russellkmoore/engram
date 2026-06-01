@@ -36,8 +36,16 @@
   // tests (AI-02 namespace isolation, AI-08 round-trip) opt into real Cloudflare
   // via remote: true in Plan 05-03/05-05 when real Vectorize is required. For Wave 0
   // the entry stays local so unit-test mocking via vi.spyOn(env.VECTORIZE, "query") works.
-  "ai": { "binding": "AI" },
-  "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
+  "ai": { "binding": "AI", "remote": true },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories", "remote": true }],
+  "queues": {
+    // ENG-20 AI-04: INGEST_QUEUE producer wired so the eval test's remember()
+    // calls actually enqueue MemoryEvents for the deployed triage-worker to
+    // consume → embed → upsert into Vectorize. Without this, remember()
+    // silently skips the queue send (see tools.ts:438 log) and Vectorize
+    // stays empty, making recall() return nothing.
+    "producers": [{ "binding": "INGEST_QUEUE", "queue": "engram-ingest" }],
+  },
   "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "engram_ai_analytics" }],
   "durable_objects": {
     "bindings": [
