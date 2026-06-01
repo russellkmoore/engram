@@ -22,13 +22,10 @@
 // packages/mcp-server/src/__tests__/lint-no-direct-vectorize.test.ts
 // Source: 05-03-PLAN.md Task 4 + 05-PATTERNS.md §lint-gate
 //
-// ESLint note: this file runs in the lint-node project (Vitest Node pool, NOT workerd).
-// The mcp-server tsconfig targets workerd so node:fs types resolve as "error typed" values
-// under the strict @typescript-eslint rules. We disable the unsafe-* rules for the entire
-// file because (1) node:fs is well-typed in Node and (2) the vitest.config.ts correctly
-// routes this file to the Node pool where node:fs works. The eslint-disable is scoped here
-// only — production source files do not need this carve-out.
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return */
+// Runs in the lint-node pool (Vitest Node pool, not workerd) — node:fs is well-typed
+// there. A prior `eslint-disable` covering @typescript-eslint/no-unsafe-* was removed
+// after PR #1's workers-types migration narrowed the type graph enough that the rules
+// no longer fire.
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";

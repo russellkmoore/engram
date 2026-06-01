@@ -65,11 +65,7 @@ describe("AI-06 memorability calibration (60/30/10 ±10pp band over reference co
         },
       };
 
-      const parsed = await extractAndScore(
-        env as unknown as Parameters<typeof extractAndScore>[0],
-        event,
-        message,
-      );
+      const parsed = await extractAndScore(env, event, message);
       if (parsed === null) continue; // 429 retry or Zod parse-fail permanent — not part of distribution
 
       counts[routeByMemorability(parsed.memorability)]++;

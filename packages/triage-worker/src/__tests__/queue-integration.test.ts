@@ -257,9 +257,9 @@ describe("PIP-03 / IP-1: replay-twice idempotency (inbox path)", () => {
     const event = buildEvent({ workspace_id, id: blockId });
 
     // First Queue delivery.
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env as never);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
     // Second Queue delivery — same event id (at-least-once duplicate).
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env as never);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
 
     // Exactly one inbox row (INSERT OR IGNORE on PK collision).
     const inboxCount = await getInboxRowCount(workspace_id, blockId);
@@ -291,7 +291,7 @@ describe("PIP-06: ingest_status lifecycle — store-normal (memorability > 0.8)"
     expect(await getIngestStatus(workspace_id, blockId)).toBe("pending");
 
     const event = buildEvent({ workspace_id, id: blockId });
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env as never);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
 
     // Status flipped to enriched in the same UPDATE as the enrichment write.
     expect(await getIngestStatus(workspace_id, blockId)).toBe("enriched");
@@ -320,7 +320,7 @@ describe("PIP-06: ingest_status lifecycle — inbox (memorability 0.4–0.8)", (
     expect(await getIngestStatus(workspace_id, blockId)).toBe("pending");
 
     const event = buildEvent({ workspace_id, id: blockId });
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env as never);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
 
     // moveToInbox composition: block UPDATE → enriched, inbox INSERT → 1 row.
     expect(await getIngestStatus(workspace_id, blockId)).toBe("enriched");
@@ -348,7 +348,7 @@ describe("PIP-06 / D-03 orthogonality: cold-storage (memorability < 0.4)", () =>
     expect(await getIngestStatus(workspace_id, blockId)).toBe("pending");
 
     const event = buildEvent({ workspace_id, id: blockId });
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env as never);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
 
     const row = await getBlockRow(workspace_id, blockId);
     // D-03 orthogonality: cold_storage=1 AND ingest_status='enriched' co-occur.
@@ -378,7 +378,7 @@ describe("PIP-05: Zod parse failure permanent (attempts >= 2)", () => {
     const event = buildEvent({ workspace_id, id: blockId });
     const message = buildMessage(event, 2); // attempts=2 → isLastAttempt true in extract.ts
 
-    await handler.queue(buildBatch([message]), env as never);
+    await handler.queue(buildBatch([message]), env);
 
     // Block transitioned pending → failed via markIngestFailed RPC.
     expect(await getIngestStatus(workspace_id, blockId)).toBe("failed");
@@ -447,7 +447,7 @@ describe("PIP-05: DO-RPC failure permanent (attempts >= 2, seed-block + vi.spyOn
     const event = buildEvent({ workspace_id, id: blockId });
     const message = buildMessage(event, 2);
 
-    await handler.queue(buildBatch([message]), env as never);
+    await handler.queue(buildBatch([message]), env);
 
     // (6) Assertions in order (all REQUIRED per plan):
 
@@ -666,9 +666,7 @@ describe("CR-01 + WR-03 regression: per-message error envelope prevents batch po
     const eventFail = buildEvent({ workspace_id, id: blockIdFail });
     const messageFail = buildMessage(eventFail, 2);
 
-    await expect(
-      handler.queue(buildBatch([messageFail]), env as never),
-    ).resolves.toBeUndefined();
+    await expect(handler.queue(buildBatch([messageFail]), env as never)).resolves.toBeUndefined();
 
     // attempts>=2: extract.ts's INTERNAL last-attempt branch fires first,
     // calls markIngestFailed + ack, returns null. Wrapper never sees throw.
@@ -708,7 +706,7 @@ describe("end-to-end smoke: queue handler happy path produces enriched block", (
     await seedBlockInDO(workspace_id, blockId, "smoke test for end-to-end pipeline");
 
     const event = buildEvent({ workspace_id, id: blockId });
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env as never);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
 
     expect(await getIngestStatus(workspace_id, blockId)).toBe("enriched");
   });

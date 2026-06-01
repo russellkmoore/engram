@@ -15,10 +15,10 @@
  *
  * @module @engram/mcp-server/__tests__/ai-helper-identity
  */
-/* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
-// Rationale: this test runs in the lint-node pool under the mcp-server tsconfig which
-// targets workerd — node:fs types are not in scope, so TypeScript resolves imports as
-// error-typed. The eslint-disable mirrors the pattern in lint-no-direct-vectorize.test.ts.
+// Runs in the lint-node pool (Vitest Node pool, not workerd) — node:fs is well-typed
+// there. A prior `eslint-disable` covering @typescript-eslint/no-unsafe-* was removed
+// after PR #1's workers-types migration narrowed the type graph enough that the rules
+// no longer fire.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, it, expect } from "vitest";

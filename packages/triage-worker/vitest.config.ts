@@ -37,6 +37,12 @@ export default defineConfig({
       // mirror exclude in packages/mcp-server/vitest.config.ts for the
       // recommended pattern.
       "src/__tests__/evals/memorability-calibration.eval.test.ts",
+      // ENG-16 (CI): conflict-precision is the v0.2 prep gate for per-write
+      // conflict detection. Same remote-bindings + cost-gate constraints as
+      // memorability-calibration — `it.skip` until Russell's 50 labeled
+      // pairs land in fixtures/conflict-pairs.json, then re-include alongside
+      // the dedicated nightly-eval CI surface.
+      "src/__tests__/evals/conflict-precision.eval.test.ts",
     ],
   },
 });

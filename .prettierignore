@@ -6,3 +6,8 @@ package-lock.json
 
 # GSD-templated planning docs — not subject to project prettier rules
 .planning/**/*.md
+
+# Generated promptfoo spike output — HTML uses JSX-like tags inside <code>
+# blocks (e.g. `<DurableObjectStub<T>>`) that Prettier's HTML parser
+# misinterprets as unterminated JSX, and the JSON is verbatim eval output.
+.planning/spikes/*/results/
