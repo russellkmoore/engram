@@ -1,0 +1,272 @@
+[
+  {
+    "id": "real-001",
+    "bucket": "critical-path",
+    "memory_type": "job_application",
+    "original_content": "Applied to a remote Senior Director, Solution Architecture role at REDACTED-DEVOPS-PLATFORM today. Base $244,200-$409,500 plus up to 100% incentive pay. Leads SA managers across North America. Sticky point: requires substantial mgmt-of-mgrs experience (second/third-line leader).",
+    "paraphrased_query": "the Solution Architecture director role at the DevOps platform",
+    "intended_memory_id": "real-001",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-002",
+    "bucket": "known-failure",
+    "memory_type": "job_application",
+    "original_content": "Applied to Distinguished Engineer, Agentic SDLC & Non-Linear Productivity at REDACTED-DEVOPS-PLATFORM (same company as the SA Director role). Base $260,000-$345,000. Remote US/Canada. Pioneers autonomous AI-agent capabilities across the SDLC. Requires 10+ years incl 4+ as Staff/Principal.",
+    "paraphrased_query": "the AI agents Distinguished Engineer role at the DevOps platform",
+    "intended_memory_id": "real-002",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": "semantic-over-merge-distinct-roles-same-company (paired with real-001 — two distinct roles at REDACTED-DEVOPS-PLATFORM; recall must distinguish SA Director from Distinguished Engineer Agentic SDLC)"
+  },
+  {
+    "id": "real-003",
+    "bucket": "critical-path",
+    "memory_type": "job_application",
+    "original_content": "Applied to Head of Product, Trust & Safety at REDACTED-FINTECH-PAYMENTS (Square's parent). $304,500-$456,700 USD. Remote or Bay Area. Unifies risk + identity orgs across Square to protect sellers from fraud while enabling growth. Requires 8+ years PM.",
+    "paraphrased_query": "the fintech payments company's trust and safety product lead role",
+    "intended_memory_id": "real-003",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-004",
+    "bucket": "critical-path",
+    "memory_type": "job_application",
+    "original_content": "Applied to Sr. Director, Platform Engineering at REDACTED-RETAIL-CORP today. Base $223,400-$301,600. Pleasanton CA, on-site (no remote). Leads cloud platform strategy + CD infrastructure + DevOps across Azure and GCP. 15+ years with 5+ as manager-of-managers.",
+    "paraphrased_query": "the retail company's platform engineering director role in Pleasanton",
+    "intended_memory_id": "real-004",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-005",
+    "bucket": "extraction",
+    "memory_type": "job_application",
+    "original_content": "Applied to Engineering Manager, Data Orchestration Platform at REDACTED-PAYMENTS-PLATFORM today. Base $236,000-$354,000 plus equity and bonuses. Seattle office or remote 35+ miles. Owns the Airflow workflow scheduling platform used across the organization. 10+ years SWE + 5+ years direct mgmt.",
+    "paraphrased_query": "the Airflow data orchestration EM role at the payments platform",
+    "intended_memory_id": "real-005",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-006",
+    "bucket": "known-failure",
+    "memory_type": "job_application",
+    "original_content": "Applied to Global Payments Experiences Engineering Manager at REDACTED-PAYMENTS-PLATFORM today. Base $236,000-$354,000 plus equity. Seattle office (50% in-office minimum). Builds payment solutions across the REDACTED-PAYMENTS-PLATFORM ecosystem for global merchants. 10+ years SWE + 5+ years mgmt.",
+    "paraphrased_query": "the global merchants payments EM role at the payments platform",
+    "intended_memory_id": "real-006",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": "semantic-over-merge-three-roles-same-company (paired with real-005 and real-007 — three distinct EM roles at REDACTED-PAYMENTS-PLATFORM; recall must distinguish Data Orchestration vs Global Payments vs User Compliance)"
+  },
+  {
+    "id": "real-007",
+    "bucket": "known-failure",
+    "memory_type": "job_application",
+    "original_content": "Applied to Engineering Manager, User Compliance at REDACTED-PAYMENTS-PLATFORM today. Base $214,600-$321,800 plus equity. Remote US (35+ miles from any office). Builds systems for customer data verification + risk management across the compliance platform. 10+ years SWE + 3+ years mgmt.",
+    "paraphrased_query": "the user compliance engineering manager role at the payments platform",
+    "intended_memory_id": "real-007",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": "semantic-over-merge-three-roles-same-company (paired with real-005 and real-006)"
+  },
+  {
+    "id": "real-008",
+    "bucket": "critical-path",
+    "memory_type": "job_application",
+    "original_content": "Applied to Engineering Manager, Mobile AI at REDACTED-DOCS-PLATFORM. Compensation not posted publicly. Leads engineering for mobile AI initiatives — presumably their mobile experience for the assistant/AI features.",
+    "paraphrased_query": "the docs platform's mobile AI engineering manager role",
+    "intended_memory_id": "real-008",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-009",
+    "bucket": "extraction",
+    "memory_type": "job_application",
+    "original_content": "Applied to Engineering Manager I, Threat Detection at REDACTED-OBSERVABILITY-VENDOR. Base $192,000-$240,000. New York hybrid. Leads team building detection systems + AI-accelerated threat response capabilities at scale. Requires prior people leadership + security engineering credibility.",
+    "paraphrased_query": "the threat detection engineering manager role at the observability vendor",
+    "intended_memory_id": "real-009",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-010",
+    "bucket": "known-failure",
+    "memory_type": "job_application",
+    "original_content": "Applied to Distinguished Architect, AI at REDACTED-OBSERVABILITY-VENDOR. Base $300,000-$484,000. New York or San Francisco, hybrid, up to 50% travel. Acts as technical multiplier for AI labs + AI-native companies; bridges infrastructure aspirations with the observability platform for AI workloads. 10+ years distributed systems / HPC.",
+    "paraphrased_query": "the AI distinguished architect role at the observability vendor",
+    "intended_memory_id": "real-010",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": "semantic-over-merge-distinct-roles-same-company (paired with real-009 — both at REDACTED-OBSERVABILITY-VENDOR; recall must distinguish Distinguished Architect from EM Threat Detection)"
+  },
+  {
+    "id": "real-011",
+    "bucket": "extraction",
+    "memory_type": "job_application",
+    "original_content": "Applied to Principal Software Engineer at REDACTED-COMMS-API today. Comp tiered by location: $188,240-$235,300 base tier; $221,360-$276,700 SF Bay tier; intermediate tiers in between for NY/NJ/WA/CA outside Bay. Remote US (CA, CT, NJ, NY, PA, WA ineligible). Customer-facing technical expert delivering code + demos; ~20% travel. 7+ years architecting high-scale cloud.",
+    "paraphrased_query": "the comms API platform's principal engineer customer-facing role",
+    "intended_memory_id": "real-011",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-012",
+    "bucket": "critical-path",
+    "memory_type": "job_application",
+    "original_content": "Applied to Director, Custom Product & Operations at REDACTED-APPAREL-WHOLESALER. Base $160,000-$235,000 + up to 20% bonus. Issaquah WA hybrid (Tue-Thu in office). Manages custom product portfolio + ops team + strategic customer relationships. 10+ years industry incl 7-9 yrs managing managers.",
+    "paraphrased_query": "the apparel wholesaler's custom product director role in Issaquah",
+    "intended_memory_id": "real-012",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-013",
+    "bucket": "critical-path",
+    "memory_type": "job_application",
+    "original_content": "Applied to Director, Product - Enterprise at REDACTED-DESIGN-TOOLS-CORP. Base $290,000-$376,000 USD. SF or NY (in-person onboarding required). Drives product strategy for AI enterprise-focused product areas. 8+ years enterprise SaaS PM.",
+    "paraphrased_query": "the design tools company's enterprise AI product director role",
+    "intended_memory_id": "real-013",
+    "expected_classified_type": "job_application",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-014",
+    "bucket": "edge",
+    "memory_type": "research_note",
+    "original_content": "LinkedIn keyword-search lead: VP, Digital at REDACTED-OUTDOOR-RETAIL-COOP. Just spotted; need to look up the actual posting before deciding to apply. Outdoor retail co-op brand.",
+    "paraphrased_query": "the outdoor retail co-op's VP Digital role I was researching",
+    "intended_memory_id": "real-014",
+    "expected_classified_type": "research_note",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-015",
+    "bucket": "known-failure",
+    "memory_type": "research_note",
+    "original_content": "Spotted on LinkedIn: Director, Engineering, NG-SIEM Serverless Platform at REDACTED-SECURITY-VENDOR. Hybrid arrangement. Worth a closer look — strong security infra play with serverless platform angle.",
+    "paraphrased_query": "the security vendor's NG-SIEM serverless engineering director role",
+    "intended_memory_id": "real-015",
+    "expected_classified_type": "research_note",
+    "known_failure_pattern": "sparse-detail-recall (memory has only company sector + role title + brief reaction; recall must surface from limited tokens without salary, location, or detailed description)"
+  },
+  {
+    "id": "real-016",
+    "bucket": "critical-path",
+    "memory_type": "research_note",
+    "original_content": "Spotted on LinkedIn: Director, Engineering — Listings and Evaluation at REDACTED-REAL-ESTATE-PLATFORM. Real estate domain; mid-funnel data + ML for property valuation. Haven't applied yet; need to fetch the full posting.",
+    "paraphrased_query": "the real estate platform's listings engineering director role",
+    "intended_memory_id": "real-016",
+    "expected_classified_type": "research_note",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-017",
+    "bucket": "extraction",
+    "memory_type": "research_note",
+    "original_content": "Spotted on LinkedIn: VP, Reasoning Systems at REDACTED-ENTERPRISE-AI-PLATFORM. Title is intriguing — sounds like LLM agent / reasoning stack. Haven't applied yet; need to read the full description before deciding.",
+    "paraphrased_query": "the Reasoning Systems VP role at the enterprise AI platform",
+    "intended_memory_id": "real-017",
+    "expected_classified_type": "research_note",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-018",
+    "bucket": "edge",
+    "memory_type": "research_note",
+    "original_content": "LinkedIn lead: VP Engineering at REDACTED-LIFE-SCIENCES-SAAS. Need to investigate — strong reputation but smaller engineering footprint than the larger platforms I've been looking at.",
+    "paraphrased_query": "the life sciences SaaS company's VP Engineering role",
+    "intended_memory_id": "real-018",
+    "expected_classified_type": "research_note",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-019",
+    "bucket": "edge",
+    "memory_type": "research_note",
+    "original_content": "LinkedIn lead: Head of Business Technology Program Management at REDACTED-LEGAL-AI-STARTUP. Worth understanding what 'BizTech program mgmt' actually means at an AI-first legal startup.",
+    "paraphrased_query": "the legal AI startup's business tech program mgmt role",
+    "intended_memory_id": "real-019",
+    "expected_classified_type": "research_note",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-020",
+    "bucket": "critical-path",
+    "memory_type": "decision_log",
+    "original_content": "Decision (Phase 6 D-01, 2026-05-26): defer per-write conflict detection entirely from v0.1 of Engram. Rationale: PIP-04 amended to drop the 'conflict detection against existing memories' clause; ENG-16 will validate precision empirically before v0.2 ships per-write scanning. Owner: russellkmoore.",
+    "paraphrased_query": "the decision about deferring conflict detection out of v0.1",
+    "intended_memory_id": "real-020",
+    "expected_classified_type": "decision_log",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-021",
+    "bucket": "critical-path",
+    "memory_type": "decision_log",
+    "original_content": "Decision (2026-05-31 via ENG-21): switched the Triage Worker JSON-schema converter from zod-to-json-schema@3 to Zod v4's native z.toJSONSchema(). Rationale: the third-party converter silently returned {} on zod@4 schemas — production was sending an empty json_schema constraint to Workers AI for the entire Phase 5/6/7 lifetime. The model was only constrained by the SYSTEM_PROMPT and post-call safeParse.",
+    "paraphrased_query": "the decision about switching to Zod v4's native JSON schema converter",
+    "intended_memory_id": "real-021",
+    "expected_classified_type": "decision_log",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-022",
+    "bucket": "extraction",
+    "memory_type": "research_note",
+    "original_content": "Spike SEED-001 finding: bge-base-en-v1.5 embedding sensibility test on Engram corpus. Δ=0.0696 between domain-clustering and memory-type-clustering on the same content. BORDERLINE — embedding captures domain (job_application vs research_note) more strongly than memory-type. Phase 5 hybrid ranking required to compensate. Source: .planning/spikes/003-embedding-sensibility/results/results.html.",
+    "paraphrased_query": "the embedding sensibility spike result for bge-base",
+    "intended_memory_id": "real-022",
+    "expected_classified_type": "research_note",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-023",
+    "bucket": "critical-path",
+    "memory_type": "research_note",
+    "original_content": "Research note: the Cloudflare agents SDK getAgentByName(namespace, name) returns a Promise<DurableObjectStub<T>> that MUST be awaited. Missing the await yields a Promise where the user expected a stub — subtle bug that silently corrupts DO calls. Canonical pattern: 'const stub = await getAgentByName(env.WORKSPACE, workspace_id)'. Source: agents SDK + Durable Object stubs documentation.",
+    "paraphrased_query": "the agents SDK getAgentByName async pitfall",
+    "intended_memory_id": "real-023",
+    "expected_classified_type": "research_note",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-024",
+    "bucket": "critical-path",
+    "memory_type": "project",
+    "original_content": "Project: cf-code-assist routing tracker (Phase 4). Status: closed 2026-05-27 after /gsd:verify-work 4 passed. Documented 0/16 tasks routed in honest end-of-phase post-mortem; 5 clear misses + 4 partial misses worth ~10-15K tokens identified. Owner: russellkmoore. Source: .planning/phases/04-core-tools-envelope/04-CF-CODE-ASSIST-USAGE.md.",
+    "paraphrased_query": "the cf-code-assist routing tracker Phase 4 post-mortem",
+    "intended_memory_id": "real-024",
+    "expected_classified_type": "project",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-025",
+    "bucket": "critical-path",
+    "memory_type": "contact",
+    "original_content": "Contact: Karri Saarinen — co-founder and CEO at REDACTED-ISSUE-TRACKER (Engram uses their product for ENG-* issue tracking). Met at QCon Plus 2025. Worth keeping in the loop as Engram itself shapes up — possible reciprocal interest in MCP-native tooling.",
+    "paraphrased_query": "the issue tracker CEO I met at QCon Plus",
+    "intended_memory_id": "real-025",
+    "expected_classified_type": "contact",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-026",
+    "bucket": "critical-path",
+    "memory_type": "meeting_note",
+    "original_content": "Meeting (2026-05-28): Phase 7 planning session. Attendees: russellkmoore + Claude (via /gsd:plan-phase). Decisions: ship MCP server first, defer the v0.4 connector framework. Action items: (1) confirm OAuth flow for first-party clients, (2) finalize KV bootstrap script for owner registration, (3) wire up Cloudflare Workers Builds for per-worker CI/CD.",
+    "paraphrased_query": "the Phase 7 planning meeting decisions and action items",
+    "intended_memory_id": "real-026",
+    "expected_classified_type": "meeting_note",
+    "known_failure_pattern": null
+  },
+  {
+    "id": "real-027",
+    "bucket": "extraction",
+    "memory_type": "decision_log",
+    "original_content": "Decision (AI-04, Phase 5 AI-SPEC.md §4): HYBRID_WEIGHTS frozen at starting values — cosine: 1.0, recency: 0.15, type_match: 0.2, scope_match: 0.15. 30-day recency half-life. Locked until empirical eval data (ENG-20 AI-04 reference + real corpus runs) justifies weight tuning per Task 5.1 A/B.",
+    "paraphrased_query": "the hybrid ranking weights decision for Phase 5",
+    "intended_memory_id": "real-027",
+    "expected_classified_type": "decision_log",
+    "known_failure_pattern": null
+  }
+]

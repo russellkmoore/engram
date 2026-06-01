@@ -21,6 +21,7 @@ import { env } from "cloudflare:workers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerTools } from "../../tools.js";
 import refCorpus from "./fixtures/reference-corpus.json";
+import realCorpus from "./fixtures/real-corpus.json";
 
 interface CorpusEntry {
   id: string;
@@ -178,13 +179,20 @@ describe("AI-04 recall F1 — reference corpus (BLOCKS AI-04 closure if F1 < 0.7
   }, 600_000);
 });
 
-// Plan 05-06 Task 4 lands the REAL CORPUS describe block when
-// `real-corpus.json` exists. Currently a no-op guard so the file
-// stays valid while Russell is still curating samples.
+// ENG-20 carry-forward gate: real corpus assembled from Russell's URL set
+// (job-search sources fetched + sanitized to REDACTED-X-CORP convention).
+// Same wrangler-auth + .env + pipeline-wait requirements as the reference
+// corpus block above.
 describe("AI-04 recall F1 — REAL CORPUS (carry-forward gate — BLOCKS AI-04 marked-done if F1 < 0.75)", () => {
   it.skip("F1 ≥ 0.75 on Russell's sanitized job-search corpus", async () => {
-    // Will be populated by Plan 05-06 Task 4 once real-corpus.json is committed.
-    // const { f1, precision, recall, perExample } = await runF1Eval(realCorpus, "ws-eval-f1-real");
-    // expect(f1).toBeGreaterThanOrEqual(0.75);
-  }, 300_000);
+    const { f1, precision, recall, perExample } = await runF1Eval(
+      realCorpus as CorpusEntry[],
+      "ws-eval-f1-real",
+    );
+    console.log(
+      `AI-04 real-corpus F1: ${f1.toFixed(4)} (precision: ${precision.toFixed(4)}, recall: ${recall.toFixed(4)})`,
+    );
+    for (const line of perExample) console.log(`  ${line}`);
+    expect(f1).toBeGreaterThanOrEqual(0.75);
+  }, 600_000);
 });

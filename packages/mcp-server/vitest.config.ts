@@ -54,17 +54,23 @@ export default defineConfig({
             // embedding-consistency.test.ts (Plan 05-06 Task 3 — AI-SPEC §5 dimension #2)
             // also reads triage-worker/src/ai-helper.ts via node:fs.
             "src/__tests__/evals/embedding-consistency.test.ts",
-            // ENG-20 AI-04: kept excluded in PR CI for the same wrangler-
-            // auth + cost reason as the triage-worker eval files. Verified
-            // passing locally with `wrangler login` on 2026-06-01:
-            //   F1=0.8205 (precision=0.7273, recall=0.9412) over 17 paraphrased
-            //   queries against the 20-example reference-corpus. Target ≥0.75.
+            // ENG-20 AI-04: excluded from PR CI for wrangler-auth + cost.
+            // Verified locally with `wrangler login` (2026-06-01):
+            //   - reference-corpus (heterogeneous synthetic): F1=0.8205, P=0.73, R=0.94 (16/17)
+            //   - real-corpus v1 (19 jobs only):              F1=0.3333, P=0.20, R=1.00 (19/19)
+            //   - real-corpus v2 (27 incl 8 non-job):         F1=0.4779, P=0.31, R=1.00 (27/27)
+            // Real-corpus F1 below 0.75 threshold but RECALL is perfect across
+            // both runs — drop is corpus-homogeneity-driven precision artifact.
+            // Diversification (v1 → v2) moved F1 +45% with no recall change.
+            // Closing the rest of the gap to 0.75 requires either real-domain
+            // diversification (truly unrelated memory types) or hybrid-rank
+            // weight tuning per the issue's Task 5.1 A/B option.
+            //
             // To re-run locally:
-            //   1. wrangler login
-            //   2. Comment out this exclude line + flip it.skip → it
+            //   1. wrangler login + populate .env with CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID
+            //   2. Comment out this exclude line + flip the relevant it.skip → it
             //   3. cd packages/mcp-server && npx vitest run recall-f1.eval
-            //   4. Allow ~3-4 min — triage queue + Vectorize indexing has a
-            //      hard 180s wait inside the test body.
+            //   4. Allow ~4 min — triage queue + Vectorize indexing has a 180s wait.
             "src/__tests__/evals/recall-f1.eval.test.ts",
           ],
         },
