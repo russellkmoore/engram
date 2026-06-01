@@ -85,16 +85,33 @@ async function runF1Eval(
     );
     const blockId = (res.result as { id?: string }).id;
     if (blockId) idMap.set(ex.id, blockId);
+    // DIAGNOSTIC (ENG-20 AI-04): print first 2 remember() responses to see id + meta shape
+    if (idMap.size <= 2) {
+      console.log(`[DIAG] remember(${ex.id}) →`, JSON.stringify(res).slice(0, 400));
+    }
   }
+  console.log(
+    `[DIAG] idMap size after ingest: ${String(idMap.size)} / corpus ${String(corpus.length)}`,
+  );
 
-  // Vectorize eventual consistency: wait for index to absorb the upserts.
-  await new Promise((r) => setTimeout(r, 5000));
+  // ENG-20 AI-04: the deployed triage-worker consumes engram-ingest, runs the
+  // classifier + embedder + upserts to Vectorize. Each message takes ~5-10s
+  // (AI inference + embed + Vectorize write). For 19 messages, allow up to
+  // 180s for the queue to drain AND for Vectorize's eventual-consistency
+  // window to close. This is the cost of running an end-to-end eval against
+  // the real async pipeline.
+  const ASYNC_PIPELINE_WAIT_MS = 180_000;
+  console.log(
+    `[DIAG] waiting ${String(ASYNC_PIPELINE_WAIT_MS / 1000)}s for triage queue + Vectorize indexing...`,
+  );
+  await new Promise((r) => setTimeout(r, ASYNC_PIPELINE_WAIT_MS));
 
   let truePositives = 0;
   let falsePositives = 0;
   let falseNegatives = 0;
   const perExample: string[] = [];
 
+  let queryCount = 0;
   for (const ex of corpus) {
     if (!ex.paraphrased_query) continue; // edge cases without paraphrase are not part of F1
     const result = parseEnvelope(
@@ -106,6 +123,22 @@ async function runF1Eval(
     );
     const expectedBlockId = idMap.get(ex.intended_memory_id);
     const isHit = expectedBlockId !== undefined && memories.some((m) => m.id === expectedBlockId);
+    // DIAGNOSTIC (ENG-20 AI-04): print first 3 recall responses with FULL memory shape
+    if (queryCount < 3) {
+      console.log(
+        `[DIAG] recall("${ex.paraphrased_query.slice(0, 50)}") expected blockId=${String(expectedBlockId)}`,
+      );
+      console.log(
+        `[DIAG]   memories.length=${String(memories.length)}, ids=${JSON.stringify(memories.map((m) => m.id))}`,
+      );
+      console.log(
+        `[DIAG]   full envelope keys: ${JSON.stringify(Object.keys(result.result as object))}`,
+      );
+      console.log(
+        `[DIAG]   meta: ${JSON.stringify((result as { meta?: unknown }).meta).slice(0, 200)}`,
+      );
+    }
+    queryCount++;
     if (isHit) {
       truePositives++;
       perExample.push(`PASS ${ex.id} (${ex.bucket}): ${ex.paraphrased_query.slice(0, 60)}`);
@@ -142,7 +175,7 @@ describe("AI-04 recall F1 — reference corpus (BLOCKS AI-04 closure if F1 < 0.7
     );
     for (const line of perExample) console.log(`  ${line}`);
     expect(f1).toBeGreaterThanOrEqual(0.75);
-  }, 300_000);
+  }, 600_000);
 });
 
 // Plan 05-06 Task 4 lands the REAL CORPUS describe block when
