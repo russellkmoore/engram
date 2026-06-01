@@ -30,8 +30,13 @@
   "main": "src/__tests__/test-worker-entry.ts",
   // Phase 5 AI + VECTORIZE bindings for unit tests.
   // Unit tests use vi.fn() mocks; 429 dual-path tests pass mock env directly.
-  "ai": { "binding": "AI" },
-  "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories" }],
+  // ENG-24: remote: true required for vitest-pool-workers to start its proxy
+  // session against the real AI + Vectorize bindings. Mirrors the same fix
+  // landed for mcp-server in PR #4. CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID
+  // env vars (exposed in CI via ci.yml; locally via .env) satisfy the proxy
+  // session's non-interactive auth.
+  "ai": { "binding": "AI", "remote": true },
+  "vectorize": [{ "binding": "VECTORIZE", "index_name": "engram-memories", "remote": true }],
   // Phase 6 Plan 06-05: WORKSPACE DO binding is now SAME-Worker in the test
   // pool (test-worker-entry.ts re-exports WorkspaceDO). The queue-integration
   // tests need a real DO so `runInDurableObject(...)` can assert against
