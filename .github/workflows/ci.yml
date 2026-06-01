@@ -81,5 +81,12 @@ jobs:
       - name: Smoke - fresh install
         run: bash scripts/smoke-install.sh
 
-      - name: Test (Vitest)
-        run: npm test
+      - name: Test (Vitest) — workspace-do only
+        # triage-worker + mcp-server vitest pools declare AI + Vectorize bindings
+        # in their `wrangler.test.jsonc` (remote-only on Workers AI). The vitest-
+        # pool-workers harness opens a remote-proxy session at pool startup,
+        # which requires interactive `wrangler login` OAuth that GitHub Actions
+        # cannot satisfy with CLOUDFLARE_API_TOKEN alone. Until that's resolved
+        # (filed in Linear), CI runs only workspace-do tests — that package has
+        # no remote bindings so its pool starts cleanly.
+        run: npm test --workspace=packages/workspace-do
