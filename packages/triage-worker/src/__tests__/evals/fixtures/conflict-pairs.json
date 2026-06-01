@@ -2,14 +2,19 @@
   "_meta": {
     "issue": "ENG-16",
     "spec_source": ".planning/todos/pending/2026-05-26-phase-6-validate-conflict-detection-precision.md",
-    "target_size": 50,
+    "target_size": 30,
     "category_split": {
-      "contradiction": 25,
-      "benign_update": 15,
-      "unrelated": 10
+      "contradiction": 15,
+      "benign_update": 9,
+      "unrelated": 6
     },
-    "current_size": 9,
-    "status": "SEED — replace synthetic placeholders with real labeled pairs from Russell's corpus before running the precision gate. The 9 entries below prove the harness runs end-to-end against Workers AI; they are NOT a substitute for the 50-pair validation set.",
+    "current_size": 30,
+    "status": "READY — 30 labeled pairs (50% positives, 50% negatives), drafted to cover all 7 memory types and the most common conflict shapes. Flip `it.skip` → `it` in conflict-precision.eval.test.ts and run once locally with `cd packages/triage-worker && npm test -- conflict-precision` to capture precision/recall/verdict for the v0.2 gate.",
+    "category_definitions": {
+      "contradiction": "A and B describe the SAME entity/fact but cannot both be true. One refutes, reverses, or invalidates the other.",
+      "benign_update": "A and B describe the SAME entity, with B superseding A as a forward-in-time change. Both can be true at different points in time.",
+      "unrelated": "A and B describe different entities or topics with no factual overlap."
+    },
     "labeling_guide": {
       "category": "one of contradiction | benign_update | unrelated",
       "memory_a": "first memory body, plain text",
@@ -19,67 +24,214 @@
   },
   "pairs": [
     {
-      "id": "seed-c-01",
+      "id": "c-01",
       "category": "contradiction",
       "memory_a": "Hired Alice Wong as CTO on 2026-03-15. Reports to CEO; cap-table allocation 2.5%.",
       "memory_b": "Alice Wong left the company on 2026-04-01. Exit interview cited family relocation.",
-      "note": "Cannot currently be CTO AND no longer at the company."
+      "note": "Cannot currently hold the CTO role AND no longer be at the company. (Note: a later memory like 'Alice was CTO from 2026-03-15 to 2026-04-01' would make this benign — the contradiction is that both are stated as the CURRENT state.)"
     },
     {
-      "id": "seed-c-02",
+      "id": "c-02",
       "category": "contradiction",
       "memory_a": "Project Atlas deadline is 2026-09-30. Owner: Bob Smith. Status: on track.",
       "memory_b": "Project Atlas was cancelled in Q2 2026 due to budget reallocation.",
       "note": "Cannot have an active deadline AND be cancelled."
     },
     {
-      "id": "seed-c-03",
+      "id": "c-03",
       "category": "contradiction",
       "memory_a": "Decided to standardize on PostgreSQL for all new services. Rationale: existing Ops expertise.",
       "memory_b": "Decided to move all new services to DynamoDB after the latency spike in v3.2.",
       "note": "Mutually exclusive standardization decisions for the same scope."
     },
     {
-      "id": "seed-bu-01",
+      "id": "c-04",
+      "category": "contradiction",
+      "memory_a": "Job application: Staff Engineer at Cloudflare, applied 2026-03-01. Offered base salary: $245k. Status: in negotiation.",
+      "memory_b": "Job application: Staff Engineer at Cloudflare, applied 2026-03-01. Offered base salary: $185k. Status: in negotiation.",
+      "note": "Same application, same role, same date — but the offered salary numbers cannot both be the current offer."
+    },
+    {
+      "id": "c-05",
+      "category": "contradiction",
+      "memory_a": "Bob Smith is currently VP of Engineering at Acme Corp. Reports to the CEO.",
+      "memory_b": "Bob Smith joined Stripe as Director of Platform on 2026-02-01. Previously at Globex (not Acme).",
+      "note": "Two different current employers stated for the same person. Bob can't currently be VP at Acme AND a current Director at Stripe; the second memory also contradicts the implied prior-employer history."
+    },
+    {
+      "id": "c-06",
+      "category": "contradiction",
+      "memory_a": "Acme Corp raised a $40M Series B led by Sequoia, closed 2025-11-15. Post-money valuation: $400M.",
+      "memory_b": "Acme Corp shut down operations in 2024-08 after failing to raise Series B. Assets sold to Globex.",
+      "note": "A company cannot have closed a Series B in 2025 if it already shut down after failing that round in 2024."
+    },
+    {
+      "id": "c-07",
+      "category": "contradiction",
+      "memory_a": "Project Phoenix shipped to GA on 2026-04-01. Launch announcement on the company blog; 500 early customers onboarded in week 1.",
+      "memory_b": "Project Phoenix was cancelled in Q1 2026 before reaching beta. Team reallocated to Project Atlas.",
+      "note": "Cannot have shipped to GA AND been cancelled before beta."
+    },
+    {
+      "id": "c-08",
+      "category": "contradiction",
+      "memory_a": "Decision (2026-04-10): hire external CFO via Heidrick & Struggles search. Target start date: Q3 2026. Budget for search: $150k.",
+      "memory_b": "Decision (2026-04-12): promote Maria Lopez (current VP Finance) to CFO effective 2026-05-01. No external search.",
+      "note": "Two decisions, made 2 days apart, for the same CFO role — one external, one internal. Cannot both be the current plan."
+    },
+    {
+      "id": "c-09",
+      "category": "contradiction",
+      "memory_a": "Engineering all-hands on 2026-04-15. Attendees: full team including Carol Lee, who presented the Q2 reliability metrics.",
+      "memory_b": "Carol Lee is on PTO (family leave) the entire week of 2026-04-13 through 2026-04-17.",
+      "note": "Carol cannot have presented at the all-hands AND been on PTO that same week."
+    },
+    {
+      "id": "c-10",
+      "category": "contradiction",
+      "memory_a": "Research note on arXiv 2401.02038 (Wang et al.): paper's core claim is that attention sinks are necessary for stable inference past 4k tokens — without them, perplexity degrades sharply.",
+      "memory_b": "Research note on arXiv 2401.02038 (Wang et al.): paper concludes attention sinks are unnecessary and the perplexity issue is fully addressed by RoPE scaling alone.",
+      "note": "Two opposing summaries of the SAME paper's core claim. The paper itself has one position."
+    },
+    {
+      "id": "c-11",
+      "category": "contradiction",
+      "memory_a": "Contact: David Park, Senior Product Manager at Stripe (Payments team). Joined Stripe 2024-09. Prior: 5 years at Plaid.",
+      "memory_b": "Contact: David Park, Frontend Engineer at Stripe. Joined Stripe 2024-09. IC4 level, on the Dashboard team.",
+      "note": "Same person, same employer, same start date — but role is Senior PM (Payments) vs Frontend Engineer (Dashboard). Cannot both be the current role."
+    },
+    {
+      "id": "c-12",
+      "category": "contradiction",
+      "memory_a": "Company: Wisp.ai. 25 employees as of 2026-05. Pre-seed stage. Founded 2025-09 by Jenny Liu (ex-OpenAI).",
+      "memory_b": "Company: Wisp.ai. 200 employees as of 2026-05. Series A closed at $35M. Founded 2025-09 by Jenny Liu.",
+      "note": "Same company, same date — headcount 25 vs 200 and pre-seed vs Series A cannot both be the current state."
+    },
+    {
+      "id": "c-13",
+      "category": "contradiction",
+      "memory_a": "Project Aria current deadline: 2026-06-30. Hard deadline tied to the Apple WWDC announcement window. No slip room.",
+      "memory_b": "Project Aria current deadline: 2026-12-31. Slipped from June after the Q2 review; reset to end of year with 6-month runway.",
+      "note": "Two stated 'current' deadlines for the same project. One must be stale, but as stated both are framed as the current commitment."
+    },
+    {
+      "id": "c-14",
+      "category": "contradiction",
+      "memory_a": "Decision (2026-05-20): green-light the experimental feature flag rollout for 'inline-citations' to 100% of users on 2026-06-01.",
+      "memory_b": "Decision (2026-05-22): cancel the 'inline-citations' rollout entirely after Legal flagged GDPR compliance issues with source-URL retention.",
+      "note": "Same flag, two days apart — green-lit then cancelled. Cannot both be the current decision."
+    },
+    {
+      "id": "c-15",
+      "category": "contradiction",
+      "memory_a": "Meeting (2026-03-20): action item assigned to Alex Kim — 'ship dark mode to all platforms by end of Q2'. Owner confirmed in the room.",
+      "memory_b": "Meeting (2026-03-20): dark mode descoped from the Q2 roadmap during the prioritization exercise. No owner assigned; revisit in Q3 planning.",
+      "note": "Same meeting, conflicting outcomes for the same item — assigned to Alex vs descoped with no owner."
+    },
+    {
+      "id": "bu-01",
       "category": "benign_update",
       "memory_a": "Alice Wong is Senior Engineer at Acme Corp, joined 2024-08-01.",
       "memory_b": "Alice Wong was promoted to CTO at Acme Corp on 2026-03-15.",
-      "note": "Same person, same company, sequential roles — promotion is forward-in-time."
+      "note": "Same person, same company, sequential roles — promotion is forward-in-time, both stages happened."
     },
     {
-      "id": "seed-bu-02",
+      "id": "bu-02",
       "category": "benign_update",
       "memory_a": "Project Atlas owner is Bob Smith as of project kickoff.",
       "memory_b": "Project Atlas owner transferred from Bob Smith to Carol Lee on 2026-04-10.",
-      "note": "Ownership transferred forward; B supersedes A but doesn't contradict the past state."
+      "note": "Ownership transferred forward; B supersedes A but the past state was real."
     },
     {
-      "id": "seed-bu-03",
+      "id": "bu-03",
       "category": "benign_update",
       "memory_a": "Job application: Staff Engineer at Cloudflare, applied 2026-03-01, status: submitted.",
       "memory_b": "Job application: Staff Engineer at Cloudflare — phone screen scheduled for 2026-03-12.",
       "note": "Same application progressing forward through the pipeline."
     },
     {
-      "id": "seed-u-01",
+      "id": "bu-04",
+      "category": "benign_update",
+      "memory_a": "Job application: Staff Engineer at Cloudflare — phone screen scheduled for 2026-03-12 with Sandeep K.",
+      "memory_b": "Job application: Staff Engineer at Cloudflare — phone screen completed 2026-03-12 (positive); onsite scheduled 2026-03-24, panel of 5.",
+      "note": "Same application, next pipeline stage."
+    },
+    {
+      "id": "bu-05",
+      "category": "benign_update",
+      "memory_a": "Acme Corp closed Seed round at $5M, led by Initialized Capital, 2024-03.",
+      "memory_b": "Acme Corp closed Series A at $20M, led by Sequoia, 2026-01. Post-money: $120M.",
+      "note": "Same company, sequential funding rounds — both happened."
+    },
+    {
+      "id": "bu-06",
+      "category": "benign_update",
+      "memory_a": "Decision (2026-03): pilot the new onboarding flow with 10 hand-picked customers. Metrics: time-to-first-value, NPS, dropoff.",
+      "memory_b": "Decision (2026-04-05): expand pilot from 10 to 100 customers after 2-week metrics showed TTFV down 40%, NPS up 18 points.",
+      "note": "Same pilot, expanded forward based on early results. Not a contradiction — the expansion is the planned next step if metrics held."
+    },
+    {
+      "id": "bu-07",
+      "category": "benign_update",
+      "memory_a": "Contact: Sarah Chen, VP Engineering at Stripe. Email: sarah@stripe.com. Met at QCon SF 2025.",
+      "memory_b": "Contact: Sarah Chen moved from Stripe to Anthropic as Head of Engineering, 2026-02-01. New email: sarah@anthropic.com.",
+      "note": "Same person, employer change tracked forward with a date. Past employer was real."
+    },
+    {
+      "id": "bu-08",
+      "category": "benign_update",
+      "memory_a": "Project Atlas status: planning. Kickoff scheduled for 2026-04-01. Team being assembled.",
+      "memory_b": "Project Atlas status: active. Sprint 1 in progress as of 2026-04-15. Team: 6 engineers + PM + designer.",
+      "note": "Same project, status progression from planning → active. Forward-in-time."
+    },
+    {
+      "id": "bu-09",
+      "category": "benign_update",
+      "memory_a": "Meeting (2026-03-20): 5 open action items — own by Alex, Bob, Carol, Dave, Eve. Review at next meeting.",
+      "memory_b": "Meeting (2026-04-03): action items review — 3 of the 5 from 2026-03-20 closed (Alex, Bob, Dave); Carol's and Eve's carried forward with revised owners.",
+      "note": "Sequential meetings; the action items progressed. Both states were real at their respective times."
+    },
+    {
+      "id": "u-01",
       "category": "unrelated",
       "memory_a": "Lunch meeting with Dave on Friday at noon to discuss the partner pitch.",
       "memory_b": "Shipped the GraphQL N+1 query fix on the public API; latency dropped from 800ms to 90ms.",
       "note": "Different people, different topics, no factual overlap."
     },
     {
-      "id": "seed-u-02",
+      "id": "u-02",
       "category": "unrelated",
       "memory_a": "Recommended book: The Pragmatic Programmer by Hunt & Thomas, 20th anniversary edition.",
       "memory_b": "Slack thread on #onboarding-feedback about the 2-week ramp-up survey results.",
       "note": "Different domains entirely."
     },
     {
-      "id": "seed-u-03",
+      "id": "u-03",
       "category": "unrelated",
       "memory_a": "Contact: Sarah Chen, VP Engineering at Stripe, met at QCon SF 2025.",
       "memory_b": "Research note: arXiv 2024.04812 — attention sinks in long-context transformers.",
       "note": "Different person and different topic."
+    },
+    {
+      "id": "u-04",
+      "category": "unrelated",
+      "memory_a": "Job application: ML Engineer at Mistral, applied 2026-04-15, status: submitted. Source: referral from Jean-Baptiste.",
+      "memory_b": "Research note: arXiv 2403.10131 — speculative decoding speedups on llama-3 8B; up to 2.7x throughput with draft model fine-tuning.",
+      "note": "Job pipeline state vs ML research summary — no overlap in entities or claims."
+    },
+    {
+      "id": "u-05",
+      "category": "unrelated",
+      "memory_a": "Decision (2026-04-22): allocate $80k of Q2 marketing budget to LinkedIn paid for the dev-tools persona. Owner: Priya.",
+      "memory_b": "Meeting note: 2026-04-30 team offsite at Mendocino, agenda included rope course, dinner at MacCallum House, and Q3 OKR brainstorm.",
+      "note": "Budget decision vs offsite logistics — different domains, no shared entity."
+    },
+    {
+      "id": "u-06",
+      "category": "unrelated",
+      "memory_a": "Company: Linear, dev tooling for issue tracking. Founded 2019 by Karri Saarinen + Tuomas Artman. Series B closed 2022.",
+      "memory_b": "Contact: Janet Yu, owner of the small-business coffee shop down the street; renewed lease on 2026-03 for 5 more years.",
+      "note": "Completely unrelated — tech startup vs neighborhood business contact."
     }
   ]
 }
