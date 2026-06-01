@@ -81,12 +81,26 @@ jobs:
       - name: Smoke - fresh install
         run: bash scripts/smoke-install.sh
 
-      - name: Test (Vitest) — workspace-do only
-        # triage-worker + mcp-server vitest pools declare AI + Vectorize bindings
-        # in their `wrangler.test.jsonc` (remote-only on Workers AI). The vitest-
-        # pool-workers harness opens a remote-proxy session at pool startup,
-        # which requires interactive `wrangler login` OAuth that GitHub Actions
-        # cannot satisfy with CLOUDFLARE_API_TOKEN alone. Until that's resolved
-        # (filed in Linear), CI runs only workspace-do tests — that package has
-        # no remote bindings so its pool starts cleanly.
-        run: npm test --workspace=packages/workspace-do
+      - name: Test (Vitest) — all workspaces
+        # ENG-24 fix: triage-worker + mcp-server vitest pools declare AI +
+        # Vectorize bindings with `remote: true`. The vitest-pool-workers
+        # harness opens a `startRemoteProxySession` at pool startup; that
+        # session accepts CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID as
+        # non-interactive auth (per Cloudflare's CI/CD docs and the GA-since-
+        # Sep-2025 remote-bindings feature). Wiring those secrets through the
+        # env block here restores full test coverage that was previously
+        # scoped to workspace-do only.
+        #
+        # Required GitHub secrets (set under Settings → Secrets → Actions):
+        #   CLOUDFLARE_API_TOKEN  — needs Workers:Edit + Workers AI:Read + Vectorize:Read scopes
+        #   CLOUDFLARE_ACCOUNT_ID — the deployment account
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID secrets are not configured."
+            echo "::error::Add via Settings → Secrets and variables → Actions. Token needs Workers:Edit + Workers AI:Read + Vectorize:Read scopes."
+            exit 1
+          fi
+          npm test
