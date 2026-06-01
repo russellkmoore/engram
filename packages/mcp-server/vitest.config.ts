@@ -54,17 +54,17 @@ export default defineConfig({
             // embedding-consistency.test.ts (Plan 05-06 Task 3 — AI-SPEC §5 dimension #2)
             // also reads triage-worker/src/ai-helper.ts via node:fs.
             "src/__tests__/evals/embedding-consistency.test.ts",
-            // ENG-20 (CI): recall-f1 needs remote-mode wrangler bindings (real
-            // Vectorize + AI). cloudflare-vitest-pool tries to open a remote
-            // proxy session at file-load time, which fails in CI because that
-            // path requires interactive `wrangler login` OAuth — not satisfiable
-            // by CLOUDFLARE_API_TOKEN alone. Tests inside are currently
-            // `it.skip` (real-corpus fixtures haven't landed), so excluding the
-            // file loses zero coverage. When ENG-20 closes (fixtures land +
-            // .skip removed), re-include here AND grow a separate CI surface
-            // that can run it — e.g. a nightly job on a runner where
-            // `wrangler login` is feasible, or a CF Workers Builds gate where
-            // the binding is native.
+            // ENG-20 AI-04: kept excluded in PR CI for the same wrangler-
+            // auth + cost reason as the triage-worker eval files. Verified
+            // passing locally with `wrangler login` on 2026-06-01:
+            //   F1=0.8205 (precision=0.7273, recall=0.9412) over 17 paraphrased
+            //   queries against the 20-example reference-corpus. Target ≥0.75.
+            // To re-run locally:
+            //   1. wrangler login
+            //   2. Comment out this exclude line + flip it.skip → it
+            //   3. cd packages/mcp-server && npx vitest run recall-f1.eval
+            //   4. Allow ~3-4 min — triage queue + Vectorize indexing has a
+            //      hard 180s wait inside the test body.
             "src/__tests__/evals/recall-f1.eval.test.ts",
           ],
         },
