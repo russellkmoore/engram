@@ -5,11 +5,20 @@
 #   (b) wrangler stays alive past a startup window (boot mode — for queue-only
 #       Workers that have no `fetch()` handler and so cannot serve HTTP).
 #
-# Usage: ./scripts/smoke-wrangler-dev.sh [path/to/wrangler.jsonc] [port] [mode]
-#   Default config: packages/mcp-server/wrangler.jsonc
-#   Default port:   8787
-#   Default mode:   http   (poll until HTTP 200 or timeout)
-#                   boot   (wait STARTUP_WINDOW seconds, then verify wrangler PID alive)
+# Usage: ./scripts/smoke-wrangler-dev.sh [path/to/wrangler.jsonc] [port] [mode] [binding-mode]
+#   Default config:        packages/mcp-server/wrangler.jsonc
+#   Default port:          8787
+#   Default mode:          http    (poll until HTTP 200 or timeout)
+#                          boot    (wait STARTUP_WINDOW seconds, then verify wrangler PID alive)
+#   Default binding-mode:  local   (stub remote bindings — fast local feedback)
+#                          remote  (use real Cloudflare bindings — production-fidelity)
+#
+# Binding-mode rationale (ENG-23): `local` is the right default for fast
+# developer feedback — devs running the smoke locally don't need a
+# CLOUDFLARE_API_TOKEN to verify the Worker boots. CI sets binding-mode=remote
+# to catch AI model ID / quota / endpoint regressions that local-stub bindings
+# silently pass. The CI workflow exposes CLOUDFLARE_API_TOKEN +
+# CLOUDFLARE_ACCOUNT_ID env vars to satisfy wrangler's non-interactive auth.
 #
 # The script boots wrangler dev in the background, runs the chosen check, then exits 0/1.
 #
@@ -25,6 +34,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 CONFIG="${1:-packages/mcp-server/wrangler.jsonc}"
 PORT="${2:-8787}"
 MODE="${3:-http}"
+BINDING_MODE="${4:-local}"
 
 # If CONFIG is a relative path, resolve it from REPO_ROOT.
 if [[ "${CONFIG}" != /* ]]; then
@@ -40,15 +50,33 @@ cd "${REPO_ROOT}"
 # Boot wrangler dev in the background. Trap-based kill replaces GNU `timeout`
 # (which is absent from stock macOS) so the script is portable across Linux + macOS.
 #
-# `--local`: this smoke test only verifies the Worker boots + responds HTTP 200.
-# Remote bindings (env.AI in particular) require interactive `wrangler login`
-# OAuth that GitHub Actions cannot satisfy with CLOUDFLARE_API_TOKEN alone, so
-# wrangler dev in remote mode aborts before serving requests. Local mode stubs
-# those bindings out, which is the correct level of fidelity for FND-03's "did
-# the Worker boot at all" smoke. Production-fidelity testing of the AI binding
-# itself belongs in a separate CI surface with full wrangler-auth coverage —
-# tracked in Linear (filed alongside the PR that introduces this flag).
-npx wrangler dev --config "${CONFIG}" --port "${PORT}" --local &
+# binding-mode handling:
+#   local  → pass --local; wrangler stubs remote bindings (AI, Vectorize) so the
+#            smoke can run without Cloudflare credentials. Fast feedback for
+#            local development. Misses AI model ID / quota / endpoint regressions.
+#   remote → omit --local; wrangler uses the real Cloudflare bindings via
+#            remote-proxy session. Requires CLOUDFLARE_API_TOKEN +
+#            CLOUDFLARE_ACCOUNT_ID env vars (non-interactive auth path, GA
+#            Sep 2025). Catches the failure modes local mode misses.
+case "${BINDING_MODE}" in
+  local)
+    echo "[smoke:wrangler-dev] binding-mode=local — remote bindings stubbed"
+    npx wrangler dev --config "${CONFIG}" --port "${PORT}" --local &
+    ;;
+  remote)
+    if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+      echo "[smoke:wrangler-dev] FAIL — binding-mode=remote requires CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID env vars."
+      echo "[smoke:wrangler-dev]        Token needs Workers Scripts:Edit + Workers AI:Read + Vectorize:Read scopes."
+      exit 1
+    fi
+    echo "[smoke:wrangler-dev] binding-mode=remote — using real Cloudflare bindings"
+    npx wrangler dev --config "${CONFIG}" --port "${PORT}" &
+    ;;
+  *)
+    echo "[smoke:wrangler-dev] FAIL — unknown binding-mode '${BINDING_MODE}'. Expected 'local' or 'remote'."
+    exit 1
+    ;;
+esac
 WRANGLER_PID=$!
 trap 'kill ${WRANGLER_PID} 2>/dev/null || true; wait ${WRANGLER_PID} 2>/dev/null || true' EXIT
 

@@ -70,13 +70,27 @@ jobs:
       - name: Lint wrangler.jsonc — positive fixture must pass (FND-08)
         run: node scripts/lint-wrangler.mjs tests/fixtures/good-wrangler.jsonc
 
-      - name: Smoke - wrangler dev (mcp-server)
-        run: bash scripts/smoke-wrangler-dev.sh packages/mcp-server/wrangler.jsonc
+      - name: Smoke - wrangler dev (mcp-server) — remote AI binding
+        # ENG-23: binding-mode=remote so the smoke exercises the real Workers
+        # AI endpoint. Catches AI model ID / quota / endpoint regressions that
+        # local-stub bindings silently pass. Requires the same secrets the
+        # Test (Vitest) step uses (token must have Workers Scripts:Edit so
+        # wrangler can create a temporary preview Worker for the proxy session).
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bash scripts/smoke-wrangler-dev.sh packages/mcp-server/wrangler.jsonc 8787 http remote
 
-      - name: Smoke - wrangler dev (triage-worker)
-        # triage-worker is queue-only (no fetch handler) — boot mode verifies
-        # the module loads without using HTTP polling.
-        run: bash scripts/smoke-wrangler-dev.sh packages/triage-worker/wrangler.jsonc 8788 boot
+      - name: Smoke - wrangler dev (triage-worker) — remote AI binding
+        # ENG-23: triage-worker is queue-only (no fetch handler) so the smoke
+        # uses boot mode (verify wrangler stays up past the startup window).
+        # binding-mode=remote so the AI + Vectorize bindings are real — even
+        # in boot mode, wrangler still resolves the bindings at startup, so
+        # remote auth is required.
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bash scripts/smoke-wrangler-dev.sh packages/triage-worker/wrangler.jsonc 8788 boot remote
 
       - name: Smoke - fresh install
         run: bash scripts/smoke-install.sh
