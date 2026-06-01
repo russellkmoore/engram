@@ -74,7 +74,9 @@ jobs:
         run: bash scripts/smoke-wrangler-dev.sh packages/mcp-server/wrangler.jsonc
 
       - name: Smoke - wrangler dev (triage-worker)
-        run: bash scripts/smoke-wrangler-dev.sh packages/triage-worker/wrangler.jsonc 8788
+        # triage-worker is queue-only (no fetch handler) — boot mode verifies
+        # the module loads without using HTTP polling.
+        run: bash scripts/smoke-wrangler-dev.sh packages/triage-worker/wrangler.jsonc 8788 boot
 
       - name: Smoke - fresh install
         run: bash scripts/smoke-install.sh
