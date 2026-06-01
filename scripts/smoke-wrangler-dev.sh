@@ -34,7 +34,16 @@ cd "${REPO_ROOT}"
 
 # Boot wrangler dev in the background. Trap-based kill replaces GNU `timeout`
 # (which is absent from stock macOS) so the script is portable across Linux + macOS.
-npx wrangler dev --config "${CONFIG}" --port "${PORT}" &
+#
+# `--local`: this smoke test only verifies the Worker boots + responds HTTP 200.
+# Remote bindings (env.AI in particular) require interactive `wrangler login`
+# OAuth that GitHub Actions cannot satisfy with CLOUDFLARE_API_TOKEN alone, so
+# wrangler dev in remote mode aborts before serving requests. Local mode stubs
+# those bindings out, which is the correct level of fidelity for FND-03's "did
+# the Worker boot at all" smoke. Production-fidelity testing of the AI binding
+# itself belongs in a separate CI surface with full wrangler-auth coverage —
+# tracked in Linear (filed alongside the PR that introduces this flag).
+npx wrangler dev --config "${CONFIG}" --port "${PORT}" --local &
 WRANGLER_PID=$!
 trap 'kill ${WRANGLER_PID} 2>/dev/null || true; wait ${WRANGLER_PID} 2>/dev/null || true' EXIT
 
