@@ -28,7 +28,7 @@
     "setup:queue": "bash scripts/setup-queue.sh",
     "setup:vectorize": "bash scripts/setup-vectorize.sh",
     "setup": "node -e \"console.log('Engram setup: see CONTRIBUTING.md for GSD plugin install steps.')\" && npm install && npm run types:gen && npm run setup:vectorize && npm run setup:queue && node -e \"console.log('\\n[OK] Setup complete.\\n  Next:  npm run deploy        # ships both Workers (runs eval gate first)\\n         see README Step 4      # OAuth bootstrap for Claude Desktop\\n')\"",
-    "evals:vitest": "npm test --workspace=packages/mcp-server -- --run evals --passWithNoTests && npm test --workspace=packages/triage-worker -- --run evals --passWithNoTests",
+    "evals:vitest": "npm test --workspace=packages/mcp-server -- --run evals --passWithNoTests && npm test --workspace=packages/triage-worker -- --run evals",
     "evals:promptfoo": "bash scripts/run-evals-promptfoo.sh",
     "evals:ci": "npm run evals:vitest && npm run evals:promptfoo",
     "predeploy": "npm run evals:ci",
