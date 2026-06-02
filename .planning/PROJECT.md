@@ -49,15 +49,22 @@ _Phase 2-7: v0.1 MCP Foundation (2026-05-30):_
 
 ### Active (v0.2 — Intelligence Layer, target 2026-06-21)
 
-To be scoped via `/gsd:new-milestone v0.2`. Anticipated focus areas (from Phase 7 follow-ups + roadmap):
+Scoped 2026-06-02 via `/gsd:new-milestone v0.2`. All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — this milestone is genuinely net-new intelligence-layer work, not cleanup. Full detail in [REQUIREMENTS.md](REQUIREMENTS.md) + [ROADMAP.md](ROADMAP.md). Source-of-truth synthesis: [research/v0.2-SUMMARY.md](research/v0.2-SUMMARY.md).
 
-- [ ] Semantic conflict detection (validated via 50-sample precision gate first — ENG-16)
-- [ ] Query expansion (CF AI rewrites query into 3-4 semantic variants before Vectorize search)
-- [ ] Embedding upgrade-path validation
-- [ ] Better first-run auth flow — `kv:bootstrap-interactive` (ENG-11, pulled forward from v0.4)
-- [ ] Recall envelope `type` field shape fix (ENG-8)
-- [ ] Promptfoo eval gate tightening (ENG-9) + wire into CI (ENG-10)
-- [ ] Close out Phase 5 deferred AI eval gates AI-04 / AI-05 / AI-06 (ENG-20)
+**Four net-new features:**
+
+- [ ] **Conflict-detection wiring** — ship ENG-16's `detectConflict()` scaffold into the live triage flow as low-confidence inbox suggestions. Surfaces via `EngramResponse.context.conflicts[]` in `recall()` (no new MCP tool, no inbox UI — v0.4 work).
+- [ ] **Query expansion** — CF AI rewrites query into 2 paraphrases (3 variants total including original) before Vectorize. RRF merge with `k=60`. Adaptive routing fires only when `top1_cosine < 0.65`. No HyDE.
+- [ ] **Synthesis path activation** — `recall(verbosity=synthesis|both)` activates the scaffolded path with LLM-judge faithfulness gate + citation density floor. Default verbosity stays `"chunks"` (the flip to `"both"` is v0.3 work).
+- [ ] **Hybrid-rank weight tuning** — coarse grid search over `{rerank, recency, type_match, scope_match}` against the expanded labeled corpus. Adds bge-reranker (`@cf/baai/bge-reranker-base`) as drop-in replacement for raw cosine in the rank formula; ablation arm validates contribution.
+
+**Phase structure (5 phases — see [ROADMAP.md](ROADMAP.md) for full detail):**
+
+1. Phase 1 — Foundation (re-embed audit, tiered tests, corpus 27 → 100+, integration matrix)
+2. Phase 2 — Recall Quality Baseline (hybrid-rank tuning + conflict wiring, parallel-trackable)
+3. Phase 3 — Query Expansion + Reranker
+4. Phase 4 — Synthesis Activation Eval
+5. Phase 5 — Integration Kitchen Sink
 
 ### Out of Scope (v0.1)
 
@@ -197,4 +204,4 @@ This document evolves at phase transitions and milestone boundaries.
 6. **Linear**: post milestone summary comment on the Linear milestone
 
 ---
-_Last updated: 2026-05-27 after Phase 4 (Core Tools + Envelope) completion — TOL-01..08, MCP-07, MCP-08 satisfied; 117 vitest tests GREEN; `EngramResponse<T>` envelope contract holds end-to-end against MCP Inspector (local smoke). Phase 5 (AI Integration) is next._
+_Last updated: 2026-06-02 — milestone v0.2 (Intelligence Layer) started via `/gsd:new-milestone`. 4 net-new features scoped (conflict-detection wiring, query expansion, synthesis activation, hybrid-rank tuning). 5-phase roadmap landed; requirements split across PRE/RNK/CON/EXP/SYN/INT categories. v0.1 archived under `milestones/v0.1-phases/`. Next: `/gsd:plan-phase 1`._

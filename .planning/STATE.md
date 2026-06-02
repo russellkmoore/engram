@@ -4,9 +4,9 @@ milestone: v0.2
 milestone_name: Intelligence Layer
 status: planning
 last_updated: "2026-06-02T09:30:00.000Z"
-last_activity: 2026-06-02 — Milestone v0.2 started; requirements being defined
+last_activity: 2026-06-02 — Milestone v0.2 scoped; REQUIREMENTS.md + ROADMAP.md landed; ready for /gsd:plan-phase 1
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -40,14 +40,24 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 1 (Foundation) — not yet planned
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-02 — Milestone v0.2 started
+Status: Ready for `/gsd:plan-phase 1`
+Last activity: 2026-06-02 — Roadmap + requirements landed (5 phases, 44 requirements)
 
 ## Phase Status
 
-To be populated by the roadmapper once requirements are defined. v0.2 phase numbering resets to **Phase 1** (per `--reset-phase-numbers`-equivalent choice at milestone start; v0.1's phases 1-7 are archived in `milestones/v0.1-phases/`).
+v0.2 phase numbering resets to Phase 1. v0.1's phases 1-7 are archived under `milestones/v0.1-phases/`.
+
+| Phase | Name                       | Requirements             | Plans | Status               |
+| ----- | -------------------------- | ------------------------ | ----- | -------------------- |
+| 1     | Foundation (Wave 0)        | PRE-01..05               | TBD   | Ready to plan        |
+| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | TBD   | Pending Phase 1      |
+| 3     | Query Expansion + Reranker | EXP-01..12               | TBD   | Pending Phase 2      |
+| 4     | Synthesis Activation Eval  | SYN-01..10               | TBD   | Pending Phase 3      |
+| 5     | Integration Kitchen Sink   | INT-01..05               | TBD   | Pending Phases 2-4   |
+
+See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 
 ## Performance Metrics
 
@@ -82,8 +92,8 @@ From session work that closed ENG-21..25 before v0.2 planning:
 
 ### Open TODOs
 
-- Run `/gsd:plan-phase 1` to begin v0.2 Phase 1 work once requirements + roadmap land.
-- Decide during v0.2 planning: which of the 4 features lands first? Conflict-detection wiring is the most directly user-visible; query expansion has the largest recall-quality upside; synthesis activates a dormant code path; hybrid-rank tuning is precision-engineering work.
+- Run `/gsd:plan-phase 1` to begin Phase 1 (Foundation) work. Phase 1 scope: PRE-01..05 (re-embed audit, tiered tests, corpus expansion 27 → 100+, integration matrix doc, CF-code-assist routing scaffold).
+- Russell's eval-corpus labeling time (PRE-03) is the critical path for the entire milestone — 3-4 hours, ideally batched in one sitting.
 
 ### Open Blockers
 
@@ -110,7 +120,7 @@ No active deferred work to triage at v0.2 start.
 
 ### Last update
 
-- **2026-06-02:** Milestone v0.2 (Intelligence Layer) started. v0.1 phase directories archived to `milestones/v0.1-phases/`. Phase numbering reset; v0.2 starts at Phase 1.
+- **2026-06-02:** Milestone v0.2 (Intelligence Layer) scoped end-to-end. v0.1 phase directories archived to `milestones/v0.1-phases/`. 5 phases / 44 requirements / 4 features. Research synthesis: `research/v0.2-SUMMARY.md`. Ready for `/gsd:plan-phase 1`.
 
 ---
 
