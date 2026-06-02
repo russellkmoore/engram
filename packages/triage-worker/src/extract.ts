@@ -108,6 +108,9 @@ export async function extractAndScore(
           { role: "system", content: SYSTEM_PROMPT },
           { role: "user", content: event.content },
         ],
+        // ENG-25: Workers AI JSON Mode via OpenAI-compatible response_format.
+        // TRIAGE_JSON_SCHEMA is pre-sanitized through sanitizeJsonSchemaForWorkersAI
+        // (strips `propertyNames` which trips llama-4-scout's validator with 3030).
         response_format: { type: "json_schema", json_schema: TRIAGE_JSON_SCHEMA },
         temperature: 0.2,
         max_tokens: 1024,

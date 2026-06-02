@@ -29,6 +29,7 @@
  * @module @engram/triage-worker/schemas
  */
 import { z } from "zod";
+import { sanitizeJsonSchemaForWorkersAI } from "@engram/ai-config";
 
 // ---------------------------------------------------------------------------
 // SYSTEM_MEMORY_TYPES — system-seeded memory type IDs (schema-as-data)
@@ -130,5 +131,8 @@ export type TriageOutput = z.infer<typeof TriageOutput>;
 export const TRIAGE_JSON_SCHEMA = (() => {
   const { $schema, ...schema } = z.toJSONSchema(TriageOutput);
   void $schema;
-  return schema;
+  // ENG-25: strip JSON Schema keywords (e.g. `propertyNames`) that Workers AI's
+  // JSON Mode validator rejects with error 3030 on llama-4-scout. The shared
+  // helper is the single source of truth for which keywords need stripping.
+  return sanitizeJsonSchemaForWorkersAI(schema);
 })();

@@ -40,35 +40,33 @@
  */
 
 // ---------------------------------------------------------------------------
-// Locked model-ID constants (AI-SPEC.md §3 Model Configuration table)
+// Model-ID re-exports from @engram/ai-config (ENG-25)
 // ---------------------------------------------------------------------------
+//
+// As of ENG-25, model IDs live in `shared/ai-config/src/index.ts`. Both Workers
+// import the same constants — no more byte-identical-cross-file invariant.
+
+export {
+  EMBEDDING_MODEL,
+  EMBEDDING_DIMS,
+  EMBEDDING_CONTEXT_WINDOW,
+  VECTORIZE_INDEX_NAME,
+  INGESTION_CLASSIFIER_MODEL,
+  SYNTHESIS_MODEL,
+  QUERY_EXPANSION_MODEL,
+  VISION_MODEL,
+} from "@engram/ai-config";
+
+// Backward-compat alias for existing callsites.
+import { INGESTION_CLASSIFIER_MODEL } from "@engram/ai-config";
+export const CLASSIFIER_MODEL = INGESTION_CLASSIFIER_MODEL;
 
 /**
- * Embedding model for `remember()` (write path) and `recall()` (query path).
- *
- * LOCKED at index creation via `--preset=@cf/baai/bge-base-en-v1.5`. Changing
- * this constant without creating a new Vectorize index + re-embedding all vectors
- * will silently destroy recall quality (Critical Failure Mode #2 per AI-SPEC.md §1).
- *
- * @see AI-SPEC.md §3 Model Configuration table
- * @see AI-SPEC.md §3 Pitfall 8 (silent model rotation by Cloudflare)
+ * Embedding version stamp — bumped to 2 in ENG-25 alongside the qwen3-
+ * embedding-0.6b swap. Vectors stamped with version=1 reference the old
+ * 768-dim index and are not queryable from the new 1024-dim index.
  */
-export const EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5" as const;
-
-/**
- * Embedding version stamp written to `blocks.embedding_version` (STO-04) on
- * every `remember()` call. Increment when Cloudflare announces a weight rotation
- * to gate a re-embed migration (AI-SPEC.md §3 Pitfall 8 escape hatch).
- */
-export const EMBEDDING_VERSION = 1 as const;
-
-/**
- * Classifier model for Triage Worker entity extraction + memorability scoring
- * (AI-05, AI-06). Used with `response_format: { type: "json_schema" }` for
- * structured JSON output (AI-SPEC.md §3 Key Abstractions — Workers AI structured
- * output). Temperature: 0.2; max_tokens: 1024 (cost discipline per §4).
- */
-export const CLASSIFIER_MODEL = "@cf/meta/llama-3.1-8b-instruct" as const;
+export const EMBEDDING_VERSION = 2 as const;
 
 // ---------------------------------------------------------------------------
 // AiBindingResponse — envelope shape for env.AI.run responses

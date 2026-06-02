@@ -1,17 +1,17 @@
 /**
- * Tests for `ai-helper.ts` (AI-03/04/07 constant + 429 dual-path).
+ * Tests for `ai-helper.ts` (AI-03/04/07 constants + 429 dual-path).
  *
- * Plan 05-02 (Wave 1) shipped `ai-helper.ts` in mcp-server.
- * Plan 05-04 (Wave 2b) ships `ai-helper.ts` in triage-worker and wires the
- * cross-file identity test asserting literal-string equality on all 3 model
- * constants (AI-SPEC.md §5 dimension #2 identity-check gate).
+ * ENG-25 update: model-id constants are now re-exported from `@engram/ai-config`
+ * (single source of truth). The historical cross-file identity test has been
+ * removed — there is no longer "another file" to drift from. These tests now
+ * assert FORMAT (valid `@cf/...` model-id shape) rather than literal values,
+ * so a model swap in `shared/ai-config/src/index.ts` doesn't require parallel
+ * test edits.
  *
  * Requirements covered:
- * - AI-03/AI-04: model-id constants locked at AI-SPEC.md §5 values; drift
- *   between mcp-server and triage-worker is caught by a cross-file equality
- *   assertion.
- * - AI-07: 429 rate-limit detection must handle BOTH the thrown AiError path
- *   AND the binding-envelope path (dual-path per AI-SPEC.md §3 Pitfall 1).
+ * - AI-03/AI-04: model-id constants resolve to valid Workers AI model strings
+ * - AI-07: 429 rate-limit detection handles both the thrown AiError path AND
+ *   the binding-envelope path (dual-path per AI-SPEC.md §3 Pitfall 1)
  *
  * @module @engram/mcp-server/__tests__/ai-helper
  */
@@ -21,32 +21,52 @@ import { describe, it, expect } from "vitest";
 import {
   EMBEDDING_MODEL,
   EMBEDDING_VERSION,
+  EMBEDDING_DIMS,
+  EMBEDDING_CONTEXT_WINDOW,
   CLASSIFIER_MODEL,
+  INGESTION_CLASSIFIER_MODEL,
+  SYNTHESIS_MODEL,
+  QUERY_EXPANSION_MODEL,
+  VISION_MODEL,
   detectRateLimit,
   isRateLimitError,
 } from "../ai-helper.js";
 
 // ---------------------------------------------------------------------------
-// AI-03/04: model-id constant drift guard
+// AI-03/04: model-id constant validity (format only — not literal values)
 // ---------------------------------------------------------------------------
 
-describe("AI helper constants (AI-03/04 drift guard)", () => {
-  it("EMBEDDING_MODEL is @cf/baai/bge-base-en-v1.5 (AI-SPEC.md §5)", () => {
-    expect(EMBEDDING_MODEL).toBe("@cf/baai/bge-base-en-v1.5");
+const WORKERS_AI_MODEL_ID = /^@cf\/[a-z][a-z0-9-]*\/[a-z0-9][a-z0-9-.]*$/;
+
+describe("AI helper constants (ENG-25: format guard, not literal-value guard)", () => {
+  it("EMBEDDING_MODEL is a valid Workers AI model id", () => {
+    expect(EMBEDDING_MODEL).toMatch(WORKERS_AI_MODEL_ID);
   });
 
-  it("EMBEDDING_VERSION is 1 (stamps blocks.embedding_version for future model migrations)", () => {
-    expect(EMBEDDING_VERSION).toBe(1);
+  it("INGESTION_CLASSIFIER_MODEL is a valid Workers AI model id", () => {
+    expect(INGESTION_CLASSIFIER_MODEL).toMatch(WORKERS_AI_MODEL_ID);
   });
 
-  it("CLASSIFIER_MODEL is @cf/meta/llama-3.1-8b-instruct (AI-SPEC.md §5)", () => {
-    expect(CLASSIFIER_MODEL).toBe("@cf/meta/llama-3.1-8b-instruct");
+  it("CLASSIFIER_MODEL is the backward-compat alias for INGESTION_CLASSIFIER_MODEL", () => {
+    expect(CLASSIFIER_MODEL).toBe(INGESTION_CLASSIFIER_MODEL);
   });
 
-  it.skip("EMBEDDING_MODEL is identical across mcp-server and triage-worker (AI-SPEC.md §5 dimension #2 identity-check gate — tested in ai-helper-identity.test.ts lint-node pool)", () => {
-    // workerd pool cannot use node:fs readFileSync for cross-package file reads.
-    // The actual identity assertion lives in ai-helper-identity.test.ts (lint-node pool)
-    // which uses node:fs to read triage-worker/src/ai-helper.ts directly.
+  it("SYNTHESIS_MODEL / QUERY_EXPANSION_MODEL / VISION_MODEL are valid Workers AI ids (v0.1 alias INGESTION_CLASSIFIER_MODEL)", () => {
+    expect(SYNTHESIS_MODEL).toMatch(WORKERS_AI_MODEL_ID);
+    expect(QUERY_EXPANSION_MODEL).toMatch(WORKERS_AI_MODEL_ID);
+    expect(VISION_MODEL).toMatch(WORKERS_AI_MODEL_ID);
+  });
+
+  it("EMBEDDING_VERSION is a positive integer (stamps blocks.embedding_version for migrations)", () => {
+    expect(EMBEDDING_VERSION).toBeGreaterThanOrEqual(1);
+    expect(Number.isInteger(EMBEDDING_VERSION)).toBe(true);
+  });
+
+  it("EMBEDDING_DIMS + EMBEDDING_CONTEXT_WINDOW are positive integers", () => {
+    expect(EMBEDDING_DIMS).toBeGreaterThan(0);
+    expect(EMBEDDING_CONTEXT_WINDOW).toBeGreaterThan(0);
+    expect(Number.isInteger(EMBEDDING_DIMS)).toBe(true);
+    expect(Number.isInteger(EMBEDDING_CONTEXT_WINDOW)).toBe(true);
   });
 });
 

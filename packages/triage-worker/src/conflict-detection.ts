@@ -27,6 +27,7 @@
  * @module @engram/triage-worker/conflict-detection
  */
 import { z } from "zod";
+import { sanitizeJsonSchemaForWorkersAI } from "@engram/ai-config";
 
 import { CLASSIFIER_MODEL } from "./ai-helper.js";
 
@@ -79,7 +80,8 @@ export type ConflictOutput = z.infer<typeof ConflictOutput>;
 export const CONFLICT_JSON_SCHEMA = (() => {
   const { $schema, ...schema } = z.toJSONSchema(ConflictOutput);
   void $schema;
-  return schema;
+  // ENG-25: same Workers AI JSON Mode keyword-sanitization as TRIAGE_JSON_SCHEMA.
+  return sanitizeJsonSchemaForWorkersAI(schema);
 })();
 
 // ---------------------------------------------------------------------------
@@ -149,6 +151,8 @@ export async function detectConflict(
           { role: "system", content: CONFLICT_DETECTION_PROMPT },
           { role: "user", content: userMessage },
         ],
+        // ENG-25: Workers AI JSON Mode via OpenAI-compatible response_format.
+        // CONFLICT_JSON_SCHEMA is pre-sanitized (see schemas.ts for rationale).
         response_format: { type: "json_schema", json_schema: CONFLICT_JSON_SCHEMA },
         temperature: 0.1,
         max_tokens: 512,

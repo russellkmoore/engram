@@ -4,10 +4,14 @@
 --
 -- Dataset schema (per AI-SPEC.md §7, ratified by Plan 05-07 analytics.ts):
 --   blobs[0]  = worker         ("mcp-server" | "triage-worker")
---   blobs[1]  = op-kind        ("@cf/baai/bge-base-en-v1.5" | "@cf/meta/llama-3.1-8b-instruct"
+--   blobs[1]  = op-kind        (EMBEDDING_MODEL | INGESTION_CLASSIFIER_MODEL
 --                              | "vectorize-query" | "vectorize-upsert" | "vectorize-delete"
 --                              | "zod-parse-fail" | "do-rpc-store-normal" | "do-rpc-inbox"
 --                              | "do-rpc-cold-storage")
+--                              See `shared/ai-config/src/index.ts` for the
+--                              current EMBEDDING_MODEL / INGESTION_CLASSIFIER_MODEL
+--                              values; analytics queries should join against
+--                              whichever is current, not hardcode literal IDs.
 --   blobs[2]  = workspace-tag  (sha256(workspace_id)[:16] — never raw IDs)
 --   blobs[3]  = outcome        ("success" | "retry-429" | "throw" | "zero-match"
 --                              | "retry-5s" | "ack-permanent")
@@ -20,8 +24,9 @@
 -- ============================================================================
 -- Query 1: p50/p95/p99 latency by model, last 24h
 -- AI-SPEC.md §7 dimension #1 + #2: latency budgets
---   embed @cf/baai/bge-base-en-v1.5  → ≤ 150ms p50 target
---   classifier @cf/meta/llama-3.1-8b-instruct → 1.5-4s p50 (Triage); 2-5s p50 (synthesis)
+--   embed EMBEDDING_MODEL       → ≤ 150ms p50 target (current: qwen3-embedding-0.6b per ENG-25)
+--   classifier INGESTION_CLASSIFIER_MODEL → 1.5-4s p50 (Triage); 2-5s p50 (synthesis)
+--                              (current: llama-4-scout-17b-16e-instruct per ENG-25)
 -- ============================================================================
 SELECT
   blob1 AS model,

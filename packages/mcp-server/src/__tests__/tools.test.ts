@@ -34,6 +34,7 @@ import { env } from "cloudflare:workers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { registerTools } from "../tools.js";
+import { EMBEDDING_DIMS } from "../ai-helper.js";
 
 // ---------------------------------------------------------------------------
 // Phase 5 AI-03 mocks: patch env.AI + env.VECTORIZE for local test execution.
@@ -44,13 +45,13 @@ import { registerTools } from "../tools.js";
 // Patch with minimal stubs so the DO routing logic remains intact without
 // requiring a remote Cloudflare connection.
 // ---------------------------------------------------------------------------
-const MOCK_VECTOR = new Array(768).fill(0.1) as number[];
+const MOCK_VECTOR = new Array(EMBEDDING_DIMS).fill(0.1) as number[];
 
 beforeAll(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
   const e = env as any;
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  e.AI = { run: vi.fn().mockResolvedValue({ data: [MOCK_VECTOR], shape: [1, 768] }) };
+  e.AI = { run: vi.fn().mockResolvedValue({ data: [MOCK_VECTOR], shape: [1, EMBEDDING_DIMS] }) };
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   e.VECTORIZE = {
     upsert: vi.fn().mockResolvedValue({ mutationId: "mock-upsert" }),

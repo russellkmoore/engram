@@ -48,12 +48,10 @@ export default defineConfig({
           include: ["src/__tests__/**/*.test.ts"],
           exclude: [
             "src/__tests__/lint-no-direct-vectorize.test.ts",
-            // ai-helper-identity.test.ts uses node:fs readFileSync for cross-package reads;
-            // workerd runtime does not support this. Runs in lint-node pool below.
-            "src/__tests__/ai-helper-identity.test.ts",
-            // embedding-consistency.test.ts (Plan 05-06 Task 3 — AI-SPEC §5 dimension #2)
-            // also reads triage-worker/src/ai-helper.ts via node:fs.
-            "src/__tests__/evals/embedding-consistency.test.ts",
+            // ENG-25: ai-helper-identity.test.ts and embedding-consistency.test.ts
+            // were the cross-file drift guards. Both were retired when model
+            // constants moved to the shared `@engram/ai-config` package
+            // (single source of truth — no cross-file drift possible).
             // ENG-20 AI-04: excluded from PR CI for wrangler-auth + cost.
             // Verified locally with `wrangler login` (2026-06-01):
             //   - reference-corpus (heterogeneous synthetic): F1=0.8205, P=0.73, R=0.94 (16/17)
@@ -71,6 +69,12 @@ export default defineConfig({
             //   2. Comment out this exclude line + flip the relevant it.skip → it
             //   3. cd packages/mcp-server && npx vitest run recall-f1.eval
             //   4. Allow ~4 min — triage queue + Vectorize indexing has a 180s wait.
+            //
+            // ENG-25 re-run (2026-06-02 with llama-4-scout + qwen3-embedding-0.6b
+            // + MIN_COSINE_THRESHOLD=0.6 hybrid-rank tuning):
+            //   - reference-corpus: F1=0.8333, P=0.79, R=0.88
+            //   - real-corpus:      F1=0.8254, P=0.72, R=0.96
+            // Both PASS the ≥0.75 gate; real-corpus jumped +73% vs bge-base baseline.
             "src/__tests__/evals/recall-f1.eval.test.ts",
           ],
         },
@@ -85,11 +89,9 @@ export default defineConfig({
           name: "lint-node",
           include: [
             "src/__tests__/lint-no-direct-vectorize.test.ts",
-            // Cross-file model-constant identity test (AI-SPEC.md §5 dimension #2).
-            // Reads triage-worker/src/ai-helper.ts via node:fs — cannot run in workerd pool.
-            "src/__tests__/ai-helper-identity.test.ts",
-            // Plan 05-06 Task 3 dedicated AI-SPEC §5 dimension #2 eval framing.
-            "src/__tests__/evals/embedding-consistency.test.ts",
+            // ENG-25: ai-helper-identity + embedding-consistency files were
+            // retired (cross-file drift impossible now that model IDs live
+            // in the shared @engram/ai-config package).
           ],
         },
       },

@@ -45,6 +45,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 type SqlStorage = any;
 
 import { registerTools } from "../tools.js";
+import { INGESTION_CLASSIFIER_MODEL, EMBEDDING_DIMS } from "../ai-helper.js";
 
 // ---------------------------------------------------------------------------
 // Phase 5 AI-03 / AI-08 mocks: VECTORIZE + AI binding stubs
@@ -61,8 +62,10 @@ import { registerTools } from "../tools.js";
 // AI and Vectorize calls are stubbed.
 // ---------------------------------------------------------------------------
 
-/** Deterministic 768-dim embedding returned by the AI mock on every call. */
-const MOCK_VECTOR = new Array(768).fill(0.1) as number[];
+/** Deterministic embedding returned by the AI mock on every call.
+ *  Sized to EMBEDDING_DIMS so the mock stays in lock-step with the real
+ *  binding when the embedding model swaps (ENG-25). */
+const MOCK_VECTOR = new Array(EMBEDDING_DIMS).fill(0.1) as number[];
 
 // ---------------------------------------------------------------------------
 // Phase 5 AI-04: Vectorize mock state tracking
@@ -100,11 +103,11 @@ function patchEnvBindings() {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   e.AI = {
     run: vi.fn().mockImplementation((model: string): Promise<unknown> => {
-      if (model === "@cf/meta/llama-3.1-8b-instruct") {
+      if (model === INGESTION_CLASSIFIER_MODEL) {
         return Promise.resolve({ response: "Mock synthesis for test." });
       }
-      // Default: embedding model returns deterministic 768-dim vector
-      return Promise.resolve({ data: [MOCK_VECTOR], shape: [1, 768] });
+      // Default: embedding model returns deterministic vector sized to EMBEDDING_DIMS.
+      return Promise.resolve({ data: [MOCK_VECTOR], shape: [1, EMBEDDING_DIMS] });
     }),
   };
 
