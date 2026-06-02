@@ -5,9 +5,11 @@
 # 0.121.x), the gate is stricter: any failure exits non-zero. The AI-SPEC
 # 95% threshold is a safety margin — meeting 100% trivially satisfies it.
 #
-# Provider: Cloudflare Workers AI llama-3.1-8b-instruct (same model the
-# Triage Worker uses at runtime). Promptfoo's `https` provider posts to the
-# Workers AI REST endpoint; the response is parsed as JSON.
+# Provider: Cloudflare Workers AI INGESTION_CLASSIFIER_MODEL (single source of
+# truth: `shared/ai-config/src/index.ts`). Current value as of ENG-25:
+# @cf/meta/llama-4-scout-17b-16e-instruct. Promptfoo's `https` provider posts
+# to the Workers AI REST endpoint; the response is parsed as JSON. Keep the
+# URL below in sync with the ai-config constant on every model swap.
 #
 # Run: `npm run evals:promptfoo`
 #
@@ -40,10 +42,10 @@ defaultTest:
 
 providers:
   - id: https
-    label: cloudflare-workers-ai-llama-3.1-8b
+    label: cloudflare-workers-ai-llama-4-scout
     config:
       method: POST
-      url: "https://api.cloudflare.com/client/v4/accounts/{{ env.CLOUDFLARE_ACCOUNT_ID }}/ai/run/@cf/meta/llama-3.1-8b-instruct"
+      url: "https://api.cloudflare.com/client/v4/accounts/{{ env.CLOUDFLARE_ACCOUNT_ID }}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct"
       headers:
         Authorization: "Bearer {{ env.CLOUDFLARE_API_TOKEN }}"
         Content-Type: "application/json"

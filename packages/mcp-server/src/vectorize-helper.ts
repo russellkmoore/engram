@@ -72,7 +72,7 @@ function assertNamespace(workspaceId: string): void {
  *
  * @param env - Structural env binding; only VECTORIZE is required for partial mocks.
  * @param workspaceId - The workspace namespace for tenant isolation (AI-02).
- * @param vector - The query embedding (number[768] from @cf/baai/bge-base-en-v1.5).
+ * @param vector - The query embedding (size = EMBEDDING_DIMS from @engram/ai-config).
  * @param opts - Query options. topK defaults to 25; returnMetadata defaults to "all".
  */
 export function vectorizeQuery(

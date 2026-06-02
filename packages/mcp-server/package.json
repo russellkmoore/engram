@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "0.7.0",
+    "@engram/ai-config": "*",
     "@engram/schema": "*",
     "@engram/types": "*",
     "@engram/workspace-do": "*",

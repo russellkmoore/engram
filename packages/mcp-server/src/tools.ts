@@ -79,7 +79,14 @@ import {
   wrapMcpContent,
   META_GAPS,
 } from "./envelope.js";
-import { safeRun, EMBEDDING_MODEL, EMBEDDING_VERSION, CLASSIFIER_MODEL } from "./ai-helper.js";
+import {
+  safeRun,
+  EMBEDDING_MODEL,
+  EMBEDDING_VERSION,
+  EMBEDDING_DIMS,
+  CLASSIFIER_MODEL,
+} from "./ai-helper.js";
+import { MIN_COSINE_THRESHOLD, VECTORIZE_OVERFETCH_FACTOR } from "@engram/ai-config";
 import { vectorizeUpsert, vectorizeDelete, vectorizeQuery } from "./vectorize-helper.js";
 import { writeAnalytics, workspaceTag } from "./analytics.js";
 import { hybridRank } from "./hybrid-rank.js";
@@ -364,9 +371,9 @@ export function registerTools(
         indexes: [ANALYTICS_ENV_TAG],
       });
       const vector = embedResp.data?.[0];
-      if (vector?.length !== 768) {
+      if (vector?.length !== EMBEDDING_DIMS) {
         throw new Error(
-          `embed: unexpected shape (expected number[768], got ${String(vector?.length ?? "undefined")})`,
+          `embed: unexpected shape (expected number[${String(EMBEDDING_DIMS)}], got ${String(vector?.length ?? "undefined")})`,
         );
       }
 
@@ -397,7 +404,7 @@ export function registerTools(
        
       writeAnalytics(env, {
         blobs: ["mcp-server", "vectorize-upsert", wsTag, "success"],
-        doubles: [Date.now() - upsertStart, 768, 0, 0],
+        doubles: [Date.now() - upsertStart, EMBEDDING_DIMS, 0, 0],
         indexes: [ANALYTICS_ENV_TAG],
       });
       // === End Phase 5 AI-03 additions ===
@@ -533,37 +540,52 @@ export function registerTools(
         indexes: [ANALYTICS_ENV_TAG],
       });
       const queryVector = embedResp.data?.[0];
-      if (queryVector?.length !== 768) {
+      if (queryVector?.length !== EMBEDDING_DIMS) {
         throw new Error(
-          `embed query: unexpected shape (expected number[768], got ${String(queryVector?.length ?? "undefined")})`,
+          `embed query: unexpected shape (expected number[${String(EMBEDDING_DIMS)}], got ${String(queryVector?.length ?? "undefined")})`,
         );
       }
 
       // === AI-04 Step 2: Vectorize query in workspace namespace (AI-02 isolation via helper) ===
       // topK explicit (Pitfall 7); metadata filter on type when args.types supplied (RESEARCH §Phase 5 Ranking Strategy #2)
       const topK = args.limit ?? 25;
+      // ENG-25 hybrid-rank tuning: over-fetch by VECTORIZE_OVERFETCH_FACTOR so
+      // the MIN_COSINE_THRESHOLD filter below has buffer matches to choose from
+      // when the most-relevant ones don't fill the requested topK. Without
+      // over-fetch, threshold-drops would shrink the returned set below topK.
+      const fetchSize = topK * VECTORIZE_OVERFETCH_FACTOR;
       const vectorizeQueryStart = Date.now();
-       
+
       // ENG-22: with exactOptionalPropertyTypes, passing `filter: undefined` is
       // rejected — must conditionally include the key via spread when args.types
       // is set, omit entirely when empty/absent.
       const result = await vectorizeQuery(env, props.workspace_id, queryVector, {
-        topK,
+        topK: fetchSize,
         ...(args.types?.length ? { filter: { type: { $in: args.types } } } : {}),
         returnMetadata: "all",
       });
 
+      // ENG-25 hybrid-rank tuning: drop matches below MIN_COSINE_THRESHOLD,
+      // then cap at the user's requested topK. Vectorize returns the BEST
+      // fetchSize matches but doesn't filter on absolute relevance — without
+      // this gate, a query with no genuinely-good matches still returns
+      // fetchSize loosely-related ones, tanking precision. With qwen3-
+      // embedding-0.6b's tight clustering, this gate is essential.
+      const filteredMatches = result.matches
+        .filter((m) => m.score >= MIN_COSINE_THRESHOLD)
+        .slice(0, topK);
+
       // Instrument Vectorize query — zero-match outcome is a critical signal (T-05-07-LAT / AI-SPEC §7).
-      const vectorizeQueryOutcome = result.matches.length === 0 ? "zero-match" : "success";
-       
+      const vectorizeQueryOutcome = filteredMatches.length === 0 ? "zero-match" : "success";
+
       writeAnalytics(env, {
         blobs: ["mcp-server", "vectorize-query", wsTag, vectorizeQueryOutcome],
-        doubles: [Date.now() - vectorizeQueryStart, topK, 0, 0],
+        doubles: [Date.now() - vectorizeQueryStart, topK, result.matches.length, filteredMatches.length],
         indexes: [ANALYTICS_ENV_TAG],
       });
 
       // === AI-04 Step 3: hydrate full blocks from SQLite (cold_storage excluded by getBlocksByIds) ===
-      const ids = result.matches.map((m) => m.id);
+      const ids = filteredMatches.map((m) => m.id);
       // eslint-disable-next-line @typescript-eslint/await-thenable -- DO stub methods return Promise<T> at runtime via Cloudflare RPC layer
       const blocks = await stub.getBlocksByIds({
         workspace_id: props.workspace_id, // ALWAYS from props, NEVER from args
@@ -571,7 +593,7 @@ export function registerTools(
       });
 
       // === AI-04 Step 4: hybrid re-rank (spike-validated formula: cosine·1.0 + recency·0.15 + type·0.2 + scope·0.15) ===
-      const ranked = hybridRank(result.matches, blocks, args, Date.now());
+      const ranked = hybridRank(filteredMatches, blocks, args, Date.now());
 
       // === D-01: synthesis is OPT-IN — skipped on default verbosity="chunks" (no 2–5s latency penalty) ===
       let synthesis: string | null = null;

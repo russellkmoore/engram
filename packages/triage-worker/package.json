@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@engram/ai-config": "*",
     "@engram/schema": "*",
     "@engram/types": "*",
     "zod": "^4.4.3"
