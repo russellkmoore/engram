@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Awaiting next milestone
-last_updated: "2026-05-30T17:48:23.180Z"
-last_activity: 2026-05-30 — Milestone v0.1 completed and archived
+milestone: v0.2
+milestone_name: Intelligence Layer
+status: planning
+last_updated: "2026-06-02T09:30:00.000Z"
+last_activity: 2026-06-02 — Milestone v0.2 started; requirements being defined
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 44
-  completed_plans: 44
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Engram
@@ -21,7 +21,7 @@ progress:
 
 - **Project:** Engram (MCP-native second brain for AI assistants, Cloudflare end-to-end)
 - **Core Value:** Layered memory that AI queries directly via MCP — personal, team, project, and org memory exposed as the same tool surface, with all preprocessing done by cheaper models so Claude only does reasoning.
-- **Current Milestone:** v0.1 — MCP Foundation (Linear target 2026-06-07)
+- **Current Milestone:** v0.2 — Intelligence Layer (target 2026-06-21)
 - **Mode:** standard (Horizontal Layers)
 - **Operating principle:** "Do it RIGHT, not FAST" (depth over speed; foundational flaws are more damaging than late wow-moments).
 - **Repo:** `/Users/rmoore/Workspaces/engram`
@@ -29,102 +29,95 @@ progress:
 
 ## Current Focus
 
-**v0.1 — MCP Foundation.** Russell's first-user use case is his existing job-search agent. The single user-facing acceptance test is: `remember` a job posting in conversation A → `recall` it in conversation B (different chat) 1+ hour later, with extracted fields intact. Russell uses Engram daily for at least 3 consecutive working days post-deploy before v0.1 closes.
+**v0.2 — Intelligence Layer.** Activate the intelligence layer on top of v0.1's foundation. Four net-new capabilities:
+
+1. **Conflict-detection wiring** — ship ENG-16's `detectConflict()` scaffold into the live triage flow as low-confidence inbox suggestions (never auto-alerted).
+2. **Query expansion** — CF AI rewrites each query into 3-4 semantic variants before Vectorize, then merges + deduplicates results.
+3. **Synthesis path activation** — `recall(verbosity=synthesis|both)` produces a coherent narrative summary of retrieved memories.
+4. **Hybrid-rank weight tuning** — Task 5.1 A/B work per AI-SPEC §4, against the diversified real-corpus from ENG-25.
+
+All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — this milestone is genuinely net-new intelligence-layer work, not cleanup.
 
 ## Current Position
 
-Phase: Milestone v0.1 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-30 — Milestone v0.1 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-02 — Milestone v0.2 started
 
 ## Phase Status
 
-| Phase | Name                  | Status            | Linear                                           |
-| ----- | --------------------- | ----------------- | ------------------------------------------------ |
-| 1     | Foundation            | **Ready to plan** | Not yet created (created at `/gsd:plan-phase 1`) |
-| 2     | WorkspaceDO + SQLite  | Pending           | —                                                |
-| 3     | MCP Server Scaffold   | Pending           | —                                                |
-| 4     | Core Tools + Envelope | Pending           | —                                                |
-| 5     | AI Integration        | Pending           | —                                                |
-| 6     | Async Pipeline        | Pending           | —                                                |
-| 7     | Deploy + Acceptance   | Pending           | —                                                |
+To be populated by the roadmapper once requirements are defined. v0.2 phase numbering resets to **Phase 1** (per `--reset-phase-numbers`-equivalent choice at milestone start; v0.1's phases 1-7 are archived in `milestones/v0.1-phases/`).
 
 ## Performance Metrics
 
-- **Sessions to date:** 1 (roadmap)
+- **Sessions to date:** 0 (milestone just started)
 - **Phases completed:** 0
 - **Plans completed:** 0
 - **Blockers raised:** 0
-- **Decision log entries:** see PROJECT.md "Key Decisions" + research SUMMARY.md §6 + §7
+- **Decision log entries:** see PROJECT.md "Key Decisions"
 
 ## Accumulated Context
 
-### Decisions (carried into v0.1)
+### Decisions carried into v0.2 (from v0.1)
 
-From PROJECT.md + research SUMMARY.md §6 + Russell's overrides:
+All v0.1 architectural decisions remain locked. See `MILESTONES.md` "v0.1 MCP Foundation" → "Architectural decisions locked" for the full list. Key items for v0.2:
 
-1. **AI stays in v0.1.** Russell overrode research recommendation (which suggested deferring Vectorize + Workers AI to v0.2 for a leaner critical path). v0.1 ships with semantic `recall`, not just SQL `LIKE`. Phase 5 (AI Integration) is the dedicated phase for this work.
-2. **All other research corrections C2–C9 locked.** Two DO classes per Worker (`EngramMcp` session DO + `WorkspaceDO` durable store); `wrangler.jsonc` not `.toml`; `ingest-worker` package deferred to v0.4; direct RPC for sync writes + Queue for async enrichment; `search` has no `format?` parameter; `agents/mcp` `McpAgent` is the MCP host (not raw SDK); Apache-2.0 LICENSE placeholder at first commit; `bge-base-en-v1.5` (768d, cosine) for embeddings.
-3. **Eight must-mitigate items.** See SUMMARY.md §7 + the Risk Notes on every phase in ROADMAP.md. Non-negotiable for v0.1: `new_sqlite_classes`, schema migrations without `PRAGMA user_version`, no `blockConcurrencyWhile()` across I/O, DO defense-in-depth on workspace_id, MCP response size budgets (<8K tokens), `McpError` shape (not ad-hoc envelopes), transactional `forget` across SQLite + Vectorize, `embedding_model` + `embedding_version` columns on `blocks` from day 1.
-4. **Horizontal Layers, not user-story slices.** Each phase enables the next via the dependency graph from ARCHITECTURE.md §"Build-Order Dependencies": types/config → storage → MCP scaffold → tools → AI → async pipeline → deploy.
-5. **Linear sync rule.** Phase = Linear Issue, auto-sync. Team `ENG`, milestone "v0.1 — MCP Foundation" (already exists, 0%). `/gsd:plan-phase N` creates the issue; `/gsd:execute-phase` updates state; `/gsd:ship` attaches PR.
+1. **Two-Worker split** (MCP + Triage) — v0.2's intelligence-layer work extends both Workers; no new Worker classes.
+2. **DO-per-workspace** — v0.2 stays single-tier (one `WorkspaceDO`). Multi-tier hierarchy (UserDO + TeamDO + ProjectDO) is v0.3 work per SEED-001.
+3. **MemoryEvent as universal intake primitive** — conflict-detection wiring extends the existing triage pipeline, not a new ingest path.
+4. **9-tool MCP surface cap** — the 5 v0.1 tools remain the surface; v0.2 deepens `recall()` semantics without adding tools.
+5. **Schema-as-data memory types** — query expansion + synthesis operate on existing memory types; no new types in v0.2.
 
-### Open TODOs (for the roadmapper handoff)
+### Decisions made today (post-v0.1 close, 2026-06-02)
 
-- Run `/gsd:plan-phase 1` to begin Foundation work and create the first Linear issue.
-- During P1, FND-07 must update CLAUDE.md to reflect the corrected baseline (JSONC, two-DO topology, `McpAgent`, `search` without `format?`, `ingest-worker` deferred). Other phases assume this edit has happened.
-- Tokenizer choice for MCP-08 response-size assertions is open: probably `gpt-tokenizer` (portability) or `tiktoken` (Claude-fidelity). Decide during P4 plan-phase.
-- `durable-utils` `SQLSchemaMigrations` API surface needs version pinning during P2 plan-phase (recommended in PITFALLS DO-2; not version-pinned in STACK.md).
+From session work that closed ENG-21..25 before v0.2 planning:
+
+1. **`@engram/ai-config` shared package** is the single source of truth for all model IDs + tuning constants. SYNTHESIS_MODEL + QUERY_EXPANSION_MODEL stubs ready to specialize in v0.2.
+2. **Classifier model**: `@cf/meta/llama-4-scout-17b-16e-instruct` (multimodal-ready, future-proofs v0.4 vision via connectors).
+3. **Embedding model**: `@cf/qwen/qwen3-embedding-0.6b` (1024d, 4096-token context — fixed 1800-char truncation).
+4. **MIN_COSINE_THRESHOLD=0.6** in `recall()` — partial hybrid-rank tuning. v0.2 expands this into the full Task 5.1 A/B sweep.
+5. **ENG-16 conflict-detection ship verdict**: `ship-as-suggestions` (precision 0.875, recall 0.933 on 30-pair corpus). Per-write auto-alert deferred — v0.2 inbox-only.
+6. **Linear workflow tweak**: between `/gsd:plan-phase` and `/gsd:execute-phase`, ask Claude to create Linear issues for the plan (one issue per plan, sub-issues per atomic chunk when warranted). Lightweight, no skill needed — judged per-plan.
+
+### Open TODOs
+
+- Run `/gsd:plan-phase 1` to begin v0.2 Phase 1 work once requirements + roadmap land.
+- Decide during v0.2 planning: which of the 4 features lands first? Conflict-detection wiring is the most directly user-visible; query expansion has the largest recall-quality upside; synthesis activates a dormant code path; hybrid-rank tuning is precision-engineering work.
 
 ### Open Blockers
 
 None.
 
-## Deferred Items
+## Deferred Items (v0.2 inbox)
 
-Items acknowledged at v0.1 milestone close on 2026-05-30. All tracked as Linear issues so they don't get lost — work them one-by-one in v0.2 or as time allows.
+All v0.1-flagged items closed during post-v0.1 maintenance (2026-05-31 → 2026-06-02). Net carry-forward into v0.2:
 
-From the artifact-open audit at milestone close:
+- **SEED-001 (ENG-17)** — Cross-layer recall fan-out. Dormant; trigger is **v0.3** planning (Workspaces + Project DOs), not v0.2.
+- **SEED-002 (ENG-18)** — Connector cost + throughput model. Dormant; trigger is **v0.4** planning (Connectors + Alerts), not v0.2.
 
-- **ENG-12** (todo) — Phase 4 raw_chunks escape hatch; likely already shipped via Phase 5 verbosity param — audit + close
-- **ENG-13** (todo) — Phase 4 prep spike retrospective; skipped at the time, not future work
-- **ENG-14** (todo) — Phase 5 cold-storage routing; audit + close (already shipped via D-07)
-- **ENG-15** (todo) — Phase 5 hybrid ranking; audit + close (already shipped via AI-04)
-- **ENG-16** (todo) — Phase 6 conflict detection precision validation (v0.2 prep)
-- **ENG-17** (seed) — SEED-001 cross-layer recall fan-out (v0.3 prep)
-- **ENG-18** (seed) — SEED-002 connector cost + throughput model (v0.4 prep)
-- **ENG-19** (uat_gap + verification) — Phase 1 GitHub-side visual checks + first CI run (5 scenarios)
-- **ENG-20** (verification) — Phase 5 AI eval gates AI-04/AI-05/AI-06 (deferred at Phase 5 close)
-
-Plus the 5 Phase 7 follow-ups filed during execution:
-
-- ENG-7: kv:bootstrap script CWD bug
-- ENG-8: Recall envelope `type` field parse-error inconsistency
-- ENG-9: Promptfoo eval gate silently passes on Workers AI 404 (High)
-- ENG-10: Wire promptfoo into CI to catch schema drift earlier
-- ENG-11: Better first-run auth flow — pull `kv:bootstrap-interactive` from v0.4 to v0.2 (High)
-
-Total deferred: 14 Linear issues (ENG-7..20). 4 marked High priority (ENG-9, ENG-11, ENG-16, ENG-18, ENG-20).
+No active deferred work to triage at v0.2 start.
 
 ## Session Continuity
 
 ### Where to resume after a context reset
 
 1. Re-read this STATE.md.
-2. Re-read PROJECT.md (project context + locked decisions).
-3. Re-read ROADMAP.md (phase structure + success criteria).
-4. Re-read REQUIREMENTS.md (especially the Traceability section for phase mapping).
-5. Re-read the research SUMMARY.md §5 (phase rationale), §6 (corrections), and §7 (must-mitigate items) when planning or executing any phase.
+2. Re-read PROJECT.md (project context + locked decisions, especially the Active section for v0.2 goals).
+3. Re-read REQUIREMENTS.md once it lands (it's about to be created in this milestone).
+4. Re-read ROADMAP.md once the roadmapper runs (it'll reflect v0.2 phases).
+5. Reference MILESTONES.md "v0.1 MCP Foundation" for v0.1 architectural decisions and the 8 key accomplishments.
 
 ### Last update
 
-- **2026-05-24:** Roadmap created. 7 phases, 54/54 v0.1 requirements mapped, no orphans. Phase 1 (Foundation) marked ready to plan.
+- **2026-06-02:** Milestone v0.2 (Intelligence Layer) started. v0.1 phase directories archived to `milestones/v0.1-phases/`. Phase numbering reset; v0.2 starts at Phase 1.
 
 ---
 
-_State initialized: 2026-05-24 by GSD roadmapper_
+_State updated: 2026-06-02 by /gsd:new-milestone_
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Define v0.2 requirements (next workflow step).
+- Run the roadmapper to produce v0.2 phase structure.
+- Begin Phase 1 with /gsd:plan-phase 1.
