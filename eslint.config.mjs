@@ -61,6 +61,16 @@ export default tseslint.config(
     ],
     ...tseslint.configs.disableTypeChecked,
   },
+  // scripts/audit/*.ts — Node.js admin scripts (tsx runtime). Type-checked
+  // TypeScript but Node globals required; strict Worker rules do not apply.
+  {
+    files: ["scripts/audit/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
   // scripts/ + per-package evals/ run under Node — expose Node globals (process, Buffer, etc.)
   {
     files: [

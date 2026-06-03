@@ -99,6 +99,12 @@ type IdentityRecord = z.infer<typeof IdentityRecordSchema>;
  */
 interface EngramOAuthEnv extends Env {
   OAUTH_PROVIDER: OAuthHelpers;
+  /**
+   * PRE-01 admin audit token. Set via `wrangler secret put ENGRAM_ADMIN_AUDIT_TOKEN`.
+   * Guards the `POST /__admin/embedding-audit` route used by the CI audit script.
+   * Optional at the TypeScript level — missing at runtime means the route returns 503.
+   */
+  ENGRAM_ADMIN_AUDIT_TOKEN?: string;
 }
 
 /**
@@ -244,6 +250,52 @@ export const defaultHandler: ExportedHandler<EngramOAuthEnv> = {
       });
 
       return Response.redirect(redirectTo, 302);
+    }
+
+    // ---- PRE-01 admin audit endpoint (NOT an MCP tool — admin-only) ---------
+    //
+    // POST /__admin/embedding-audit?workspace_id=<ws>
+    //
+    // Calls WorkspaceDO.assertAllBlocksAtV2({ workspace_id }) and returns
+    // { workspace_id, count_stale } as JSON. Used exclusively by the CI audit
+    // script (scripts/audit/embedding-version-audit.ts) which enumerates all
+    // workspace IDs via the Cloudflare DO Namespace List API and fans out this
+    // call per workspace.
+    //
+    // Security (T-01-01 / T-01-02):
+    //   - Gated by X-Engram-Admin-Token header matching the ENGRAM_ADMIN_AUDIT_TOKEN
+    //     Workers secret (set via `wrangler secret put ENGRAM_ADMIN_AUDIT_TOKEN`).
+    //   - Returns 503 (not 401) when the secret is unconfigured so misconfiguration
+    //     is loud. 401 on mismatch.
+    //   - WorkspaceDO.assertAllBlocksAtV2 has its own assertOwnsWorkspace guard
+    //     (first executable line) as belt-and-suspenders.
+    //   - Never logs workspace content — only { workspace_id, count_stale }.
+    if (url.pathname === "/__admin/embedding-audit" && request.method === "POST") {
+      // Guard: secret must be configured
+      const secret = env.ENGRAM_ADMIN_AUDIT_TOKEN;
+      if (!secret) {
+        return new Response("Admin token not configured", { status: 503 });
+      }
+      // Guard: caller must present the secret
+      const provided = request.headers.get("X-Engram-Admin-Token");
+      if (provided !== secret) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+      const workspaceId = url.searchParams.get("workspace_id");
+      if (!workspaceId) {
+        return new Response("workspace_id query param required", { status: 400 });
+      }
+      const id = env.WORKSPACE.idFromName(workspaceId);
+      const stub = env.WORKSPACE.get(id);
+      // RPC is sync but the DO stub is Promise-based at the Worker layer
+      const result = await (
+        stub as unknown as {
+          assertAllBlocksAtV2: (args: {
+            workspace_id: string;
+          }) => Promise<{ workspace_id: string; count_stale: number }>;
+        }
+      ).assertAllBlocksAtV2({ workspace_id: workspaceId });
+      return Response.json(result);
     }
 
     // ---- 404 fall-through --------------------------------------------------

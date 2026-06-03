@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "outDir": "../../dist/scripts/audit"
+  },
+  "include": ["*.ts"],
+  "exclude": []
+}
