@@ -796,3 +796,44 @@ export function markIngestFailed(
     throw new NotFoundError("block", args.block_id);
   }
 }
+
+// ---------------------------------------------------------------------------
+// 14. countStaleEmbeddings — PRE-01 migration audit count (v0.2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Counts blocks whose embedding stamp predates the ENG-25 qwen3 cutover.
+ *
+ * A non-zero count means the workspace has rows whose Vectorize vectors live
+ * in a different embedding space than the current index — silent recall
+ * corruption until re-embedded.
+ *
+ * SQL semantics: `NULL < 2` evaluates to NULL (not TRUE) in SQL trinary logic,
+ * so the naive `WHERE embedding_version < 2` clause SILENTLY MISSES NULL-stamped
+ * rows — which is the most common stale state (insertBlock writes NULL stamps
+ * that stampEmbedding later fills; any block whose triage-worker enrichment
+ * failed before stampEmbedding ran will have NULL stamps forever).
+ *
+ * Three-arm clause: see RESEARCH §Pitfall 1 — this comment is load-bearing
+ * and discourages well-meaning refactors that would re-introduce the blind spot.
+ *
+ * Returns a non-negative integer; throws nothing (count never NotFound).
+ * Sync, single-statement .exec(), positional ? binding only (D-01 + Pitfall 8).
+ *
+ * @param sql   The SqlStorage handle from the WorkspaceDO context.
+ * @param modelConstant  The canonical embedding model string (pass EMBEDDING_MODEL
+ *                       from @engram/ai-config — parameterised so unit tests can
+ *                       pass any fixture value without importing the constant).
+ *
+ * @requirement PRE-01 (v0.2)
+ */
+export function countStaleEmbeddings(sql: SqlStorage, modelConstant: string): number {
+  // Three-arm clause: see RESEARCH §Pitfall 1
+  const row = sql
+    .exec(
+      "SELECT COUNT(*) AS n FROM blocks WHERE embedding_version IS NULL OR embedding_version < 2 OR embedding_model != ?",
+      modelConstant,
+    )
+    .one() as { n: number };
+  return row.n;
+}

@@ -65,6 +65,7 @@
 import { DurableObject } from "cloudflare:workers";
 
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import { EMBEDDING_MODEL } from "@engram/ai-config";
 
 import type { Memory, Conflict } from "@engram/types";
 
@@ -84,6 +85,7 @@ import {
   moveToInbox as moveToInboxQuery,
   moveToColdStorage as moveToColdStorageQuery,
   markIngestFailed as markIngestFailedQuery,
+  countStaleEmbeddings as countStaleEmbeddingsQuery,
 } from "./queries.js";
 import type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
 
@@ -361,5 +363,31 @@ export class WorkspaceDO extends DurableObject<unknown> {
       block_id: args.block_id,
       reason: args.reason,
     });
+  }
+
+  // admin-only: not registered as an MCP tool (PRE-01)
+  /**
+   * `assertAllBlocksAtV2` returns a count of blocks whose embedding stamp
+   * predates the ENG-25 qwen3 cutover (NULL stamp OR embedding_version < 2
+   * OR embedding_model != EMBEDDING_MODEL). A non-zero count means the
+   * workspace has rows whose Vectorize vectors live in a different embedding
+   * space than the current index — silent recall corruption.
+   *
+   * Admin-only — invoked from `scripts/audit/embedding-version-audit.ts`
+   * via the WorkspaceDO RPC stub; NOT registered as an MCP tool.
+   *
+   * STO-07: assertOwnsWorkspace is the FIRST EXECUTABLE LINE (same discipline
+   * as markIngestFailed at lines above and every other public method on this
+   * class). Defense-in-depth pair with T-01-01 threat register.
+   *
+   * @requirement PRE-01 (v0.2)
+   */
+  assertAllBlocksAtV2(args: { workspace_id: string }): {
+    workspace_id: string;
+    count_stale: number;
+  } {
+    this.assertOwnsWorkspace(args.workspace_id);
+    const count = countStaleEmbeddingsQuery(this.ctx.storage.sql, EMBEDDING_MODEL);
+    return { workspace_id: args.workspace_id, count_stale: count };
   }
 }

@@ -19,6 +19,7 @@
   "dependencies": {
     "@engram/types": "*",
     "@engram/schema": "*",
+    "@engram/ai-config": "*",
     "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "devDependencies": {
