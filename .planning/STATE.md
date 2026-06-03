@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: planning
-last_updated: "2026-06-02T09:30:00.000Z"
-last_activity: 2026-06-02 — Milestone v0.2 scoped; REQUIREMENTS.md + ROADMAP.md landed; ready for /gsd:plan-phase 1
+status: "Ready for `/gsd:plan-phase 1`"
+last_updated: "2026-06-03T18:46:23.987Z"
+last_activity: 2026-06-02 — Roadmap + requirements landed (5 phases, 44 requirements)
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
+  total_plans: 5
   completed_plans: 0
   percent: 0
 ---
