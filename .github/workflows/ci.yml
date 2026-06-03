@@ -118,3 +118,43 @@ jobs:
             exit 1
           fi
           npm test
+
+      # PRE-01 migration audit gate — runs on every push to main and every PR
+      # (excluding forks which cannot access repo secrets).
+      #
+      # Fork-safety: forks cannot read repo secrets, so the audit would "pass"
+      # with an empty env and exit code 0 (from the missing-env early return).
+      # The explicit fork-safety gate below prevents the step from running at
+      # all on fork PRs — the CI report shows "skipped" rather than a spurious
+      # pass, which is the correct signal for maintainers reviewing the PR.
+      #
+      # Required GitHub secrets (set under Settings → Secrets → Actions):
+      #   CLOUDFLARE_API_TOKEN     — same token as the Test step (Workers:Read scope sufficient)
+      #   CLOUDFLARE_ACCOUNT_ID    — same as above
+      #   WORKSPACE_NAMESPACE_ID   — WorkspaceDO namespace ID; see user_setup in 01-01-PLAN.md
+      #   ENGRAM_ADMIN_AUDIT_TOKEN — shared secret for /__admin/embedding-audit endpoint
+      - name: Migration audit (PRE-01)
+        if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKSPACE_NAMESPACE_ID: ${{ secrets.WORKSPACE_NAMESPACE_ID }}
+          ENGRAM_ADMIN_AUDIT_TOKEN: ${{ secrets.ENGRAM_ADMIN_AUDIT_TOKEN }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::PRE-01 audit: CLOUDFLARE_API_TOKEN missing"
+            exit 1
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::PRE-01 audit: CLOUDFLARE_ACCOUNT_ID missing"
+            exit 1
+          fi
+          if [ -z "${WORKSPACE_NAMESPACE_ID:-}" ]; then
+            echo "::error::PRE-01 audit: WORKSPACE_NAMESPACE_ID missing — add as GitHub Actions repo secret (see 01-01-PLAN.md user_setup)"
+            exit 1
+          fi
+          if [ -z "${ENGRAM_ADMIN_AUDIT_TOKEN:-}" ]; then
+            echo "::error::PRE-01 audit: ENGRAM_ADMIN_AUDIT_TOKEN missing — set via: wrangler secret put ENGRAM_ADMIN_AUDIT_TOKEN"
+            exit 1
+          fi
+          npm run audit:migration
