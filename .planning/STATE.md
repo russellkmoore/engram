@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: "Ready for `/gsd:plan-phase 1`"
-last_updated: "2026-06-03T18:46:23.987Z"
-last_activity: 2026-06-02 — Roadmap + requirements landed (5 phases, 44 requirements)
+status: executing
+last_updated: "2026-06-03T19:37:07.718Z"
+last_activity: 2026-06-03 -- Phase 01 execution started
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -40,10 +40,10 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 
 ## Current Position
 
-Phase: Phase 1 (Foundation) — not yet planned
-Plan: —
-Status: Ready for `/gsd:plan-phase 1`
-Last activity: 2026-06-02 — Roadmap + requirements landed (5 phases, 44 requirements)
+Phase: 01 (foundation-wave-0) — EXECUTING
+Plan: 2 of 5
+Status: Executing Phase 01
+Last activity: 2026-06-03 -- Phase 01 execution started
 
 ## Phase Status
 
@@ -61,11 +61,15 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 
 ## Performance Metrics
 
-- **Sessions to date:** 0 (milestone just started)
-- **Phases completed:** 0
-- **Plans completed:** 0
+- **Sessions to date:** 1
+- **Phases completed:** 0 (Phase 1 in progress)
+- **Plans completed:** 1 (01-01 PRE-01 Embedding-Version Guardrail)
 - **Blockers raised:** 0
 - **Decision log entries:** see PROJECT.md "Key Decisions"
+
+| Plan | Duration | Tasks | Files | Date |
+|------|----------|-------|-------|------|
+| 01-01 PRE-01 Embedding-Version Guardrail | ~90 min | 5 | 9 | 2026-06-03 |
 
 ## Accumulated Context
 
@@ -120,14 +124,15 @@ No active deferred work to triage at v0.2 start.
 
 ### Last update
 
+- **2026-06-03:** Plan 01-01 (PRE-01 Embedding-Version Guardrail) complete. countStaleEmbeddings NULL-trap SQL, assertAllBlocksAtV2 admin RPC, cross-workspace audit script, and CI gate shipped. Checkpoint pending: Russell must add WORKSPACE_NAMESPACE_ID + ENGRAM_ADMIN_AUDIT_TOKEN secrets before CI audit runs end-to-end.
 - **2026-06-02:** Milestone v0.2 (Intelligence Layer) scoped end-to-end. v0.1 phase directories archived to `milestones/v0.1-phases/`. 5 phases / 44 requirements / 4 features. Research synthesis: `research/v0.2-SUMMARY.md`. Ready for `/gsd:plan-phase 1`.
 
 ---
 
-_State updated: 2026-06-02 by /gsd:new-milestone_
+_State updated: 2026-06-03 by /gsd:execute-phase 01-01_
 
 ## Operator Next Steps
 
-- Define v0.2 requirements (next workflow step).
-- Run the roadmapper to produce v0.2 phase structure.
-- Begin Phase 1 with /gsd:plan-phase 1.
+- Russell: add WORKSPACE_NAMESPACE_ID GitHub Actions secret (see 01-01-PLAN.md user_setup for exact commands)
+- Russell: set ENGRAM_ADMIN_AUDIT_TOKEN Worker secret: `wrangler secret put ENGRAM_ADMIN_AUDIT_TOKEN` + `gh secret set ENGRAM_ADMIN_AUDIT_TOKEN --body "<same value>"`
+- Run Plan 01-02 (next plan in Phase 1)

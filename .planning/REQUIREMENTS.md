@@ -16,7 +16,7 @@ Russell's calls at milestone start:
 
 ### Prerequisites (PRE) — Wave 0 foundation
 
-- [ ] **PRE-01**: Migration audit confirms `SELECT COUNT(*) FROM blocks WHERE embedding_version < 2 OR embedding_model != '@cf/qwen/qwen3-embedding-0.6b'` returns 0 across every workspace. Audit script is idempotent and runnable as a CI assertion (PITFALLS INT-1 catastrophic gate).
+- [x] **PRE-01**: Migration audit confirms `SELECT COUNT(*) FROM blocks WHERE embedding_version < 2 OR embedding_model != '@cf/qwen/qwen3-embedding-0.6b'` returns 0 across every workspace. Audit script is idempotent and runnable as a CI assertion (PITFALLS INT-1 catastrophic gate).
 - [ ] **PRE-02**: Tiered vitest configuration with `unit` / `integration` / `eval` tiers. `integration` and `eval` tiers expose `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`. `eval` tier guards `MAX_AI_CALLS ≤ 200` per run and emits a daily neuron-consumption summary (PITFALLS INT-2).
 - [ ] **PRE-03**: Eval corpus expanded from 27 → ≥100 labeled pairs in `.planning/evals/recall-corpus.json`. Source queries drawn from v0.1 production recall logs + Russell's existing Notion/Drive snippets ingested into Engram. Labeled `query → expected_top_3_block_ids` with a 70/30 train/validate split documented at the top of the file.
 - [ ] **PRE-04**: `.planning/research/v0.2-INTEGRATION-MATRIX.md` enumerates the cross-feature combinations that must have end-to-end coverage by milestone close (recall(expansion+rerank+synthesis) × conflict-flag × cosine-threshold edge cases). Committed in Plan 01 (PITFALLS INT-5).
