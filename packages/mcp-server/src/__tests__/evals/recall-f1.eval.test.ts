@@ -203,11 +203,17 @@ async function runF1Eval(
     if (isHit) {
       truePositives++;
       perExample.push(`PASS ${ex.id} (${ex.bucket}): ${ex.query.slice(0, 60)}`);
+    } else if (memories.length > 0) {
+      // Returned results but none were relevant — standard precision@k miss.
+      // Previously this counted every non-matching result individually, mixing
+      // per-result FP with per-query FN and producing a non-standard metric.
+      falsePositives++;
+      perExample.push(`FAIL ${ex.id} (${ex.bucket}): ${ex.query.slice(0, 60)}`);
     } else {
+      // Returned nothing — true miss (no recall).
       falseNegatives++;
       perExample.push(`FAIL ${ex.id} (${ex.bucket}): ${ex.query.slice(0, 60)}`);
     }
-    falsePositives += memories.filter((m) => !expectedIds.includes(m.id)).length;
   }
 
   const precision =
