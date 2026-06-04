@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # PRE-02: nightly eval run at 07:00 UTC to track neuron consumption over time.
+    # The eval-suite job below also runs on push + same-repo PRs for fast feedback.
+    - cron: "0 7 * * *"
 
 jobs:
   build:
@@ -158,3 +162,65 @@ jobs:
             exit 1
           fi
           npm run audit:migration
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PRE-02 eval-suite: Tiered vitest eval tier (MAX_AI_CALLS=200 ceiling)
+  #
+  # Fork-safety: fork PRs cannot access CLOUDFLARE_API_TOKEN, so the explicit
+  # `if:` gate below prevents the job from running on fork PRs entirely — the
+  # CI report shows "skipped" rather than a confusing fail or spurious "no tests
+  # found" pass. Threat-model T-01-04 (cost-DoS via malicious PR).
+  #
+  # NOT in required-for-merge status checks: eval may exceed MAX_AI_CALLS
+  # intentionally during corpus development; nightly cadence keeps the regression
+  # signal alive without blocking dev velocity. The budget ceiling still enforces
+  # a hard stop at call 201.
+  #
+  # Required GitHub secrets (same as build job):
+  #   CLOUDFLARE_API_TOKEN  — Workers AI:Read + Vectorize:Read
+  #   CLOUDFLARE_ACCOUNT_ID — deployment account
+  # ─────────────────────────────────────────────────────────────────────────────
+  eval-suite:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Wrangler types
+        run: npm run types:gen
+
+      - name: Eval suite (PRE-02)
+        # Fail loud on missing CF creds — do NOT silently skip.
+        # RESEARCH §Pitfall 2: silent skip = green check = no regression signal.
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "::error::EVAL TIER: CLOUDFLARE_API_TOKEN missing — add as GitHub Actions repo secret"
+            exit 1
+          fi
+          if [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "::error::EVAL TIER: CLOUDFLARE_ACCOUNT_ID missing — add as GitHub Actions repo secret"
+            exit 1
+          fi
+          npm run test:eval -- --reporter=verbose
+
+      - name: Neuron summary (PRE-02, best-effort)
+        # continue-on-error: a transient Analytics API outage should not block
+        # merge. The in-process counter (eval-budget.setup.ts) is the primary
+        # gate; the summary is a secondary post-run report.
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run eval:summary
