@@ -17,6 +17,9 @@ export default tseslint.config(
       // for future builds to reference; same exemption applies.
       ".planning/spikes/**",
       ".claude/skills/spike-findings-*/sources/**",
+      // Planning-only scripts (eval corpus tooling, split scripts) — not
+      // TypeScript source; exempt from project lint rules.
+      ".planning/evals/**",
     ],
   },
   js.configs.recommended,

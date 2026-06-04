@@ -45,7 +45,7 @@
       "bucket": "critical-path",
       "query": "which recruiter from the fintech meetup keeps reaching out about backend work",
       "expected_top_3_block_ids": ["ef-002", "ef-054", "ef-008"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -55,7 +55,7 @@
       "bucket": "critical-path",
       "query": "which Berlin-based edge compute company has the strong engineering reputation",
       "expected_top_3_block_ids": ["ef-003", "ef-049", "ef-070"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -95,7 +95,7 @@
       "bucket": "known-failure",
       "query": "the staff engineer at REDACTED-PAYMENTS-CORP on the ledger team",
       "expected_top_3_block_ids": ["ef-007", "ef-006", "ef-096"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -105,7 +105,7 @@
       "bucket": "known-failure",
       "query": "what was that fintech role I applied for at the start of the year",
       "expected_top_3_block_ids": ["ef-008", "ef-059", "ef-002"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -145,7 +145,7 @@
       "bucket": "extraction",
       "query": "the VP Engineering reference from cloudflare dev day",
       "expected_top_3_block_ids": ["ef-012", "ef-066", "ef-047"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -225,7 +225,7 @@
       "bucket": "edge",
       "query": "the Vectorize 429 forced retry path test fixture",
       "expected_top_3_block_ids": ["ef-016", "ef-041", "ef-084"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -235,7 +235,7 @@
       "bucket": "critical-path",
       "query": "the Solution Architecture director role at the DevOps platform",
       "expected_top_3_block_ids": ["ef-019", "ef-020", "ef-046"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -255,7 +255,7 @@
       "bucket": "critical-path",
       "query": "the retail company's platform engineering director role in Pleasanton",
       "expected_top_3_block_ids": ["ef-022", "ef-083", "ef-030"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -265,7 +265,7 @@
       "bucket": "extraction",
       "query": "the Airflow data orchestration EM role at the payments platform",
       "expected_top_3_block_ids": ["ef-023", "ef-024", "ef-025"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -285,7 +285,7 @@
       "bucket": "extraction",
       "query": "the threat detection engineering manager role at the observability vendor",
       "expected_top_3_block_ids": ["ef-027", "ef-028", "ef-013"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -315,7 +315,7 @@
       "bucket": "critical-path",
       "query": "the design tools company's enterprise AI product director role",
       "expected_top_3_block_ids": ["ef-031", "ef-047", "ef-064"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -395,7 +395,7 @@
       "bucket": "critical-path",
       "query": "the VP of Product role at the developer tools Series C startup",
       "expected_top_3_block_ids": ["ef-047", "ef-031", "ef-064"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -435,7 +435,7 @@
       "bucket": "critical-path",
       "query": "the decision to use Bun for internal tooling scripts",
       "expected_top_3_block_ids": ["ef-051", "ef-009", "ef-065"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -475,7 +475,7 @@
       "bucket": "critical-path",
       "query": "the media company's director of engineering streaming infrastructure role in LA",
       "expected_top_3_block_ids": ["ef-055", "ef-083", "ef-076"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -485,7 +485,7 @@
       "bucket": "extraction",
       "query": "research on WebAssembly for edge-native data processing in Workers",
       "expected_top_3_block_ids": ["ef-056", "ef-097", "ef-099"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -515,7 +515,7 @@
       "bucket": "critical-path",
       "query": "the engineering manager role at the fintech payment routing company in NY or SF",
       "expected_top_3_block_ids": ["ef-059", "ef-094", "ef-023"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -525,7 +525,7 @@
       "bucket": "extraction",
       "query": "vector database comparison research Pinecone versus Cloudflare Vectorize",
       "expected_top_3_block_ids": ["ef-060", "ef-086", "ef-016"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -535,7 +535,7 @@
       "bucket": "critical-path",
       "query": "my OAuth proxy server side project using Hono",
       "expected_top_3_block_ids": ["ef-061", "ef-050", "ef-071"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -575,7 +575,7 @@
       "bucket": "extraction",
       "query": "Workers AI inference latency benchmarks for qwen3 embedding model",
       "expected_top_3_block_ids": ["ef-069", "ef-086", "ef-108"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -595,7 +595,7 @@
       "bucket": "critical-path",
       "query": "my Engram CLI side project for local development",
       "expected_top_3_block_ids": ["ef-071", "ef-014", "ef-050"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -605,7 +605,7 @@
       "bucket": "critical-path",
       "query": "the decision to use Zod v4 as the primary schema validation library",
       "expected_top_3_block_ids": ["ef-072", "ef-039", "ef-074"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -625,7 +625,7 @@
       "bucket": "extraction",
       "query": "research on TypeScript decorators versus schema-as-data for memory types",
       "expected_top_3_block_ids": ["ef-074", "ef-052", "ef-009"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -645,7 +645,7 @@
       "bucket": "critical-path",
       "query": "the decision on Engram's progressive enrichment phases",
       "expected_top_3_block_ids": ["ef-081", "ef-005", "ef-062"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -695,7 +695,7 @@
       "bucket": "critical-path",
       "query": "who did I talk to about backend engineering roles last quarter",
       "expected_top_3_block_ids": ["ef-002", "ef-054", "ef-096"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -725,7 +725,7 @@
       "bucket": "critical-path",
       "query": "what decisions have I made about Engram's architecture",
       "expected_top_3_block_ids": ["ef-005", "ef-081", "ef-038"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -815,7 +815,7 @@
       "bucket": "critical-path",
       "query": "what meeting notes do I have from this week",
       "expected_top_3_block_ids": ["ef-044", "ef-053", "ef-067"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -825,7 +825,7 @@
       "bucket": "critical-path",
       "query": "which side projects are currently active",
       "expected_top_3_block_ids": ["ef-014", "ef-071", "ef-050"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -885,7 +885,7 @@
       "bucket": "critical-path",
       "query": "key decisions I've made in the past month",
       "expected_top_3_block_ids": ["ef-038", "ef-005", "ef-081"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -945,7 +945,7 @@
       "bucket": "known-failure",
       "query": "the engineer I spoke to at that conference",
       "expected_top_3_block_ids": ["ef-043", "ef-066", "ef-012"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
@@ -985,7 +985,7 @@
       "bucket": "edge",
       "query": "tell me everything",
       "expected_top_3_block_ids": ["ef-004", "ef-014", "ef-042"],
-      "split": "train",
+      "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
       "expected_synthesis": null
