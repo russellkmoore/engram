@@ -1,48 +1,92 @@
 /**
  * Vitest pool configuration for @engram/triage-worker.
  *
- * Single workerd project — every test under `src/__tests__/` runs inside the
- * real Cloudflare workerd runtime via `@cloudflare/vitest-pool-workers`.
+ * **PRE-02 update (v0.2 Phase 1):** converted from single-project to
+ * multi-project mode to add the `eval` tier alongside the existing `workerd`
+ * project. Mirrors the shape established in `packages/mcp-server/vitest.config.ts`.
  *
- * Mirrors `packages/mcp-server/vitest.config.ts` exactly (single workerd
- * project, no multi-project split — triage-worker has no subprocess tests
- * that would require a node project). The `cloudflareTest()` plugin is placed
- * at the top-level `plugins` array of the Vite config per the workerd pool
- * convention. The pool resolves AI, VECTORIZE, and WORKSPACE DO bindings from
- * `wrangler.test.jsonc`, not the production `wrangler.jsonc`. The `.test.jsonc`
- * suffix excludes the file from the FND-08 lint glob.
+ * Two projects:
+ *
+ * 1. **workerd project** — every test under `src/__tests__/` EXCEPT eval files.
+ *    Runs inside Cloudflare workerd via `@cloudflare/vitest-pool-workers`
+ *    against `wrangler.test.jsonc`. AI, VECTORIZE, and WORKSPACE DO bindings
+ *    resolved from the test config, not production wrangler.jsonc.
+ *
+ * 2. **eval project** — `*.eval.test.ts` files (gated on CF creds). Uses the
+ *    shared `eval-budget.setup.ts` counter from mcp-server to enforce the
+ *    MAX_AI_CALLS=200 ceiling across all eval files (Pitfall 3 defense:
+ *    isolate:false prevents per-file counter reset).
+ *
+ * The two previously-excluded eval files (memorability-calibration +
+ * conflict-precision) move from the workerd exclude list into the eval project's
+ * include glob. The constraints (remote bindings, cost-gate, it.skip until
+ * fixtures land) still apply — but the eval tier is the correct home for them.
  *
  * @module @engram/triage-worker/vitest.config
  */
 import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
 import { defineConfig } from "vitest/config";
 
+// hasEvalCreds: eval project is gated on CF creds; counter discipline per
+// RESEARCH §Pitfall 3 — without both vars, the eval project is excluded
+// entirely so local runs without creds skip cleanly (no silent failure).
+const hasEvalCreds = !!process.env.CLOUDFLARE_API_TOKEN && !!process.env.CLOUDFLARE_ACCOUNT_ID;
+
 export default defineConfig({
-  plugins: [
-    cloudflareTest({
-      wrangler: { configPath: "./wrangler.test.jsonc" },
-    }),
-  ],
   test: {
-    include: ["src/__tests__/**/*.test.ts"],
-    exclude: [
-      // ENG-20 (CI): memorability-calibration needs remote-mode wrangler
-      // bindings (real AI). cloudflare-vitest-pool tries to open a remote
-      // proxy session at file-load time, which fails in CI because that path
-      // requires interactive `wrangler login` OAuth — not satisfiable by
-      // CLOUDFLARE_API_TOKEN alone. Tests inside are currently `it.skip`
-      // (real-corpus fixtures haven't landed), so excluding the file loses
-      // zero coverage. When ENG-20 closes (fixtures land + .skip removed),
-      // re-include AND grow a separate CI surface that can run it — see the
-      // mirror exclude in packages/mcp-server/vitest.config.ts for the
-      // recommended pattern.
-      "src/__tests__/evals/memorability-calibration.eval.test.ts",
-      // ENG-16 (CI): conflict-precision is the v0.2 prep gate for per-write
-      // conflict detection. Same remote-bindings + cost-gate constraints as
-      // memorability-calibration — `it.skip` until Russell's 50 labeled
-      // pairs land in fixtures/conflict-pairs.json, then re-include alongside
-      // the dedicated nightly-eval CI surface.
-      "src/__tests__/evals/conflict-precision.eval.test.ts",
+    projects: [
+      {
+        // Workerd project: every test under src/__tests__/ EXCEPT eval files.
+        // The eval project below owns *.eval.test.ts.
+        plugins: [
+          cloudflareTest({
+            wrangler: { configPath: "./wrangler.test.jsonc" },
+          }),
+        ],
+        test: {
+          name: "workerd",
+          include: ["src/__tests__/**/*.test.ts"],
+          exclude: [
+            // PRE-02: eval tier owns all *.eval.test.ts files.
+            // The ENG-20 and ENG-16 files previously excluded here are now
+            // included by the eval project — their it.skip guards and
+            // remote-bindings constraints remain unchanged; only the project
+            // assignment changes.
+            "src/__tests__/**/*.eval.test.ts",
+          ],
+        },
+      },
+      // eval project: gated on CF creds; counter discipline per RESEARCH §Pitfall 3
+      // — DO NOT remove isolate:false. Without it, each eval file gets a fresh
+      // budget counter and a multi-file run silently burns 5×200=1000 AI calls.
+      //
+      // eval.test.ts files in scope:
+      //   - memorability-calibration.eval.test.ts (ENG-20: it.skip until fixtures land)
+      //   - conflict-precision.eval.test.ts       (ENG-16: it.skip until fixtures land)
+      //
+      // setupFiles: shared counter from mcp-server — one canonical copy so both
+      // packages use the same MAX_AI_CALLS=200 ceiling and Analytics Engine write.
+      ...(hasEvalCreds
+        ? [
+            {
+              plugins: [
+                cloudflareTest({
+                  wrangler: { configPath: "./wrangler.test.jsonc" },
+                }),
+              ],
+              test: {
+                name: "eval",
+                include: ["src/__tests__/**/*.eval.test.ts"],
+                setupFiles: ["../mcp-server/src/__tests__/evals/eval-budget.setup.ts"],
+                isolate: false,
+                // singleWorker: @cloudflare/vitest-pool-workers v0.16.x does not
+                // expose singleWorker as a ProjectConfig property. The equivalent
+                // Pitfall 3 defense is isolate:false + maxWorkers:1.
+                maxWorkers: 1,
+              },
+            },
+          ]
+        : []),
     ],
   },
 });
