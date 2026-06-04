@@ -22,7 +22,11 @@
 // Requires env:
 //   CLOUDFLARE_API_TOKEN     — Cloudflare account API token (Workers:Read scope)
 //   CLOUDFLARE_ACCOUNT_ID    — Cloudflare account ID
-//   WORKSPACE_NAMESPACE_ID   — WorkspaceDO namespace ID (from wrangler durable-objects namespace list)
+//   WORKSPACE_NAMESPACE_ID   — WorkspaceDO namespace ID. Look up via the Cloudflare REST API:
+//                              curl -s "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/durable_objects/namespaces" \
+//                                -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+//                                | jq '.result[] | select(.script == "engram-mcp-server" and .class == "WorkspaceDO") | .id'
+//                              (the older `wrangler durable-objects namespace list` subcommand does not exist in wrangler 4.x)
 //   ENGRAM_ADMIN_AUDIT_TOKEN — Shared secret set on the mcp-server Worker via wrangler secret put
 //   ADMIN_WORKER_URL         — OPTIONAL. Override the mcp-server URL (default: https://engram-mcp-server.workers.dev)
 //
