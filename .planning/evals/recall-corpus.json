@@ -1,0 +1,369 @@
+{
+  "corpus_version": 2,
+  "embedding_model": "@cf/qwen/qwen3-embedding-0.6b",
+  "sources": [
+    {
+      "name": "reference-corpus-v1",
+      "count": 20,
+      "sourced_at": "2026-06-04T00:00:00Z"
+    },
+    {
+      "name": "real-corpus-v1",
+      "count": 15,
+      "sourced_at": "2026-06-04T00:00:00Z"
+    }
+  ],
+  "buckets": ["critical-path", "known-failure", "extraction", "edge"],
+  "entries": [
+    {
+      "id": "rcv2-001",
+      "bucket": "critical-path",
+      "query": "what's the most recent role I applied for at a CDN company",
+      "expected_top_3_block_ids": ["ef-001", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-002",
+      "bucket": "critical-path",
+      "query": "which recruiter from the fintech meetup keeps reaching out about backend work",
+      "expected_top_3_block_ids": ["ef-002", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-003",
+      "bucket": "critical-path",
+      "query": "which Berlin-based edge compute company has the strong engineering reputation",
+      "expected_top_3_block_ids": ["ef-003", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-004",
+      "bucket": "critical-path",
+      "query": "what's the current status of the engram v0.1 milestone",
+      "expected_top_3_block_ids": ["ef-004", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-005",
+      "bucket": "critical-path",
+      "query": "why is AI integration in v0.1 instead of deferred",
+      "expected_top_3_block_ids": ["ef-005", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-006",
+      "bucket": "known-failure",
+      "query": "the EM at REDACTED-PAYMENTS-CORP",
+      "expected_top_3_block_ids": ["ef-006", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-007",
+      "bucket": "known-failure",
+      "query": "the staff engineer at REDACTED-PAYMENTS-CORP on the ledger team",
+      "expected_top_3_block_ids": ["ef-007", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-008",
+      "bucket": "known-failure",
+      "query": "what was that fintech role I applied for at the start of the year",
+      "expected_top_3_block_ids": ["ef-008", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-009",
+      "bucket": "known-failure",
+      "query": "what did I decide",
+      "expected_top_3_block_ids": ["ef-009", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-010",
+      "bucket": "known-failure",
+      "query": "the apple-related developer tooling company I researched",
+      "expected_top_3_block_ids": ["ef-010", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-011",
+      "bucket": "extraction",
+      "query": "what's the senior ML platform role I applied to in mid-May",
+      "expected_top_3_block_ids": ["ef-011", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-012",
+      "bucket": "extraction",
+      "query": "the VP Engineering reference from cloudflare dev day",
+      "expected_top_3_block_ids": ["ef-012", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-013",
+      "bucket": "extraction",
+      "query": "the observability vendor that's pushing into AI tracing",
+      "expected_top_3_block_ids": ["ef-013", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-014",
+      "bucket": "extraction",
+      "query": "my linear archive CLI side project",
+      "expected_top_3_block_ids": ["ef-014", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-015",
+      "bucket": "extraction",
+      "query": "the decision on whether engram v0.1 has a web UI",
+      "expected_top_3_block_ids": ["ef-015", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-016",
+      "bucket": "edge",
+      "query": "what did I learn about Vectorize metadata filter cardinality",
+      "expected_top_3_block_ids": ["ef-018", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-017",
+      "bucket": "edge",
+      "query": "the CAP theorem note where I mixed in French",
+      "expected_top_3_block_ids": ["ef-017", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-018",
+      "bucket": "edge",
+      "query": "which Vectorize research note discusses metadata filter cardinality and post-filtering",
+      "expected_top_3_block_ids": ["ef-016", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-019",
+      "bucket": "edge",
+      "query": "the prompt injection test fixture in the eval corpus",
+      "expected_top_3_block_ids": ["ef-016", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-020",
+      "bucket": "edge",
+      "query": "the Vectorize 429 forced retry path test fixture",
+      "expected_top_3_block_ids": ["ef-016", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:reference-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-021",
+      "bucket": "critical-path",
+      "query": "the Solution Architecture director role at the DevOps platform",
+      "expected_top_3_block_ids": ["ef-019", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-022",
+      "bucket": "critical-path",
+      "query": "the fintech payments company's trust and safety product lead role",
+      "expected_top_3_block_ids": ["ef-021", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-023",
+      "bucket": "critical-path",
+      "query": "the retail company's platform engineering director role in Pleasanton",
+      "expected_top_3_block_ids": ["ef-022", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-024",
+      "bucket": "extraction",
+      "query": "the Airflow data orchestration EM role at the payments platform",
+      "expected_top_3_block_ids": ["ef-023", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-025",
+      "bucket": "critical-path",
+      "query": "the docs platform's mobile AI engineering manager role",
+      "expected_top_3_block_ids": ["ef-026", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-026",
+      "bucket": "extraction",
+      "query": "the threat detection engineering manager role at the observability vendor",
+      "expected_top_3_block_ids": ["ef-027", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-027",
+      "bucket": "extraction",
+      "query": "the comms API platform's principal engineer customer-facing role",
+      "expected_top_3_block_ids": ["ef-029", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-028",
+      "bucket": "critical-path",
+      "query": "the apparel wholesaler's custom product director role in Issaquah",
+      "expected_top_3_block_ids": ["ef-030", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-029",
+      "bucket": "critical-path",
+      "query": "the design tools company's enterprise AI product director role",
+      "expected_top_3_block_ids": ["ef-031", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-030",
+      "bucket": "critical-path",
+      "query": "the real estate platform's listings engineering director role",
+      "expected_top_3_block_ids": ["ef-034", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-031",
+      "bucket": "extraction",
+      "query": "the Reasoning Systems VP role at the enterprise AI platform",
+      "expected_top_3_block_ids": ["ef-035", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-032",
+      "bucket": "critical-path",
+      "query": "the decision about deferring conflict detection out of v0.1",
+      "expected_top_3_block_ids": ["ef-038", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-033",
+      "bucket": "critical-path",
+      "query": "the decision about switching to Zod v4's native JSON schema converter",
+      "expected_top_3_block_ids": ["ef-039", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-034",
+      "bucket": "critical-path",
+      "query": "the agents SDK getAgentByName async pitfall",
+      "expected_top_3_block_ids": ["ef-041", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    },
+    {
+      "id": "rcv2-035",
+      "bucket": "critical-path",
+      "query": "the cf-code-assist routing tracker Phase 4 post-mortem",
+      "expected_top_3_block_ids": ["ef-042", "ef-PENDING-LABEL", "ef-PENDING-LABEL"],
+      "split": "train",
+      "labeled_by": "auto-migrated:real-corpus-v1",
+      "labeled_at": "2026-06-04T00:00:00Z",
+      "expected_synthesis": null
+    }
+  ]
+}
