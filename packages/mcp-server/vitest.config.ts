@@ -32,12 +32,18 @@
 import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
 import { defineConfig } from "vitest/config";
 
+// hasEvalCreds: eval project is gated on CF creds; counter discipline per
+// RESEARCH §Pitfall 3 — without both vars, the eval project is excluded
+// entirely so local runs without creds skip cleanly (no silent failure).
+const hasEvalCreds = !!process.env.CLOUDFLARE_API_TOKEN && !!process.env.CLOUDFLARE_ACCOUNT_ID;
+
 export default defineConfig({
   test: {
     projects: [
       {
         // Workerd-pool project: every test file under src/__tests__/ EXCEPT
-        // the AI-02 lint-no-direct-vectorize grep gate (needs node:fs).
+        // the AI-02 lint-no-direct-vectorize grep gate (needs node:fs) AND
+        // eval files (owned by the eval project below — PRE-02).
         plugins: [
           cloudflareTest({
             wrangler: { configPath: "./wrangler.test.jsonc" },
@@ -48,6 +54,9 @@ export default defineConfig({
           include: ["src/__tests__/**/*.test.ts"],
           exclude: [
             "src/__tests__/lint-no-direct-vectorize.test.ts",
+            // PRE-02: eval tier owns all *.eval.test.ts files — the glob below
+            // subsumes the previously-explicit recall-f1.eval.test.ts exclusion.
+            "src/__tests__/**/*.eval.test.ts",
             // ENG-25: ai-helper-identity.test.ts and embedding-consistency.test.ts
             // were the cross-file drift guards. Both were retired when model
             // constants moved to the shared `@engram/ai-config` package
@@ -75,7 +84,6 @@ export default defineConfig({
             //   - reference-corpus: F1=0.8333, P=0.79, R=0.88
             //   - real-corpus:      F1=0.8254, P=0.72, R=0.96
             // Both PASS the ≥0.75 gate; real-corpus jumped +73% vs bge-base baseline.
-            "src/__tests__/evals/recall-f1.eval.test.ts",
           ],
         },
       },
@@ -95,6 +103,33 @@ export default defineConfig({
           ],
         },
       },
+      // eval project: gated on CF creds; counter discipline per RESEARCH §Pitfall 3
+      // — DO NOT remove isolate:false. Without isolate:false + singleWorker:true,
+      // each eval file gets a fresh budget counter and a 5-file run burns 5×200=1000
+      // AI calls silently (Pitfall 3). The post-run Analytics Engine aggregate is
+      // the defense-in-depth fallback; the in-process counter is the primary gate.
+      ...(hasEvalCreds
+        ? [
+            {
+              plugins: [
+                cloudflareTest({
+                  wrangler: { configPath: "./wrangler.test.jsonc" },
+                }),
+              ],
+              test: {
+                name: "eval",
+                include: ["src/__tests__/**/*.eval.test.ts"],
+                setupFiles: ["./src/__tests__/evals/eval-budget.setup.ts"],
+                isolate: false,
+                // singleWorker: the @cloudflare/vitest-pool-workers v0.16.x does
+                // not expose singleWorker as a ProjectConfig property. The equivalent
+                // Pitfall 3 defense is isolate:false (counter not reset per-file)
+                // + CI passes --maxWorkers=1 via test:eval npm script.
+                maxWorkers: 1,
+              },
+            },
+          ]
+        : []),
     ],
   },
 });
