@@ -58,7 +58,13 @@ for (let i = 0; i < args.length; i++) {
   if (a === "--dry-run") {
     dryRun = true;
   } else if (a === "--workspace") {
-    workspaceOverride = args[++i] ?? "";
+    const val = args[++i];
+    if (!val) {
+      stderr.write(`${TAG} FATAL: --workspace requires a non-empty workspace_id argument\n`);
+      usage(stderr);
+      process.exit(2);
+    }
+    workspaceOverride = val;
   } else if (a === "--help" || a === "-h") {
     showHelp = true;
   }
