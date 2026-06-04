@@ -1,38 +1,96 @@
 /**
- * AI-04 recall F1 eval — over the 20-example reference corpus.
+ * v0.2 recall F1 eval — over the canonical 100-entry recall-corpus.json.
  *
  * BLOCKS AI-04 closure per the spike-findings carry-forward gate
  * (04-PHASE-5-HANDOFF.md §"Real-Corpus Validation Gate") and per
  * AI-SPEC.md §5 dimension #1 (F1 ≥ 0.75 PASS bar).
  *
- * Two describe blocks:
- *  1. Synthetic 20-example reference corpus (Plan 05-06 Task 2)
- *  2. Russell's sanitized real corpus (Plan 05-06 Task 4 — added when real-corpus.json lands)
+ * Split-aware: reads EVAL_SPLIT env var ("train" | "validate" | "all").
+ * Default: "train". Milestone-close gate uses "validate".
  *
- * Both require real Workers AI + Vectorize bindings (`remote: true`
+ * Fail-fast guard: asserts corpus.embedding_model matches the EMBEDDING_MODEL
+ * constant before running any F1 scoring — prevents stale labels from a
+ * previous model version silently contaminating results.
+ *
+ * Requires real Workers AI + Vectorize bindings (`remote: true`
  * in `wrangler.test.jsonc`). PR CI: `it.skip` with TODO note. Nightly
  * CI: removes `.skip` and runs against the real bindings.
  *
  * Diagnostic: per-example PASS/FAIL is logged to console so the
- * 05-REAL-CORPUS-RESULTS.md per-example column can be populated.
+ * per-example column in milestone eval reports can be populated.
+ *
+ * PRE-03 reference: .planning/evals/recall-corpus.json (v0.2 canonical corpus)
+ *
+ * --- DEPRECATED v0.2 (PRE-03): reference-corpus.json and real-corpus.json ---
+ * The two legacy corpus files below are no longer read by this test.
+ * They are retained in fixtures/ because:
+ *   - packages/triage-worker/evals/load-fixtures.mjs references reference-corpus.json
+ *   - packages/triage-worker/src/__tests__/evals/memorability-calibration.eval.test.ts
+ *     imports reference-corpus.json
+ * Do not delete those files until the triage-worker references are updated.
+ * ---
  */
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import { describe, it, expect, vi } from "vitest";
 import { env } from "cloudflare:workers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerTools } from "../../tools.js";
-import refCorpus from "./fixtures/reference-corpus.json";
-import realCorpus from "./fixtures/real-corpus.json";
+import { EMBEDDING_MODEL } from "../../ai-helper.js";
+
+// ---------------------------------------------------------------------------
+// Corpus loading
+// ---------------------------------------------------------------------------
+
+// Path: packages/mcp-server/src/__tests__/evals/ → repo root → .planning/evals/
+// import.meta.dirname is the directory of this file (available in Node ≥22 / vitest).
+// Five levels up reaches the monorepo root.
+const CORPUS_PATH = resolve(
+  import.meta.dirname,
+  "../../../../..",
+  ".planning/evals/recall-corpus.json",
+);
 
 interface CorpusEntry {
   id: string;
   bucket: "critical-path" | "known-failure" | "extraction" | "edge";
-  memory_type: string;
-  original_content: string;
-  paraphrased_query: string | null;
-  intended_memory_id: string;
-  expected_classified_type: string;
-  known_failure_pattern: string | null;
+  query: string;
+  expected_top_3_block_ids: [string, string, string];
+  split: "train" | "validate";
+  labeled_by: string;
+  labeled_at: string;
+  expected_synthesis: null;
 }
+
+interface CorpusFile {
+  corpus_version: number;
+  embedding_model: string;
+  sources: { name: string; count: number; sourced_at: string }[];
+  buckets: string[];
+  entries: CorpusEntry[];
+}
+
+const corpus = JSON.parse(readFileSync(CORPUS_PATH, "utf8")) as CorpusFile;
+
+// ---------------------------------------------------------------------------
+// Split-aware entry selection
+// ---------------------------------------------------------------------------
+//
+// EVAL_SPLIT controls which entries are included in the F1 run:
+//   "train"    — development eval (default); use during active tuning
+//   "validate" — sequestered milestone-close gate; do not use until milestone gate
+//   "all"      — both splits combined; useful for corpus-health diagnostics
+
+const EVAL_SPLIT = (process.env.EVAL_SPLIT ?? "train") as "train" | "validate" | "all";
+
+function selectEntries(split: "train" | "validate" | "all"): CorpusEntry[] {
+  if (split === "all") return corpus.entries;
+  return corpus.entries.filter((e) => e.split === split);
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function captureCallback(
   toolName: string,
@@ -72,35 +130,37 @@ function parseEnvelope(result: unknown): Record<string, unknown> {
 }
 
 async function runF1Eval(
-  corpus: CorpusEntry[],
+  entries: CorpusEntry[],
   workspace: string,
 ): Promise<{ f1: number; precision: number; recall: number; perExample: string[] }> {
   const rememberCb = captureCallback("remember", workspace);
   const recallCb = captureCallback("recall", workspace);
 
-  const idMap = new Map<string, string>();
-  for (const ex of corpus) {
-    if (ex.original_content.trim().length === 0) continue; // skip empty-content edge
-    const res = parseEnvelope(
-      await rememberCb({ content: ex.original_content, type: ex.expected_classified_type }, {}),
-    );
+  // Phase 1 corpus uses expected_top_3_block_ids referencing the eval-fixtures
+  // workspace (stable opaque IDs). We ingest corpus queries via remember() and
+  // then check whether recall() surfaces the expected block IDs.
+  //
+  // NOTE: the idMap approach from the original v0.1 harness mapped corpus entry
+  // id → ingest-time block id. With v0.2's pre-labeled expected_top_3_block_ids,
+  // the expected IDs are already stable. The F1 harness checks whether at least
+  // one of the 3 expected IDs appears in the recall results.
+
+  const idMap = new Map<string, string[]>();
+  for (const ex of entries) {
+    if (ex.query.trim().length === 0) continue; // skip empty-query entries
+    const res = parseEnvelope(await rememberCb({ content: ex.query, type: "research_note" }, {}));
     const blockId = (res.result as { id?: string }).id;
-    if (blockId) idMap.set(ex.id, blockId);
-    // DIAGNOSTIC (ENG-20 AI-04): print first 2 remember() responses to see id + meta shape
+    if (blockId) idMap.set(ex.id, [blockId, ...ex.expected_top_3_block_ids]);
+    // DIAGNOSTIC: print first 2 remember() responses
     if (idMap.size <= 2) {
       console.log(`[DIAG] remember(${ex.id}) →`, JSON.stringify(res).slice(0, 400));
     }
   }
   console.log(
-    `[DIAG] idMap size after ingest: ${String(idMap.size)} / corpus ${String(corpus.length)}`,
+    `[DIAG] idMap size after ingest: ${String(idMap.size)} / corpus ${String(entries.length)}`,
   );
 
-  // ENG-20 AI-04: the deployed triage-worker consumes engram-ingest, runs the
-  // classifier + embedder + upserts to Vectorize. Each message takes ~5-10s
-  // (AI inference + embed + Vectorize write). For 19 messages, allow up to
-  // 180s for the queue to drain AND for Vectorize's eventual-consistency
-  // window to close. This is the cost of running an end-to-end eval against
-  // the real async pipeline.
+  // ENG-20 AI-04: async pipeline wait (triage queue + Vectorize indexing)
   const ASYNC_PIPELINE_WAIT_MS = 180_000;
   console.log(
     `[DIAG] waiting ${String(ASYNC_PIPELINE_WAIT_MS / 1000)}s for triage queue + Vectorize indexing...`,
@@ -113,21 +173,21 @@ async function runF1Eval(
   const perExample: string[] = [];
 
   let queryCount = 0;
-  for (const ex of corpus) {
-    if (!ex.paraphrased_query) continue; // edge cases without paraphrase are not part of F1
+  for (const ex of entries) {
+    if (!ex.query) continue;
     const result = parseEnvelope(
-      await recallCb({ query: ex.paraphrased_query, verbosity: "chunks", limit: 5 }, {}),
+      await recallCb({ query: ex.query, verbosity: "chunks", limit: 5 }, {}),
     );
     const memories = ((result.result as { memories?: { id: string }[] }).memories ?? []).slice(
       0,
       5,
     );
-    const expectedBlockId = idMap.get(ex.intended_memory_id);
-    const isHit = expectedBlockId !== undefined && memories.some((m) => m.id === expectedBlockId);
-    // DIAGNOSTIC (ENG-20 AI-04): print first 3 recall responses with FULL memory shape
+    const expectedIds = ex.expected_top_3_block_ids;
+    const isHit = memories.some((m) => expectedIds.includes(m.id));
+    // DIAGNOSTIC: print first 3 recall responses
     if (queryCount < 3) {
       console.log(
-        `[DIAG] recall("${ex.paraphrased_query.slice(0, 50)}") expected blockId=${String(expectedBlockId)}`,
+        `[DIAG] recall("${ex.query.slice(0, 50)}") expected=${JSON.stringify(expectedIds)}`,
       );
       console.log(
         `[DIAG]   memories.length=${String(memories.length)}, ids=${JSON.stringify(memories.map((m) => m.id))}`,
@@ -142,16 +202,12 @@ async function runF1Eval(
     queryCount++;
     if (isHit) {
       truePositives++;
-      perExample.push(`PASS ${ex.id} (${ex.bucket}): ${ex.paraphrased_query.slice(0, 60)}`);
+      perExample.push(`PASS ${ex.id} (${ex.bucket}): ${ex.query.slice(0, 60)}`);
     } else {
       falseNegatives++;
-      perExample.push(
-        `FAIL ${ex.id} (${ex.bucket}): ${ex.paraphrased_query.slice(0, 60)}${ex.known_failure_pattern ? ` [${ex.known_failure_pattern}]` : ""}`,
-      );
+      perExample.push(`FAIL ${ex.id} (${ex.bucket}): ${ex.query.slice(0, 60)}`);
     }
-    falsePositives += memories.filter(
-      (m) => expectedBlockId === undefined || m.id !== expectedBlockId,
-    ).length;
+    falsePositives += memories.filter((m) => !expectedIds.includes(m.id)).length;
   }
 
   const precision =
@@ -163,34 +219,57 @@ async function runF1Eval(
   return { f1, precision, recall, perExample };
 }
 
-describe("AI-04 recall F1 — reference corpus (BLOCKS AI-04 closure if F1 < 0.75)", () => {
-  // Nightly CI removes `.skip` to enable real-binding execution.
-  // PR CI keeps `.skip` to avoid neuron + Vectorize cost on every PR.
-  it.skip("F1 ≥ 0.75 across the 20-example reference corpus", async () => {
-    const { f1, precision, recall, perExample } = await runF1Eval(
-      refCorpus as CorpusEntry[],
-      "ws-eval-f1-ref",
-    );
-    console.log(
-      `AI-04 reference-corpus F1: ${f1.toFixed(4)} (precision: ${precision.toFixed(4)}, recall: ${recall.toFixed(4)})`,
-    );
-    for (const line of perExample) console.log(`  ${line}`);
-    expect(f1).toBeGreaterThanOrEqual(0.75);
-  }, 600_000);
+// ---------------------------------------------------------------------------
+// Creds guard — mirrors eval-budget.setup.ts hasEvalCreds pattern
+// ---------------------------------------------------------------------------
+
+function hasEvalCreds(): boolean {
+  // Real eval requires wrangler auth + CF bindings (Workers AI + Vectorize).
+  // Presence of CLOUDFLARE_ACCOUNT_ID is a reliable proxy.
+  return Boolean(process.env.CLOUDFLARE_ACCOUNT_ID ?? process.env.CF_ACCOUNT_ID);
+}
+
+// ---------------------------------------------------------------------------
+// Pre-flight: assert corpus embedding_model matches EMBEDDING_MODEL constant
+// ---------------------------------------------------------------------------
+
+describe("PRE-03 corpus sanity (always runs — no creds required)", () => {
+  it("corpus.embedding_model matches the EMBEDDING_MODEL constant", () => {
+    // Fail-fast: if this assertion fails, the corpus was labeled against a
+    // different model and F1 scores below are meaningless.
+    expect(corpus.embedding_model).toBe(EMBEDDING_MODEL);
+  });
+
+  it("corpus has ≥100 entries", () => {
+    expect(corpus.entries.length).toBeGreaterThanOrEqual(100);
+  });
+
+  it("all entries have split ∈ {train, validate}", () => {
+    const validSplits = new Set<string>(["train", "validate"]);
+    const invalid = corpus.entries.filter((e) => !validSplits.has(e.split));
+    expect(invalid).toHaveLength(0);
+  });
 });
 
-// ENG-20 carry-forward gate: real corpus assembled from Russell's URL set
-// (job-search sources fetched + sanitized to REDACTED-X-CORP convention).
-// Same wrangler-auth + .env + pipeline-wait requirements as the reference
-// corpus block above.
-describe("AI-04 recall F1 — REAL CORPUS (carry-forward gate — BLOCKS AI-04 marked-done if F1 < 0.75)", () => {
-  it.skip("F1 ≥ 0.75 on Russell's sanitized job-search corpus", async () => {
-    const { f1, precision, recall, perExample } = await runF1Eval(
-      realCorpus as CorpusEntry[],
-      "ws-eval-f1-real",
-    );
+// ---------------------------------------------------------------------------
+// F1 eval — split-aware
+// ---------------------------------------------------------------------------
+
+const evalEntries = selectEntries(EVAL_SPLIT);
+
+describe(`AI-04 recall F1 — ${EVAL_SPLIT} split (${String(evalEntries.length)} entries — BLOCKS AI-04 closure if F1 < 0.75)`, () => {
+  // Nightly CI removes `.skip` to enable real-binding execution.
+  // PR CI keeps `.skip` to avoid neuron + Vectorize cost on every PR.
+  it.skip(`F1 ≥ 0.75 across ${String(evalEntries.length)} ${EVAL_SPLIT}-split entries`, async () => {
+    if (!hasEvalCreds()) {
+      console.log("[SKIP] No CF creds detected — skipping F1 eval");
+      return;
+    }
+
+    const workspace = `ws-eval-f1-${EVAL_SPLIT}`;
+    const { f1, precision, recall, perExample } = await runF1Eval(evalEntries, workspace);
     console.log(
-      `AI-04 real-corpus F1: ${f1.toFixed(4)} (precision: ${precision.toFixed(4)}, recall: ${recall.toFixed(4)})`,
+      `AI-04 ${EVAL_SPLIT}-split F1: ${f1.toFixed(4)} (precision: ${precision.toFixed(4)}, recall: ${recall.toFixed(4)})`,
     );
     for (const line of perExample) console.log(`  ${line}`);
     expect(f1).toBeGreaterThanOrEqual(0.75);
