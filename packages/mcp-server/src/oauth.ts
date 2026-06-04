@@ -121,6 +121,37 @@ interface EngramOAuthEnv extends Env {
  * `defaultHandler.fetch` runs — they never reach this code per RESEARCH
  * Pitfall 4.
  */
+
+// ---------------------------------------------------------------------------
+// Constant-time string comparison (Workers-safe, no node:crypto dependency)
+// ---------------------------------------------------------------------------
+//
+// Workers runtime (workerd) does not expose `crypto.timingSafeEqual` from
+// node:crypto. Instead we use WebCrypto HMAC: import the reference value as
+// an HMAC-SHA-256 key, sign both strings, and XOR-compare the resulting MACs.
+// Because both outputs are produced from the same key and both are 32-byte
+// HMAC-SHA-256 digests, the comparison is constant-time in the XOR loop.
+// Length equality is checked first to prevent a length oracle.
+async function timingSafeStringEqual(a: string, b: string): Promise<boolean> {
+  const enc = new TextEncoder();
+  const ka = enc.encode(a);
+  const kb = enc.encode(b);
+  // Reject early on length mismatch (length is not secret — correct tokens
+  // always have a fixed length set by the operator, so this is safe).
+  if (ka.byteLength !== kb.byteLength) return false;
+  // Import `b` (the trusted secret) as the HMAC key.
+  const key = await crypto.subtle.importKey("raw", kb, { name: "HMAC", hash: "SHA-256" }, false, [
+    "sign",
+  ]);
+  // Sign both byte arrays with the same key.
+  const sigA = new Uint8Array(await crypto.subtle.sign("HMAC", key, ka));
+  const sigB = new Uint8Array(await crypto.subtle.sign("HMAC", key, kb));
+  // XOR all bytes; any difference produces a non-zero result.
+  let diff = 0;
+  for (let i = 0; i < sigA.length; i++) diff |= (sigA[i] ?? 0) ^ (sigB[i] ?? 0);
+  return diff === 0;
+}
+
 export const defaultHandler: ExportedHandler<EngramOAuthEnv> = {
   // `ctx` (ExecutionContext) is intentionally omitted: defaultHandler does
   // NOT call `waitUntil` or `passThroughOnException`. TypeScript permits
@@ -276,9 +307,14 @@ export const defaultHandler: ExportedHandler<EngramOAuthEnv> = {
       if (!secret) {
         return new Response("Admin token not configured", { status: 503 });
       }
-      // Guard: caller must present the secret
+      // Guard: caller must present the secret (constant-time comparison to
+      // prevent timing-oracle attacks — CWE-208). String inequality short-
+      // circuits on first mismatched character; use WebCrypto HMAC instead.
+      // Workers runtime (workerd) does not expose node:crypto.timingSafeEqual,
+      // so we use crypto.subtle: HMAC-sign both strings with the same derived
+      // key and compare the resulting MACs (same-length, constant-time XOR).
       const provided = request.headers.get("X-Engram-Admin-Token");
-      if (provided !== secret) {
+      if (provided === null || !(await timingSafeStringEqual(provided, secret))) {
         return new Response("Unauthorized", { status: 401 });
       }
       const workspaceId = url.searchParams.get("workspace_id");
