@@ -829,11 +829,26 @@ export function markIngestFailed(
  */
 export function countStaleEmbeddings(sql: SqlStorage, modelConstant: string): number {
   // Three-arm clause: see RESEARCH §Pitfall 1
-  const row = sql
+  // Use .toArray() + runtime type guard instead of .one() as { n: number }
+  // to match the narrowing discipline used throughout this file (D-02 / Pitfall 6).
+  // COUNT(*) without GROUP BY always returns exactly one row in SQLite, so
+  // rows[0] === undefined is an invariant violation, not a normal empty-result.
+  const rows = sql
     .exec(
       "SELECT COUNT(*) AS n FROM blocks WHERE embedding_version IS NULL OR embedding_version < 2 OR embedding_model != ?",
       modelConstant,
     )
-    .one() as { n: number };
-  return row.n;
+    .toArray();
+  const row = rows[0];
+  if (row === undefined) {
+    // Unreachable: COUNT(*) without GROUP BY always returns one row.
+    throw new Error("invariant violation: COUNT(*) returned no rows");
+  }
+  const n = row.n;
+  if (typeof n !== "number") {
+    throw new Error(
+      `invariant violation: countStaleEmbeddings COUNT(*) returned non-number: ${typeof n}`,
+    );
+  }
+  return n;
 }
