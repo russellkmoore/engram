@@ -158,12 +158,16 @@ describe("PRE-01 — assertAllBlocksAtV2 defense-in-depth (STO-07)", () => {
     const id = env.WORKSPACE.idFromName(wsName);
     const stub = env.WORKSPACE.get(id);
 
-    let thrownError: unknown = null;
-    await runInDurableObject(stub, (instance) => {
+    // Return the thrown error from the callback so the await resolves to it
+    // deterministically. The previous pattern wrote to a closure variable,
+    // which is fragile if runInDurableObject executes the callback in a
+    // separate microtask context (WR-05 — callback return is more reliable).
+    const thrownError = await runInDurableObject(stub, (instance): unknown => {
       try {
         asWorkspaceDO(instance).assertAllBlocksAtV2({ workspace_id: "wrong-workspace-id" });
+        return null;
       } catch (err) {
-        thrownError = err;
+        return err;
       }
     });
 
