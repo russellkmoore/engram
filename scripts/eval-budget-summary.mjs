@@ -58,6 +58,20 @@ if (showHelp) {
   exit(0);
 }
 
+// Validate --since value before hitting the API (WR-04): a malformed date
+// produces a confusing "HTTP 400" GraphQL error with no indication the input
+// was the cause. Fail loudly here with a clear usage error instead.
+if (sinceOverride) {
+  const parsed = new Date(sinceOverride);
+  if (isNaN(parsed.getTime())) {
+    stderr.write(
+      `${TAG} FATAL: --since value '${sinceOverride}' is not a valid ISO 8601 datetime.\n`,
+    );
+    usage(stderr);
+    exit(2);
+  }
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Env validation — fail loud with exit 2 on missing creds
 // ──────────────────────────────────────────────────────────────────────────────
