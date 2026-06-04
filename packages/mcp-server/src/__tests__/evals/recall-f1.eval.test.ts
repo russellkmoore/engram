@@ -258,9 +258,11 @@ describe("PRE-03 corpus sanity (always runs — no creds required)", () => {
 const evalEntries = selectEntries(EVAL_SPLIT);
 
 describe(`AI-04 recall F1 — ${EVAL_SPLIT} split (${String(evalEntries.length)} entries — BLOCKS AI-04 closure if F1 < 0.75)`, () => {
-  // Nightly CI removes `.skip` to enable real-binding execution.
-  // PR CI keeps `.skip` to avoid neuron + Vectorize cost on every PR.
-  it.skip(`F1 ≥ 0.75 across ${String(evalEntries.length)} ${EVAL_SPLIT}-split entries`, async () => {
+  // hasEvalCreds() guard (inside the test body) handles environments without
+  // Cloudflare credentials — it short-circuits with a console.log and returns
+  // early so no AI tokens are burned. it.skip was removed because it caused
+  // the CI eval-suite job to always exit 0 vacuously (the F1 gate never ran).
+  it(`F1 ≥ 0.75 across ${String(evalEntries.length)} ${EVAL_SPLIT}-split entries`, async () => {
     if (!hasEvalCreds()) {
       console.log("[SKIP] No CF creds detected — skipping F1 eval");
       return;
