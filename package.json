@@ -35,7 +35,8 @@
     "deploy:mcp": "npm run deploy --workspace=@engram/mcp-server",
     "deploy:triage": "npm run deploy --workspace=@engram/triage-worker",
     "deploy": "npm run deploy:mcp && npm run deploy:triage",
-    "audit:migration": "tsx scripts/audit/embedding-version-audit.ts"
+    "audit:migration": "tsx scripts/audit/embedding-version-audit.ts",
+    "eval:summary": "node scripts/eval-budget-summary.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260525.1",
