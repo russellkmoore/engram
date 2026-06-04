@@ -174,7 +174,7 @@ async function runF1Eval(
 
   let queryCount = 0;
   for (const ex of entries) {
-    if (!ex.query) continue;
+    if (ex.query.trim().length === 0) continue; // match ingest-loop guard (WR-01)
     const result = parseEnvelope(
       await recallCb({ query: ex.query, verbosity: "chunks", limit: 5 }, {}),
     );
