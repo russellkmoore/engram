@@ -43,7 +43,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 > v0.2 adds 4 net-new capabilities on top of v0.1's foundation. Phases are dependency-ordered: Foundation (Wave 0 prerequisites) → Recall Quality Baseline (hybrid-rank + conflict-wiring, parallel-trackable) → Query Expansion + Reranker → Synthesis Activation Eval → Integration Kitchen Sink.
 
-- [ ] **Phase 1: Foundation (Wave 0)** — Re-embed audit, tiered test strategy, eval-corpus expansion (27 → 100+), integration-matrix doc, CF-code-assist routing scaffolding
+- [x] **Phase 1: Foundation (Wave 0)** — Re-embed audit, tiered test strategy, eval-corpus expansion (27 → 100+), integration-matrix doc, CF-code-assist routing scaffolding (completed 2026-06-04)
 - [ ] **Phase 2: Recall Quality Baseline** — Hybrid-rank weight tuning + conflict-detection wiring (parallel-trackable: different workers, no shared files)
 - [ ] **Phase 3: Query Expansion + Reranker** — Multi-query + RRF + bge-reranker integration in `recall()` with adaptive routing
 - [ ] **Phase 4: Synthesis Activation Eval** — Promote scaffolded `verbosity=synthesis|both` path with LLM-judge faithfulness gate; default stays `chunks`
