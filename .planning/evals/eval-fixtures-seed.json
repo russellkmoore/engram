@@ -1,0 +1,725 @@
+{
+  "workspace": "eval-fixtures",
+  "memories": [
+    {
+      "id": "ef-001",
+      "content": "I applied to REDACTED-CDN-CORP today for a Senior SWE role at ~$185k. Source: company referral via REDACTED-CONTACT-1. URL: https://redacted-cdn.example/careers/ssr-12345",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-002",
+      "content": "REDACTED-CONTACT-2 is a recruiter at REDACTED-FINTECH-CORP. Met at a meetup. Reaches out about backend roles ~quarterly. Prefers email over LinkedIn.",
+      "source": "legacy-corpus",
+      "type": "contact"
+    },
+    {
+      "id": "ef-003",
+      "content": "REDACTED-EDGE-CORP — small (~80 person) edge-compute company headquartered in Berlin. Series B (2024). Known for solid engineering culture and a flexible-remote stance. Roles tend to require strong distributed-systems background.",
+      "source": "legacy-corpus",
+      "type": "company"
+    },
+    {
+      "id": "ef-004",
+      "content": "Engram v0.1 MCP foundation — owner: russellkmoore@mac.com — deadline: 2026-06-07 — currently in Phase 5 (AI integration). Status: on track; eval gate is the main risk.",
+      "source": "legacy-corpus",
+      "type": "project"
+    },
+    {
+      "id": "ef-005",
+      "content": "Decided to keep Workers AI + Vectorize in Engram v0.1 rather than deferring AI to v0.2. Rationale: the user-facing acceptance test (remember a job posting then recall from a different conversation) is meaningless without semantic recall. Researcher recommendation was overridden.",
+      "source": "legacy-corpus",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-006",
+      "content": "REDACTED-CONTACT-3 is the EM at REDACTED-PAYMENTS-CORP. Met for coffee in March.",
+      "source": "legacy-corpus",
+      "type": "contact"
+    },
+    {
+      "id": "ef-007",
+      "content": "REDACTED-CONTACT-4 is the staff SWE at REDACTED-PAYMENTS-CORP focused on the ledger team. Spoke briefly at a conference.",
+      "source": "legacy-corpus",
+      "type": "contact"
+    },
+    {
+      "id": "ef-008",
+      "content": "Applied to REDACTED-FINTECH-CORP in January 2026 for a backend SWE role. Status: rejected at phone screen.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-009",
+      "content": "Decided in March to standardize on TypeScript strict mode for all new Engram packages. Rationale: avoid the v0 typing-debt accumulation seen in earlier projects.",
+      "source": "legacy-corpus",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-010",
+      "content": "REDACTED-APPLE-CORP is the developer-tooling subsidiary of a large consumer-electronics conglomerate. Roles tend to be tools-platform and internal-developer-experience.",
+      "source": "legacy-corpus",
+      "type": "company"
+    },
+    {
+      "id": "ef-011",
+      "content": "Applied to REDACTED-AI-INFRA-CORP for the Tech Lead, ML Platform role on 2026-05-12. Salary band: $220k–$260k base + ~0.3% equity. Source: cold outreach via LinkedIn. Hiring manager: REDACTED-CONTACT-5.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-012",
+      "content": "REDACTED-CONTACT-6 — VP Engineering at REDACTED-DEVTOOLS-CORP. Met at a Cloudflare dev day in Q4 2025. Active reference. Reachable at redacted@example.com.",
+      "source": "legacy-corpus",
+      "type": "contact"
+    },
+    {
+      "id": "ef-013",
+      "content": "REDACTED-OBSV-CORP is a mid-size (~400 person) observability company; Series D 2025; remote-first. Recent product push into AI-pipeline tracing — strong hiring signal there.",
+      "source": "legacy-corpus",
+      "type": "company"
+    },
+    {
+      "id": "ef-014",
+      "content": "Side project: building a CLI for archiving Linear issues into local SQLite for offline search. Owner: russellkmoore@mac.com. Target ship: end of June 2026. Status: prototype.",
+      "source": "legacy-corpus",
+      "type": "project"
+    },
+    {
+      "id": "ef-015",
+      "content": "Engram v0.1 will NOT include a human web UI — MCP tool surface is the product. Web UI is v1.0+ work after the hosted offering exists. Decided 2026-04-15.",
+      "source": "legacy-corpus",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-016",
+      "content": "Research note on Vectorize internals: metadata index uses sparse inverted index over the metadata column. Filter cardinality of <1% slows query latency 2-3x. Cosine metric default. Max 4 metadata indexes.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-017",
+      "content": "Lecture notes on CAP theorem: partition tolerance is not optional for distributed systems — always P, choose between C and A. DO-per-workspace gives strong consistency within a workspace boundary.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-018",
+      "content": "Vectorize metadata filter cardinality study: sparse inverted index; <1% cardinality forces post-filter (2-3x slower). Binary scope metadata is safe. Do not add memory_type metadata index until v0.2.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-019",
+      "content": "Applied to a remote Senior Director, Solution Architecture role at REDACTED-DEVOPS-PLATFORM. Base $244,200-$409,500 plus up to 100% incentive pay. Leads SA managers across North America.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-020",
+      "content": "Applied to Distinguished Engineer, Agentic SDLC & Non-Linear Productivity at REDACTED-DEVOPS-PLATFORM. Base $260,000-$345,000. Remote US/Canada. Pioneers autonomous AI-agent capabilities across the SDLC.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-021",
+      "content": "Applied to Head of Product, Trust & Safety at REDACTED-FINTECH-PAYMENTS. $304,500-$456,700 USD. Remote or Bay Area. Unifies risk + identity orgs across Square to protect sellers from fraud while enabling growth.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-022",
+      "content": "Applied to Sr. Director, Platform Engineering at REDACTED-RETAIL-CORP today. Base $223,400-$301,600. Pleasanton CA, on-site. Leads cloud platform strategy + CD infrastructure + DevOps across Azure and GCP.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-023",
+      "content": "Applied to Engineering Manager, Data Orchestration Platform at REDACTED-PAYMENTS-PLATFORM. Base $236,000-$354,000. Seattle or remote 35+ miles. Owns the Airflow workflow scheduling platform.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-024",
+      "content": "Applied to Global Payments Experiences Engineering Manager at REDACTED-PAYMENTS-PLATFORM. Base $236,000-$354,000. Seattle office (50% in-office minimum). Builds payment solutions for global merchants.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-025",
+      "content": "Applied to Engineering Manager, User Compliance at REDACTED-PAYMENTS-PLATFORM. Base $214,600-$321,800. Remote US. Builds systems for customer data verification + risk management across the compliance platform.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-026",
+      "content": "Applied to Engineering Manager, Mobile AI at REDACTED-DOCS-PLATFORM. Leads engineering for mobile AI initiatives.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-027",
+      "content": "Applied to Engineering Manager I, Threat Detection at REDACTED-OBSERVABILITY-VENDOR. Base $192,000-$240,000. New York hybrid. Leads team building detection systems + AI-accelerated threat response.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-028",
+      "content": "Applied to Distinguished Architect, AI at REDACTED-OBSERVABILITY-VENDOR. Base $300,000-$484,000. New York or San Francisco, hybrid, up to 50% travel. Technical multiplier for AI labs and AI-native companies.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-029",
+      "content": "Applied to Principal Software Engineer at REDACTED-COMMS-API. Comp tiered by location: $188,240-$235,300 base. Remote US. Customer-facing technical expert delivering code + demos.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-030",
+      "content": "Applied to Director, Custom Product & Operations at REDACTED-APPAREL-WHOLESALER. Base $160,000-$235,000 + bonus. Issaquah WA hybrid. Manages custom product portfolio + ops team + strategic customer relationships.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-031",
+      "content": "Applied to Director, Product - Enterprise at REDACTED-DESIGN-TOOLS-CORP. Base $290,000-$376,000 USD. SF or NY. Drives product strategy for AI enterprise-focused product areas.",
+      "source": "legacy-corpus",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-032",
+      "content": "LinkedIn keyword-search lead: VP, Digital at REDACTED-OUTDOOR-RETAIL-COOP. Just spotted; need to look up the actual posting before deciding to apply. Outdoor retail co-op brand.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-033",
+      "content": "Spotted on LinkedIn: Director, Engineering, NG-SIEM Serverless Platform at REDACTED-SECURITY-VENDOR. Hybrid arrangement. Worth a closer look — strong security infra play with serverless platform angle.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-034",
+      "content": "Spotted on LinkedIn: Director, Engineering — Listings and Evaluation at REDACTED-REAL-ESTATE-PLATFORM. Real estate domain; mid-funnel data + ML for property valuation. Haven't applied yet.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-035",
+      "content": "Spotted on LinkedIn: VP, Reasoning Systems at REDACTED-ENTERPRISE-AI-PLATFORM. Title is intriguing — sounds like LLM agent / reasoning stack. Haven't applied yet.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-036",
+      "content": "LinkedIn lead: VP Engineering at REDACTED-LIFE-SCIENCES-SAAS. Need to investigate — strong reputation but smaller engineering footprint than the larger platforms I've been looking at.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-037",
+      "content": "LinkedIn lead: Head of Business Technology Program Management at REDACTED-LEGAL-AI-STARTUP. Worth understanding what 'BizTech program mgmt' actually means at an AI-first legal startup.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-038",
+      "content": "Decision (Phase 6 D-01, 2026-05-26): defer per-write conflict detection entirely from v0.1 of Engram. Rationale: PIP-04 amended to drop the conflict detection clause; ENG-16 will validate precision empirically before v0.2.",
+      "source": "legacy-corpus",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-039",
+      "content": "Decision (2026-05-31 via ENG-21): switched the Triage Worker JSON-schema converter from zod-to-json-schema@3 to Zod v4's native z.toJSONSchema(). The third-party converter silently returned {} on zod@4 schemas.",
+      "source": "legacy-corpus",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-040",
+      "content": "Spike SEED-001 finding: bge-base-en-v1.5 embedding sensibility test on Engram corpus. Delta=0.0696 between domain-clustering and memory-type-clustering. BORDERLINE — embedding captures domain more strongly than memory-type.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-041",
+      "content": "Research note: the Cloudflare agents SDK getAgentByName(namespace, name) returns a Promise<DurableObjectStub<T>> that MUST be awaited. Missing the await yields a Promise where the user expected a stub.",
+      "source": "legacy-corpus",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-042",
+      "content": "Project: cf-code-assist routing tracker (Phase 4). Status: closed 2026-05-27 after /gsd:verify-work 4 passed. Documented 0/16 tasks routed in honest end-of-phase post-mortem.",
+      "source": "legacy-corpus",
+      "type": "project"
+    },
+    {
+      "id": "ef-043",
+      "content": "Contact: Karri Saarinen — co-founder and CEO at REDACTED-ISSUE-TRACKER. Met at QCon Plus 2025. Worth keeping in the loop as Engram itself shapes up — possible reciprocal interest in MCP-native tooling.",
+      "source": "legacy-corpus",
+      "type": "contact"
+    },
+    {
+      "id": "ef-044",
+      "content": "Meeting (2026-05-28): Phase 7 planning session. Attendees: russellkmoore + Claude. Decisions: ship MCP server first, defer v0.4 connector framework. Action items: confirm OAuth flow, finalize KV bootstrap, wire Cloudflare Workers Builds.",
+      "source": "legacy-corpus",
+      "type": "meeting_note"
+    },
+    {
+      "id": "ef-045",
+      "content": "Decision (AI-04, Phase 5 AI-SPEC.md §4): HYBRID_WEIGHTS frozen at cosine: 1.0, recency: 0.15, type_match: 0.2, scope_match: 0.15. 30-day recency half-life. Locked until empirical eval data justifies weight tuning.",
+      "source": "legacy-corpus",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-046",
+      "content": "Senior Director of Engineering role at REDACTED-CLOUD-SERVICES. Base $280,000-$370,000. Remote first with quarterly gatherings. Leads distributed platform team of 40+ across 3 sub-teams.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-047",
+      "content": "VP of Product at REDACTED-DEVELOPER-TOOLS. Series C startup with $120M ARR. Fully remote. Owns the product roadmap for the developer platform targeting Fortune 500 clients.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-048",
+      "content": "CTO conversation with REDACTED-CONTACT-7 at REDACTED-AI-STARTUP. Met at NeurIPS 2025. Building LLM routing infrastructure. Interested in advisory relationship.",
+      "source": "notion-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-049",
+      "content": "REDACTED-INFRA-VENDOR is the infrastructure platform company building next-gen deployment tools. Series D 2025, ~600 employees. Strong in Kubernetes and serverless orchestration.",
+      "source": "notion-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-050",
+      "content": "Personal project: building a TypeScript-first CLI framework for developer tools. Goal: reduce boilerplate for command registration. Status: early prototype, 3 months in.",
+      "source": "notion-export",
+      "type": "project"
+    },
+    {
+      "id": "ef-051",
+      "content": "Decision: standardize on Bun for all new internal tooling scripts. Rationale: faster startup than Node.js, compatible with existing TypeScript, native test runner avoids vitest dependency.",
+      "source": "notion-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-052",
+      "content": "Research: Cloudflare D1 vs Durable Objects SQLite for team workspaces. D1 lacks per-tenant isolation. DO-per-workspace is the right pattern for Engram's multi-tenant architecture.",
+      "source": "notion-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-053",
+      "content": "Meeting notes from REDACTED-COMPANY-A quarterly planning. Q3 priorities: AI tooling integration, developer experience improvements, and new enterprise tier launch.",
+      "source": "notion-export",
+      "type": "meeting_note"
+    },
+    {
+      "id": "ef-054",
+      "content": "Contact: REDACTED-CONTACT-8, Head of Platform Engineering at REDACTED-FINTECH-B. Referred by REDACTED-CONTACT-1. Strong background in payment infrastructure. Available for coffee next month.",
+      "source": "notion-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-055",
+      "content": "Applied to Director of Engineering at REDACTED-MEDIA-CORP. Base $230,000-$295,000. Los Angeles hybrid. Leads the streaming infrastructure and real-time data platform teams.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-056",
+      "content": "Research: WebAssembly for edge-native data processing. Cloudflare Workers with WASM modules can process structured data 10x faster than JSON parsing alone. Relevant for Engram triage pipeline.",
+      "source": "notion-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-057",
+      "content": "REDACTED-SAAS-CORP is a SaaS platform serving mid-market HR teams. Series B, 200 employees. Offices in Austin TX and Toronto. Recent AI features for workforce analytics.",
+      "source": "notion-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-058",
+      "content": "Decision: use OpenTelemetry for distributed tracing across all Engram Workers. Rationale: vendor-neutral, Cloudflare Workers supports OTLP export natively.",
+      "source": "notion-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-059",
+      "content": "Applied to Engineering Manager, Platform at REDACTED-FINTECH-C. Base $195,000-$255,000. New York or San Francisco. Leads the core platform team responsible for payment routing.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-060",
+      "content": "Research: vector database comparison for semantic search. Pinecone vs Weaviate vs Cloudflare Vectorize. Vectorize wins on latency and Cloudflare-native integration; Pinecone has more mature filtering.",
+      "source": "notion-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-061",
+      "content": "Personal project: OAuth proxy server for developer tooling integrations. TypeScript + Hono framework. Status: MVP complete, pending security review.",
+      "source": "notion-export",
+      "type": "project"
+    },
+    {
+      "id": "ef-062",
+      "content": "Research: LLM context window management strategies. RAG vs long-context. For Engram: hybrid approach — short context with RAG for high-volume queries, long context for synthesis.",
+      "source": "notion-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-063",
+      "content": "Applied to VP Engineering at REDACTED-MARKETPLACE-CORP. Base $320,000-$420,000. San Francisco hybrid. Leads 120-person engineering org across marketplace, payments, and trust & safety.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-064",
+      "content": "REDACTED-AI-CO is an AI-native startup building code generation tools. 50 employees, Series A 2025. Fully remote. Strong engineering team from major tech companies.",
+      "source": "notion-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-065",
+      "content": "Decision: adopt Conventional Commits standard for all Engram development. Enables automated changelog generation and semantic versioning.",
+      "source": "notion-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-066",
+      "content": "Contact: REDACTED-CONTACT-9, Principal Engineer at REDACTED-CLOUD-PROVIDER. Met at KubeCon 2025. Expert in distributed systems and consensus protocols. Possible engineering advisor.",
+      "source": "notion-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-067",
+      "content": "Meeting notes from engineering all-hands Q2. Main themes: AI integration strategy, developer productivity improvements, and transition to platform-as-a-product model.",
+      "source": "notion-export",
+      "type": "meeting_note"
+    },
+    {
+      "id": "ef-068",
+      "content": "Applied to Staff Engineer, Infrastructure at REDACTED-AI-PLATFORM. Base $280,000-$360,000. Fully remote. Builds the compute infrastructure powering large-scale model training and inference.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-069",
+      "content": "Research: Cloudflare Workers AI inference latency benchmarks. qwen3-embedding-0.6b: ~45ms p50, ~120ms p99 for 512-token inputs. Acceptable for Engram's async ingest pipeline.",
+      "source": "drive-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-070",
+      "content": "REDACTED-DEVPLATFORM-CORP builds internal developer platforms. 300 employees, Series C. Remote-first. Product: developer portals, service catalogs, and deployment automation.",
+      "source": "drive-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-071",
+      "content": "Personal project: Engram CLI for local development and testing. Status: design phase. Will wrap the MCP tool surface for terminal-based workflows.",
+      "source": "drive-export",
+      "type": "project"
+    },
+    {
+      "id": "ef-072",
+      "content": "Decision: use Zod v4 as the primary schema validation library across all Engram packages. Rationale: native JSON Schema export, smaller bundle, better TypeScript inference.",
+      "source": "drive-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-073",
+      "content": "Applied to Director, AI Platform at REDACTED-ENTERPRISE-SAAS. Base $260,000-$340,000. Chicago or remote. Leads the AI platform team responsible for LLM integration across the product suite.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-074",
+      "content": "Research: TypeScript decorators for schema-driven memory types. Decorator-based approach vs schema-as-data. Decision: schema-as-data wins for runtime extensibility; decorators require redeployment.",
+      "source": "drive-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-075",
+      "content": "Contact: REDACTED-CONTACT-10, Head of Engineering at REDACTED-HEALTHCARE-TECH. Referred through LinkedIn. Background in health data infrastructure and HIPAA-compliant systems.",
+      "source": "drive-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-076",
+      "content": "Applied to VP of Engineering at REDACTED-EDTECH-CORP. Base $240,000-$310,000. New York City hybrid 3 days/week. Leads 80-person engineering team focused on adaptive learning platform.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-077",
+      "content": "REDACTED-PLATFORM-CO is a B2B SaaS platform for logistics management. Series D 2025, 500 employees. Offices in Seattle and Amsterdam. Strong in real-time shipment tracking.",
+      "source": "drive-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-078",
+      "content": "Research: MCP protocol architecture and tool surface design. Key insight: tool count must stay minimal — cognitive overhead for AI clients scales with tool count. Engram target: ≤9 tools.",
+      "source": "drive-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-079",
+      "content": "Meeting notes from career coaching session. Key themes: targeting VP/Director+ roles, emphasizing platform engineering background, improving narrative around AI product leadership.",
+      "source": "drive-export",
+      "type": "meeting_note"
+    },
+    {
+      "id": "ef-080",
+      "content": "Applied to Senior Director of Product at REDACTED-FINTECH-D. Base $275,000-$350,000. SF Bay Area hybrid. Leads product strategy for the core financial services platform.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-081",
+      "content": "Decision: Engram v0.2 will use progressive enrichment — Phase 1 immediate sync, Phase 2 async background, Phase 3 scheduled batch. This prevents Claude from waiting on full AI pipeline.",
+      "source": "drive-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-082",
+      "content": "Contact: REDACTED-CONTACT-11, VP Product at REDACTED-API-PLATFORM. Former colleague from REDACTED-PREV-COMPANY. Open to discussing Engram as potential customer use case.",
+      "source": "drive-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-083",
+      "content": "Applied to Engineering Director, Data Platform at REDACTED-RETAIL-TECH. Base $250,000-$325,000. Remote US. Leads the data engineering organization responsible for analytics and ML infrastructure.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-084",
+      "content": "Research: Cloudflare Queue delivery semantics. At-least-once delivery requires idempotent consumers. Engram triage worker must check block_id existence before inserting to avoid duplicates.",
+      "source": "drive-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-085",
+      "content": "REDACTED-GAMING-CORP is a mobile gaming company with 200M+ users. Series E 2024. San Francisco HQ, remote engineering. Strong in real-time multiplayer infrastructure.",
+      "source": "drive-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-086",
+      "content": "Research: embedding model comparison for semantic memory retrieval. qwen3-embedding-0.6b (1024d) vs bge-base-en-v1.5 (768d). qwen3 wins on domain clustering for technical content.",
+      "source": "drive-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-087",
+      "content": "Applied to CTO at REDACTED-EARLY-STAGE-STARTUP. Equity-heavy comp, base $200,000-$280,000. San Francisco. Building developer infrastructure tools with AI-first design. 15 employees.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-088",
+      "content": "Decision: Engram's conflict detection will use embedding similarity threshold 0.85 as the trigger for potential conflict review. Lower threshold generates too many false positives.",
+      "source": "drive-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-089",
+      "content": "Contact: REDACTED-CONTACT-12, Founder at REDACTED-AI-INFRA-STARTUP. Met at a Cloudflare event. Building on similar infrastructure. Possible collaboration on MCP tooling standards.",
+      "source": "drive-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-090",
+      "content": "Meeting notes from 1:1 with executive coach. Focus areas: communicating technical vision to non-technical boards, building high-performing distributed teams, navigating organizational ambiguity.",
+      "source": "drive-export",
+      "type": "meeting_note"
+    },
+    {
+      "id": "ef-091",
+      "content": "Applied to VP Engineering at REDACTED-HR-TECH. Base $295,000-$385,000. Fully remote. Leads platform engineering for workforce management SaaS serving 50,000+ businesses.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-092",
+      "content": "Research: Durable Objects hibernation API performance characteristics. Objects that have been inactive for >1s are hibernated. Cold start penalty: ~5ms. Warm hit: ~0.5ms. Acceptable for Engram's workspace pattern.",
+      "source": "drive-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-093",
+      "content": "REDACTED-DEVTOOLS-B is a developer tools company building code review and PR automation. Series B 2025, 80 employees. Fully remote. Strong in ML-powered code analysis.",
+      "source": "drive-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-094",
+      "content": "Applied to Director, Platform Engineering at REDACTED-FINTECH-E. Base $240,000-$315,000. Chicago or New York. Owns the core payment processing infrastructure and developer APIs.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-095",
+      "content": "Decision: Engram's MCP server will use stateless JWT validation — no session store, no KV lookups per request. Workspace ID extracted from JWT claims and passed to DO via service binding.",
+      "source": "drive-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-096",
+      "content": "Contact: REDACTED-CONTACT-13, Director of Engineering at REDACTED-FINTECH-F. Recruiter introduced us. Background in distributed payments systems. Coffee scheduled for next week.",
+      "source": "drive-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-097",
+      "content": "Research: Cloudflare Workers memory limits. Each Worker isolate has 128MB memory limit. Engram's JSON processing of large memory exports needs chunking to stay within this limit.",
+      "source": "drive-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-098",
+      "content": "Applied to Staff Engineer, ML Infrastructure at REDACTED-AI-RESEARCH-LAB. Base $310,000-$420,000. Fully remote. Builds the training infrastructure for frontier AI models.",
+      "source": "drive-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-099",
+      "content": "Research: semantic chunking strategies for long-form content. Sentence-boundary aware chunking with 50-token overlap performs best for recall on Engram's use case. Target: 512-token max chunks.",
+      "source": "drive-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-100",
+      "content": "REDACTED-PROTOCOL-CORP is a web3 infrastructure company building developer tooling for EVM chains. Series C 2025, 120 employees. Offices in NYC and London.",
+      "source": "drive-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-101",
+      "content": "Decision: Engram v0.3 will introduce Project DOs — fully isolated from TeamDO, enabling clean archive and delete semantics per project. Not a partition of TeamDO.",
+      "source": "notion-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-102",
+      "content": "Contact: REDACTED-CONTACT-14, Head of AI at REDACTED-ENTERPRISE-B. Met through a mutual connection. Interested in Engram as internal knowledge management tool for their AI team.",
+      "source": "notion-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-103",
+      "content": "Applied to Director of Engineering at REDACTED-CYBERSECURITY-CORP. Base $255,000-$330,000. Remote US. Leads security platform engineering team responsible for threat intelligence infrastructure.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-104",
+      "content": "Research: R2 storage pricing for Engram exports. $0.015/GB storage, $0.36/million reads, $4.50/million writes. At 1000 users with 100 exports/day at ~1MB each: ~$50/month. Acceptable.",
+      "source": "notion-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-105",
+      "content": "REDACTED-DATA-PLATFORM is a data engineering platform company. Series D 2025, 450 employees. San Francisco HQ with remote engineering. Leader in real-time data pipelines.",
+      "source": "notion-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-106",
+      "content": "Personal project: Engram Slack connector (v0.4 preview). Status: design phase. Will use Slack Events API for streaming channel ingestion. Target: Q3 2026.",
+      "source": "notion-export",
+      "type": "project"
+    },
+    {
+      "id": "ef-107",
+      "content": "Decision: Engram's inbox threshold is 0.4-0.8 memorability score. Below 0.4: cold storage (never discard). Above 0.8: auto-store. This is the cardinal-sin clause — no discards.",
+      "source": "notion-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-108",
+      "content": "Research: MTEB benchmark results for embedding models in 2026. qwen3-embedding-0.6b ranks top-5 on retrieval tasks across multiple languages. Appropriate for Engram's multilingual user base.",
+      "source": "notion-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-109",
+      "content": "Meeting notes from investor update call. Discussed Engram v0.1 launch timeline, MCP adoption trends, and the open-core business model ($5-20/month managed cloud tier).",
+      "source": "notion-export",
+      "type": "meeting_note"
+    },
+    {
+      "id": "ef-110",
+      "content": "Applied to CTO / VP Engineering at REDACTED-CLIMATE-TECH. Base $280,000-$380,000. San Francisco. Leads full engineering org for climate monitoring SaaS platform.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-111",
+      "content": "Research: conflict detection precision vs recall trade-off. Engram ENG-16 study: 87.5% precision, 93.3% recall on 30-pair test corpus at 0.85 similarity threshold. Ship as inbox suggestions.",
+      "source": "notion-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-112",
+      "content": "REDACTED-API-GATEWAY-CO builds enterprise API gateway and management infrastructure. Series C 2026, 180 employees. Offices in Boston and London. Strong in traffic management and security.",
+      "source": "notion-export",
+      "type": "company"
+    },
+    {
+      "id": "ef-113",
+      "content": "Contact: REDACTED-CONTACT-15, Partner at REDACTED-VC-FIRM. Met at a developer conference. Follow-up on Engram's open-core model and go-to-market strategy for v1.0.",
+      "source": "notion-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-114",
+      "content": "Applied to VP of Technology at REDACTED-AEROSPACE-CORP. Base $300,000-$400,000. Washington DC area. Leads embedded systems and real-time data infrastructure for aerospace applications.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-115",
+      "content": "Research: Cloudflare Workers Builds for per-worker CI/CD. Automatic builds triggered on git push. Supports monorepo with per-package wrangler.jsonc. Good fit for Engram's package structure.",
+      "source": "notion-export",
+      "type": "research_note"
+    },
+    {
+      "id": "ef-116",
+      "content": "Personal project: notebook for architecture decision records (ADR). Using Markdown + git for decision tracking. Considering migrating to Engram once v0.1 ships.",
+      "source": "notion-export",
+      "type": "project"
+    },
+    {
+      "id": "ef-117",
+      "content": "Decision: use Cloudflare KV for workspace membership and configuration storage. Fast reads, global replication. Write through DO for strong consistency on membership changes.",
+      "source": "notion-export",
+      "type": "decision_log"
+    },
+    {
+      "id": "ef-118",
+      "content": "Contact: REDACTED-CONTACT-16, Engineering Manager at REDACTED-CLOUD-B. Met at a TypeScript meetup. Background in developer tooling and CLI frameworks. Possible Engram contributor.",
+      "source": "notion-export",
+      "type": "contact"
+    },
+    {
+      "id": "ef-119",
+      "content": "Applied to Principal Product Manager at REDACTED-DEVTOOLS-C. Base $220,000-$290,000. Remote US. Owns the product strategy for developer productivity tooling serving 500K+ developers.",
+      "source": "notion-export",
+      "type": "job_application"
+    },
+    {
+      "id": "ef-120",
+      "content": "Research: Workers Analytics Engine write throughput. 25 writes/second sustained per account. At Engram scale (1000 users, 100 memories/day): ~1.2 writes/second. Comfortably within limit.",
+      "source": "notion-export",
+      "type": "research_note"
+    }
+  ]
+}
