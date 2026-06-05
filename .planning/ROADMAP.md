@@ -107,14 +107,40 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 **Plans:** 9 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 02-01-PLAN.md — RNK Wave 0: shared/vectorize-utils package + sync-eval-corpus.mjs + vendored corpus fixture + cf-routing tracker scaffold
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02-PLAN.md — RNK refactor: move HYBRID_WEIGHTS to @engram/ai-config with D-05 rename + D-06 audit-comment placeholder; parameterize hybridRank on weights; tools.ts import swap (D-09)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 02-03-PLAN.md — RNK sweep: 625-config recall-ranking eval + Pareto + sensitivity + D-15 dual-corpus gate; commit tuned weights + complete D-06 audit comment + seed hybrid-rank-changelog.md
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 02-04-PLAN.md — CON-01 prerequisite gate: unskip conflict-precision eval + assert P≥0.85, R≥0.90; D-18 STOP procedure on failure
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 02-05-PLAN.md — CON workspace-do queries: insertConflictAsInbox + listInboxConflictsForMemoryIds + RPC methods + InboxConflictProperties contract type
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
 - [ ] 02-06-PLAN.md — CON conflict-pipeline orchestrator: prefilter → dupe-skip → parallel detect → inbox write → analytics + CON-08 architectural lock
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
 - [ ] 02-07-PLAN.md — CON triage-worker wiring: ctx.waitUntil(conflictPipeline(...)) in store-normal branch after updateBlockEnrichment; embedding reuse
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
 - [ ] 02-08-PLAN.md — CON recall envelope: context.conflicts[] SQL-join wiring with severity bucketing + lint-node grep gate for notification primitives
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
 - [ ] 02-09-PLAN.md — CON observability: eval-budget-summary.mjs --conflict-pipeline-p99 mode for CON-07 4s p99 budget verification
 
 #### Phase 3: Query Expansion + Reranker

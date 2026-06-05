@@ -2,14 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: planning
-last_updated: "2026-06-05T16:00:00.000Z"
-last_activity: 2026-06-05
-resume_file: .planning/phases/02-recall-quality-baseline/02-CONTEXT.md
+status: "Context gathered (02-CONTEXT.md ready); next step `/gsd:plan-phase 2`"
+last_updated: "2026-06-05T16:57:44.751Z"
+last_activity: 2026-06-05 -- Phase 2 planning complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 5
+  total_plans: 14
   completed_plans: 5
   percent: 20
 ---
@@ -42,9 +41,9 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 ## Current Position
 
 Phase: 2
-Plan: Not started
-Status: Context gathered (02-CONTEXT.md ready); next step `/gsd:plan-phase 2`
-Last activity: 2026-06-05
+Plan: 9 plans created (02-01..02-09), 0 executed
+Status: Planned — ready to execute. Next step `/gsd:execute-phase 2`
+Last activity: 2026-06-05 -- Phase 2 planning complete (9 plans, 9 waves, RNK 02-01..03 lands before CON 02-04..09 per D-16)
 
 ## Phase Status
 
@@ -53,7 +52,7 @@ v0.2 phase numbering resets to Phase 1. v0.1's phases 1-7 are archived under `mi
 | Phase | Name                       | Requirements             | Plans | Status               |
 | ----- | -------------------------- | ------------------------ | ----- | -------------------- |
 | 1     | Foundation (Wave 0)        | PRE-01..05               | 5     | Done (2026-06-04)    |
-| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | TBD   | Context gathered     |
+| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | 9     | Planned (2026-06-05) |
 | 3     | Query Expansion + Reranker | EXP-01..12               | TBD   | Pending Phase 2      |
 | 4     | Synthesis Activation Eval  | SYN-01..10               | TBD   | Pending Phase 3      |
 | 5     | Integration Kitchen Sink   | INT-01..05               | TBD   | Pending Phases 2-4   |
