@@ -30,8 +30,6 @@
  * Do not delete those files until the triage-worker references are updated.
  * ---
  */
-import { readFileSync } from "fs";
-import { resolve } from "path";
 import { describe, it, expect, vi } from "vitest";
 import { env } from "cloudflare:workers";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -41,15 +39,16 @@ import { EMBEDDING_MODEL } from "../../ai-helper.js";
 // ---------------------------------------------------------------------------
 // Corpus loading
 // ---------------------------------------------------------------------------
-
-// Path: packages/mcp-server/src/__tests__/evals/ → repo root → .planning/evals/
-// import.meta.dirname is the directory of this file (available in Node ≥22 / vitest).
-// Five levels up reaches the monorepo root.
-const CORPUS_PATH = resolve(
-  import.meta.dirname,
-  "../../../../..",
-  ".planning/evals/recall-corpus.json",
-);
+//
+// Loaded as a build-time JSON import (Vite bundles it into the worker) rather
+// than a runtime fs.readFileSync. Workers in the @cloudflare/vitest-pool-workers
+// pool cannot read host filesystem paths outside the bundle — node's fs module
+// is available but only resolves what Vite has shipped. A runtime readFileSync
+// against `.planning/evals/recall-corpus.json` returns ENOENT in CI even when
+// the file exists on disk, because the worker sandbox can't see it. JSON
+// imports are the supported path: Vite inlines the file at bundle time and
+// the worker gets the parsed object as a module export.
+import corpusJson from "../../../../../.planning/evals/recall-corpus.json" with { type: "json" };
 
 interface CorpusEntry {
   id: string;
@@ -70,7 +69,7 @@ interface CorpusFile {
   entries: CorpusEntry[];
 }
 
-const corpus = JSON.parse(readFileSync(CORPUS_PATH, "utf8")) as CorpusFile;
+const corpus = corpusJson as CorpusFile;
 
 // ---------------------------------------------------------------------------
 // Split-aware entry selection
