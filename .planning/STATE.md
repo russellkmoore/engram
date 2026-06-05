@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
 status: executing
-last_updated: "2026-06-05T18:48:44.823Z"
+last_updated: "2026-06-05T23:45:01.438Z"
 last_activity: 2026-06-05 -- Phase 02 execution started
 progress:
   total_phases: 5
@@ -41,7 +41,7 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 ## Current Position
 
 Phase: 02 (recall-quality-baseline) — EXECUTING
-Plan: 2 of 9
+Plan: 1 of 9
 Status: Executing Phase 02
 Last activity: 2026-06-05 -- Phase 02 execution started
 
@@ -144,3 +144,7 @@ _State updated: 2026-06-03 by /gsd:execute-phase 01-01_
 - Run Plan 01-04 (next plan in Phase 1)
 
 _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
+
+### Blockers
+
+- Phase 2 Plan 02-03 PAUSED at sweep-design checkpoint (2026-06-05). The 625-config recall-ranking sweep collapses to pure cosine because (1) all 120 eval fixtures were seeded with identical created_at timestamps → recency component is constant, (2) corpus queries pass args={} → type_match and scope_match are constant, and (3) coverage ceiling is ~0.87 because 34/300 expected blocks rank outside Vectorize top-50 in qwen3-embedding-0.6b space (gate is ≥0.8254). All 625 weight configs produce identical F1=0.3619 with flip_rate=0.0000 — the sweep cannot tune what isn't varied. Two prior unblock attempts (unredact REDACTED tokens, lower EVAL_COSINE_THRESHOLD to 0.45, remove .slice(0,25) cap) did not address the structural issue. Decision: pause + replan via /gsd:discuss-phase 2. Eval-design fix is bigger than Plan 02-03 scope — likely split into 02-03a (fix-eval-design: diversify created_at across 0-90 days, add type/scope variance to corpus queries, possibly relabel expected_top_3_block_ids to qwen3-reachable blocks) + 02-03b (run-sweep on fixed eval). Committed work preserved (5849608 sweep test, 223fabb prettier-ignore, 86c5d6b seed test + workerd fix, e3fba54 unredact). Experimental working-tree changes (threshold drop, slice removal, content enrichment, corpus relabel attempt) reverted. HYBRID_WEIGHTS still hold Plan 02-02 placeholders; docs/hybrid-rank-changelog.md not yet seeded. Linear: ENG RNK sub-issue to be transitioned to Blocked.
