@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: ready_to_plan
-last_updated: 2026-06-05T07:35:41.442Z
-last_activity: 2026-06-03 -- Phase 01 execution started
+status: planning
+last_updated: "2026-06-05T16:00:00.000Z"
+last_activity: 2026-06-05
+resume_file: .planning/phases/02-recall-quality-baseline/02-CONTEXT.md
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 5
   completed_plans: 5
   percent: 20
-stopped_at: Phase 01 complete (5/5) — ready to discuss Phase 2
 ---
 
 # Project State: Engram
@@ -43,7 +43,7 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 
 Phase: 2
 Plan: Not started
-Status: Ready to plan
+Status: Context gathered (02-CONTEXT.md ready); next step `/gsd:plan-phase 2`
 Last activity: 2026-06-05
 
 ## Phase Status
@@ -52,8 +52,8 @@ v0.2 phase numbering resets to Phase 1. v0.1's phases 1-7 are archived under `mi
 
 | Phase | Name                       | Requirements             | Plans | Status               |
 | ----- | -------------------------- | ------------------------ | ----- | -------------------- |
-| 1     | Foundation (Wave 0)        | PRE-01..05               | TBD   | Ready to plan        |
-| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | TBD   | Pending Phase 1      |
+| 1     | Foundation (Wave 0)        | PRE-01..05               | 5     | Done (2026-06-04)    |
+| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | TBD   | Context gathered     |
 | 3     | Query Expansion + Reranker | EXP-01..12               | TBD   | Pending Phase 2      |
 | 4     | Synthesis Activation Eval  | SYN-01..10               | TBD   | Pending Phase 3      |
 | 5     | Integration Kitchen Sink   | INT-01..05               | TBD   | Pending Phases 2-4   |
