@@ -104,7 +104,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 1/9 plans executed
+**Plans:** 2/9 plans executed
 
 Plans:
 **Wave 1**
@@ -113,7 +113,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — RNK refactor: move HYBRID_WEIGHTS to @engram/ai-config with D-05 rename + D-06 audit-comment placeholder; parameterize hybridRank on weights; tools.ts import swap (D-09)
+- [x] 02-02-PLAN.md — RNK refactor: move HYBRID_WEIGHTS to @engram/ai-config with D-05 rename + D-06 audit-comment placeholder; parameterize hybridRank on weights; tools.ts import swap (D-09)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
