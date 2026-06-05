@@ -149,6 +149,12 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           WORKSPACE_NAMESPACE_ID: ${{ secrets.WORKSPACE_NAMESPACE_ID }}
           ENGRAM_ADMIN_AUDIT_TOKEN: ${{ secrets.ENGRAM_ADMIN_AUDIT_TOKEN }}
+          # Account-specific deployed Worker URL — set via GH Actions repo variable.
+          # Falls through to the bare workers.dev default in the script when unset;
+          # that default only routes when the workers.dev subdomain is enabled on
+          # the account, which isn't true here (worker lives at
+          # engram-mcp-server.<account>.workers.dev). Forks should set their own.
+          ADMIN_WORKER_URL: ${{ vars.ADMIN_WORKER_URL }}
         run: |
           if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
             echo "::error::PRE-01 audit: CLOUDFLARE_API_TOKEN missing"
