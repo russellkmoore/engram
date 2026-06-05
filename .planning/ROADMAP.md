@@ -104,6 +104,19 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
+**Plans:** 9 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — RNK Wave 0: shared/vectorize-utils package + sync-eval-corpus.mjs + vendored corpus fixture + cf-routing tracker scaffold
+- [ ] 02-02-PLAN.md — RNK refactor: move HYBRID_WEIGHTS to @engram/ai-config with D-05 rename + D-06 audit-comment placeholder; parameterize hybridRank on weights; tools.ts import swap (D-09)
+- [ ] 02-03-PLAN.md — RNK sweep: 625-config recall-ranking eval + Pareto + sensitivity + D-15 dual-corpus gate; commit tuned weights + complete D-06 audit comment + seed hybrid-rank-changelog.md
+- [ ] 02-04-PLAN.md — CON-01 prerequisite gate: unskip conflict-precision eval + assert P≥0.85, R≥0.90; D-18 STOP procedure on failure
+- [ ] 02-05-PLAN.md — CON workspace-do queries: insertConflictAsInbox + listInboxConflictsForMemoryIds + RPC methods + InboxConflictProperties contract type
+- [ ] 02-06-PLAN.md — CON conflict-pipeline orchestrator: prefilter → dupe-skip → parallel detect → inbox write → analytics + CON-08 architectural lock
+- [ ] 02-07-PLAN.md — CON triage-worker wiring: ctx.waitUntil(conflictPipeline(...)) in store-normal branch after updateBlockEnrichment; embedding reuse
+- [ ] 02-08-PLAN.md — CON recall envelope: context.conflicts[] SQL-join wiring with severity bucketing + lint-node grep gate for notification primitives
+- [ ] 02-09-PLAN.md — CON observability: eval-budget-summary.mjs --conflict-pipeline-p99 mode for CON-07 4s p99 budget verification
+
 #### Phase 3: Query Expansion + Reranker
 
 **Goal:** Activate the multi-query expansion + RRF merge + bge-reranker rerank path in `recall()`. The largest single user-facing latency change in v0.2.
