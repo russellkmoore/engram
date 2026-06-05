@@ -104,12 +104,12 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 9 plans
+**Plans:** 1/9 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — RNK Wave 0: shared/vectorize-utils package + sync-eval-corpus.mjs + vendored corpus fixture + cf-routing tracker scaffold
+- [x] 02-01-PLAN.md — RNK Wave 0: shared/vectorize-utils package + sync-eval-corpus.mjs + vendored corpus fixture + cf-routing tracker scaffold
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
