@@ -126,6 +126,10 @@ export default defineConfig({
                 // Pitfall 3 defense is isolate:false (counter not reset per-file)
                 // + CI passes --maxWorkers=1 via test:eval npm script.
                 maxWorkers: 1,
+                // Required by vitest 4.1+: projects with differing maxWorkers
+                // need unique sequence.groupOrder, else vitest aborts the run.
+                // Default (other projects) is 0 — eval gets 1.
+                sequence: { groupOrder: 1 },
               },
             },
           ]
