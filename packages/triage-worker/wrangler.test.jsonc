@@ -9,10 +9,13 @@
 //      see scripts/lint-wrangler.mjs line 37). The `.test.jsonc` suffix means
 //      this file is NOT linted, by design — it carries its own minimal config
 //      that exists ONLY for the test pool's binding resolver.
-//   2. `compatibility_date` is intentionally omitted — the test pool infers
-//      the latest per the Cloudflare-maintained fixture pattern. Including a
-//      date would freeze the test runtime to a specific version that may
-//      drift from production.
+//   2. `compatibility_date` is pinned to match the production wrangler.jsonc
+//      (2026-05-22). Originally this field was intentionally omitted — the
+//      test pool would auto-pick "today's date" — but in June 2026 the pool's
+//      auto-pick raced ahead of the bundled workerd binary's supported
+//      compat-date window (test pool wanted 2026-06-05; workerd supported
+//      max 2026-06-02), causing ERR_RUNTIME_FAILURE on every test run.
+//      Pinning to production's date is safer than chasing pool versions.
 //   3. Phase 6 Plan 06-05: the `main` points at a TEST-ONLY entry
 //      (`src/__tests__/test-worker-entry.ts`) that re-exports `WorkspaceDO`
 //      alongside the queue handler. The production wrangler.jsonc uses
@@ -28,6 +31,7 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "engram-triage-worker-test",
   "main": "src/__tests__/test-worker-entry.ts",
+  "compatibility_date": "2026-05-22",
   // Phase 5 AI + VECTORIZE bindings for unit tests.
   // Unit tests use vi.fn() mocks; 429 dual-path tests pass mock env directly.
   // ENG-24: remote: true required for vitest-pool-workers to start its proxy

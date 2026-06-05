@@ -14,10 +14,13 @@
 //      production mcp-server config carries an additional MCP_OBJECT binding
 //      for EngramMcp; tests don't need it (Phase 2 doesn't touch EngramMcp —
 //      that work lands in Phase 3 per D-06).
-//   3. `compatibility_date` is intentionally omitted — the test pool infers
-//      the latest per the Cloudflare-maintained fixture pattern. Including a
-//      date would freeze the test runtime to a specific version that may
-//      drift from production.
+//   3. `compatibility_date` is pinned to match the production wrangler.jsonc
+//      (2026-05-22). Originally this field was intentionally omitted — the
+//      test pool would auto-pick "today's date" — but in June 2026 the pool's
+//      auto-pick raced ahead of the bundled workerd binary's supported
+//      compat-date window (test pool wanted 2026-06-05; workerd supported
+//      max 2026-06-02), causing ERR_RUNTIME_FAILURE on every test run.
+//      Pinning to production's date is safer than chasing pool versions.
 //
 // FND-08 invariant: this file uses `new_sqlite_classes` (NOT `new_classes`).
 // Even though the lint glob doesn't pick this file up, the convention is
@@ -27,6 +30,7 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "workspace-do-test",
   "main": "src/index.ts",
+  "compatibility_date": "2026-05-22",
   "durable_objects": {
     "bindings": [{ "name": "WORKSPACE", "class_name": "WorkspaceDO" }],
   },
