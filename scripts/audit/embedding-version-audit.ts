@@ -134,13 +134,22 @@ async function listWorkspaceIds(): Promise<string[]> {
       break;
     }
 
-    const resp = await fetch(url.toString(), {
-      headers: {
-        // T-01-02: token passed as HTTP header ONLY — never logged
-        Authorization: `Bearer ${CF_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    });
+    let resp: Response;
+    try {
+      resp = await fetch(url.toString(), {
+        headers: {
+          // T-01-02: token passed as HTTP header ONLY — never logged
+          Authorization: `Bearer ${CF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        // Defense against indefinite hang on a non-responding Cloudflare API.
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      stderr.write(`${TAG} FATAL: DO Namespace List API request failed: ${reason}\n`);
+      process.exit(2);
+    }
 
     if (!resp.ok) {
       stderr.write(
@@ -189,13 +198,25 @@ async function auditWorkspace(workspaceId: string): Promise<AuditResult> {
     return { workspace_id: workspaceId, count_stale: 0 };
   }
 
-  // T-01-02: admin token passed as header ONLY — never logged
-  const resp = await fetch(url, {
-    method: "POST",
-    headers: {
-      "X-Engram-Admin-Token": ADMIN_AUDIT_TOKEN,
-    },
-  });
+  // T-01-02: admin token passed as header ONLY — never logged.
+  // 30s per-workspace timeout — without this a missing/misbehaving Worker
+  // hangs the script indefinitely (CI run 26998314988 hung 33min on this).
+  let resp: Response;
+  try {
+    resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "X-Engram-Admin-Token": ADMIN_AUDIT_TOKEN,
+      },
+      signal: AbortSignal.timeout(30_000),
+    });
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    stderr.write(
+      `${TAG} ERROR: audit RPC for workspace '${workspaceId}' failed: ${reason}. Check that ${ADMIN_WORKER_URL} is deployed and responding.\n`,
+    );
+    process.exit(2);
+  }
 
   if (!resp.ok) {
     stderr.write(

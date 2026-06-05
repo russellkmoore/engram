@@ -139,6 +139,11 @@ jobs:
       #   ENGRAM_ADMIN_AUDIT_TOKEN — shared secret for /__admin/embedding-audit endpoint
       - name: Migration audit (PRE-01)
         if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
+        # Defense-in-depth against indefinite hangs: per-fetch timeouts in the
+        # script itself (AbortSignal.timeout 30s per HTTP call) plus this
+        # step-level ceiling so a stuck script can't burn an entire job slot.
+        # CI run 26998314988 hung for 33 minutes before manual cancel.
+        timeout-minutes: 5
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
