@@ -103,34 +103,69 @@ const ADMIN_WORKER_URL = process.env.ADMIN_WORKER_URL ?? "https://engram-mcp-ser
 // RESEARCH §Cross-workspace enumeration
 // ---------------------------------------------------------------------------
 
+// Shape of one item in the CF DO Namespace List API response.
+//
+// IMPORTANT: this endpoint returns the internal hex DO id (the SHA-256-ish
+// hash produced by `idFromName(workspace_id)`) — NOT the original
+// `workspace_id`. The hash is one-way; you cannot recover the workspace_id
+// from the hex. The earlier audit-script revision incorrectly assumed a
+// `name` field was present and looped forever on the pagination cursor.
+//
+// `hasStoredData` is `true` for DOs that have actually been initialized
+// (i.e. have a non-empty SQLite store). Ephemeral pre-binding instances —
+// if any — would be `false`; the audit script ignores them.
 interface DoInstance {
   id: string;
-  name: string | null;
+  hasStoredData?: boolean;
 }
 
+// Cloudflare returns `cursor: ""` (empty string), `null`, OR omits the
+// field entirely on the final page depending on which API surface and
+// year you ask. Treat `null | "" | undefined` as "no more pages". The
+// `?` on cursor lets the runtime check for `undefined` typecheck cleanly.
 interface DoListPage {
   result: DoInstance[];
   result_info: {
     count: number;
-    cursor: string | null;
+    cursor?: string | null;
   };
   success: boolean;
-  errors: { code: number; message: string }[];
+  errors: { code: number; message: string }[] | null;
 }
 
-async function listWorkspaceIds(): Promise<string[]> {
+// Belt-and-suspenders pagination cap. The page size is 1000 instances, so
+// 100 pages = 100,000 workspaces — well above any plausible single-account
+// scale and far below an infinite loop. If we ever hit this, the script
+// will exit 2 with a clear error instead of running until CI timeout.
+const MAX_PAGES = 100;
+
+async function listDurableObjectIds(): Promise<string[]> {
   const base = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/workers/durable_objects/namespaces/${NS_ID}/objects`;
   const ids: string[] = [];
   let cursor: string | null = null;
+  let pageNumber = 0;
 
-  // Pagination: loop until result_info.cursor is null
-  do {
+  // Pagination: loop until cursor is null/empty/undefined OR the page
+  // returns zero results (defense against APIs that hand back a stale
+  // non-null cursor on the empty trailing page). The `done` flag drives
+  // termination; `do {} while (true)` would lint as a constant condition.
+  let done = false;
+  while (!done) {
+    pageNumber += 1;
+    if (pageNumber > MAX_PAGES) {
+      stderr.write(
+        `${TAG} FATAL: pagination exceeded ${String(MAX_PAGES)} pages — suspected runaway. Last cursor: '${cursor ?? "(null)"}'.\n`,
+      );
+      process.exit(2);
+    }
+
     const url = new URL(base);
     url.searchParams.set("limit", "1000");
-    if (cursor !== null) url.searchParams.set("cursor", cursor);
+    if (cursor !== null && cursor !== "") url.searchParams.set("cursor", cursor);
 
     if (dryRun) {
       stdout.write(`${TAG} [dry-run] GET ${url.toString()}\n`);
+      done = true;
       break;
     }
 
@@ -161,53 +196,129 @@ async function listWorkspaceIds(): Promise<string[]> {
     const page = (await resp.json()) as DoListPage;
 
     if (!page.success) {
-      const errSummary = page.errors.map((e) => `${String(e.code)}: ${e.message}`).join("; ");
+      const errSummary = (page.errors ?? [])
+        .map((e) => `${String(e.code)}: ${e.message}`)
+        .join("; ");
       stderr.write(`${TAG} FATAL: DO Namespace List API error: ${errSummary}\n`);
       process.exit(2);
     }
 
+    // Per-page progress: visible in CI logs so a future runaway is obvious.
+    stdout.write(
+      `${TAG} page ${String(pageNumber)}: ${String(page.result.length)} instances, cursor=${cursor === null ? "(initial)" : cursor === "" ? "(empty)" : "(set)"}\n`,
+    );
+
     for (const instance of page.result) {
-      // Filter out unnamed instances (pre-binding ephemeral DOs — safe to skip per RESEARCH A2)
-      if (instance.name !== null) {
-        ids.push(instance.name);
+      // Skip instances with no stored data — they have nothing to audit.
+      // (This filter was previously `instance.name !== null` against a
+      // field that doesn't exist on this endpoint; replaced with the
+      // semantically correct `hasStoredData` check.)
+      if (instance.hasStoredData !== false) {
+        ids.push(instance.id);
       }
     }
 
-    cursor = page.result_info.cursor;
-  } while (cursor !== null);
+    // Terminate on null, empty, or undefined cursor. Belt-and-suspenders:
+    // also terminate if the page returned zero results — covers any future
+    // API quirk where a non-null cursor still means "end of stream."
+    const next = page.result_info.cursor;
+    if (next === null || next === "" || next === undefined || page.result.length === 0) {
+      done = true;
+    } else {
+      cursor = next;
+    }
+  }
 
   return ids;
 }
 
 // ---------------------------------------------------------------------------
-// Per-workspace audit RPC via /__admin/embedding-audit
+// Per-DO audit RPC via /__admin/embedding-audit
 // ---------------------------------------------------------------------------
+//
+// The enumeration path (--workspace omitted) collects internal hex DO ids
+// from the Cloudflare DO Namespace List API and posts each as `do_id` to
+// the Worker. The new-shape response includes `workspace_name` for
+// debugging (populated when the DO is currently warm and was originally
+// addressed by name; null otherwise).
+//
+// The single-workspace path (--workspace <name>) keeps using `workspace_id`
+// — the Worker's legacy path with the assertOwnsWorkspace guard.
 
-interface AuditResult {
+interface AuditResultByDoId {
+  do_id: string;
+  workspace_name: string | null;
+  count_stale: number;
+}
+
+interface AuditResultByWorkspaceId {
   workspace_id: string;
   count_stale: number;
 }
 
-async function auditWorkspace(workspaceId: string): Promise<AuditResult> {
+// Normalized internal shape — the reporter doesn't care which lookup path
+// produced the result. `label` is what we show in the summary table.
+interface AuditResult {
+  label: string; // do_id (hex) OR workspace_id (name), depending on path
+  workspace_name: string | null;
+  count_stale: number;
+}
+
+async function auditByDoId(doId: string): Promise<AuditResult> {
+  const url = `${ADMIN_WORKER_URL}/__admin/embedding-audit?do_id=${encodeURIComponent(doId)}`;
+
+  if (dryRun) {
+    stdout.write(
+      `${TAG} [dry-run] POST ${ADMIN_WORKER_URL}/__admin/embedding-audit?do_id=${doId}\n`,
+    );
+    return { label: doId, workspace_name: null, count_stale: 0 };
+  }
+
+  let resp: Response;
+  try {
+    resp = await fetch(url, {
+      method: "POST",
+      headers: { "X-Engram-Admin-Token": ADMIN_AUDIT_TOKEN },
+      signal: AbortSignal.timeout(30_000),
+    });
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    stderr.write(
+      `${TAG} ERROR: audit RPC for DO '${doId}' failed: ${reason}. Check that ${ADMIN_WORKER_URL} is deployed with the do_id endpoint and responding.\n`,
+    );
+    process.exit(2);
+  }
+
+  if (!resp.ok) {
+    stderr.write(
+      `${TAG} ERROR: audit RPC for DO '${doId}' returned ${String(resp.status)} ${resp.statusText}\n`,
+    );
+    process.exit(2);
+  }
+
+  const payload = (await resp.json()) as AuditResultByDoId;
+  return {
+    label: payload.do_id,
+    workspace_name: payload.workspace_name,
+    count_stale: payload.count_stale,
+  };
+}
+
+async function auditByWorkspaceId(workspaceId: string): Promise<AuditResult> {
   const url = `${ADMIN_WORKER_URL}/__admin/embedding-audit?workspace_id=${encodeURIComponent(workspaceId)}`;
 
   if (dryRun) {
     stdout.write(
       `${TAG} [dry-run] POST ${ADMIN_WORKER_URL}/__admin/embedding-audit?workspace_id=${workspaceId}\n`,
     );
-    return { workspace_id: workspaceId, count_stale: 0 };
+    return { label: workspaceId, workspace_name: workspaceId, count_stale: 0 };
   }
 
-  // T-01-02: admin token passed as header ONLY — never logged.
-  // 30s per-workspace timeout — without this a missing/misbehaving Worker
-  // hangs the script indefinitely (CI run 26998314988 hung 33min on this).
   let resp: Response;
   try {
     resp = await fetch(url, {
       method: "POST",
-      headers: {
-        "X-Engram-Admin-Token": ADMIN_AUDIT_TOKEN,
-      },
+      headers: { "X-Engram-Admin-Token": ADMIN_AUDIT_TOKEN },
       signal: AbortSignal.timeout(30_000),
     });
   } catch (err) {
@@ -225,7 +336,12 @@ async function auditWorkspace(workspaceId: string): Promise<AuditResult> {
     process.exit(2);
   }
 
-  return (await resp.json()) as AuditResult;
+  const payload = (await resp.json()) as AuditResultByWorkspaceId;
+  return {
+    label: payload.workspace_id,
+    workspace_name: payload.workspace_id,
+    count_stale: payload.count_stale,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -235,55 +351,61 @@ async function auditWorkspace(workspaceId: string): Promise<AuditResult> {
 async function main(): Promise<void> {
   stdout.write(`${TAG} PRE-01 embedding-version migration audit starting\n`);
 
-  let workspaceIds: string[];
+  const results: AuditResult[] = [];
+
   if (workspaceOverride) {
+    // --workspace <name>: legacy path — single named workspace.
     stdout.write(`${TAG} Single-workspace mode: auditing '${workspaceOverride}'\n`);
-    workspaceIds = [workspaceOverride];
+    const result = await auditByWorkspaceId(workspaceOverride);
+    results.push(result);
   } else {
+    // Enumeration path — list DOs by internal hex id, fan out per DO.
     stdout.write(`${TAG} Enumerating all WorkspaceDO instances via DO Namespace List API...\n`);
-    workspaceIds = await listWorkspaceIds();
+    const doIds = await listDurableObjectIds();
     if (dryRun) {
-      stdout.write(`${TAG} [dry-run] Would audit workspaces from namespace ${NS_ID}\n`);
+      stdout.write(
+        `${TAG} [dry-run] Would audit ${String(doIds.length)} DO(s) from namespace ${NS_ID}\n`,
+      );
       process.exit(0);
     }
-    stdout.write(`${TAG} Found ${workspaceIds.length.toString()} workspace(s)\n`);
-  }
+    stdout.write(`${TAG} Found ${String(doIds.length)} DO instance(s) with stored data\n`);
 
-  if (workspaceIds.length === 0) {
-    stdout.write(`${TAG} No workspaces found — exiting clean (0)\n`);
-    process.exit(0);
-  }
+    if (doIds.length === 0) {
+      stdout.write(`${TAG} No DOs found — exiting clean (0)\n`);
+      process.exit(0);
+    }
 
-  // Fan out audit RPC per workspace
-  const results: AuditResult[] = [];
-  for (const wsId of workspaceIds) {
-    const result = await auditWorkspace(wsId);
-    results.push(result);
+    for (const doId of doIds) {
+      const result = await auditByDoId(doId);
+      results.push(result);
+    }
   }
 
   // Tally and report
-  const staleWorkspaces = results.filter((r) => r.count_stale > 0);
+  const stale = results.filter((r) => r.count_stale > 0);
   const totalStale = results.reduce((sum, r) => sum + r.count_stale, 0);
 
   // Markdown summary table (stdout — CI step captures this as output)
   stdout.write("\n## PRE-01 Embedding-Version Audit Results\n\n");
-  stdout.write("| workspace_id | count_stale |\n");
-  stdout.write("|---|---|\n");
+  stdout.write("| identifier | workspace_name | count_stale |\n");
+  stdout.write("|---|---|---|\n");
   for (const r of results) {
-    stdout.write(`| ${r.workspace_id} | ${r.count_stale.toString()} |\n`);
+    stdout.write(
+      `| ${r.label} | ${r.workspace_name ?? "(unknown)"} | ${String(r.count_stale)} |\n`,
+    );
   }
   stdout.write(
-    `\n**Total stale blocks:** ${totalStale.toString()} across ${staleWorkspaces.length.toString()} workspace(s)\n\n`,
+    `\n**Total stale blocks:** ${String(totalStale)} across ${String(stale.length)} DO(s)\n\n`,
   );
 
-  if (staleWorkspaces.length > 0) {
+  if (stale.length > 0) {
     stderr.write(
-      `${TAG} FAIL: ${totalStale.toString()} stale embedding(s) found across ${staleWorkspaces.length.toString()} workspace(s):\n`,
+      `${TAG} FAIL: ${String(totalStale)} stale embedding(s) found across ${String(stale.length)} DO(s):\n`,
     );
-    for (const r of staleWorkspaces) {
-      // T-01-02: only log workspace_id and count — never block content
+    for (const r of stale) {
+      // T-01-02: only log identifier + count — never block content
       stderr.write(
-        `${TAG}   workspace=${r.workspace_id} count_stale=${r.count_stale.toString()}\n`,
+        `${TAG}   id=${r.label} workspace_name=${r.workspace_name ?? "(unknown)"} count_stale=${String(r.count_stale)}\n`,
       );
     }
     stderr.write(
@@ -292,9 +414,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  stdout.write(
-    `${TAG} PASS: all ${workspaceIds.length.toString()} workspace(s) report count_stale=0\n`,
-  );
+  stdout.write(`${TAG} PASS: all ${String(results.length)} DO(s) report count_stale=0\n`);
   process.exit(0);
 }
 
