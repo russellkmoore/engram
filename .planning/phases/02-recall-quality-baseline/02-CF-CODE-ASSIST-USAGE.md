@@ -72,6 +72,7 @@ The following task shapes are flagged as cf-code-assist defaults per CONTEXT.md 
 | _seed_ | _(no rows yet — first executor task appends below this line)_ | _n/a_ | _n/a_ | _Tracking starts at execute-phase kickoff_ | _n/a_ |
 | 02-01-T3 | `02-CF-CODE-ASSIST-USAGE.md` tracker file creation | claude | N/N/N | Doc creation, not code generation — tracker rules don't apply to itself (mirrors Phase 1 `01-04-T1` precedent). | n/a |
 | 02-01-T1 | `shared/vectorize-utils/{package.json,tsconfig.json,src/index.ts}` | claude | Y/N/Y | Cross-file SYNTHESIS across 3 new files with a byte-frozen extraction invariant vs `vectorize-helper.ts:39-99` (Q1=Y); the `vectorizeNeighbors` body must encode the AI-02 positional-workspaceId contract + the no-native-score-floor Vectorize fact verified via Context7 — reasoning artifact, not mechanical. | n/a |
+| 02-01-T2 | `scripts/sync-eval-corpus.mjs` + `packages/{mcp-server,triage-worker}/package.json` edits + vendored `recall-corpus-v2.json` | claude | N/N/Y | Sync script is ~100 lines mechanical with a stable template (eval-budget-summary.mjs + apply-split.mjs), but effective net-new generation is under 50 lines once boilerplate strips out (Q2=N); package.json edits are sub-15-line surgical adds. Per the CLAUDE.md diff-size heuristic, context-prep beats savings at this size — default to claude. | n/a |
 
 ---
 

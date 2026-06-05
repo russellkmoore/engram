@@ -8,13 +8,15 @@
     "deploy": "wrangler deploy",
     "types:gen": "wrangler types",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "pretest:eval": "node ../../scripts/sync-eval-corpus.mjs"
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "0.7.0",
     "@engram/ai-config": "*",
     "@engram/schema": "*",
     "@engram/types": "*",
+    "@engram/vectorize-utils": "*",
     "@engram/workspace-do": "*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "agents": "^0.13.2",
