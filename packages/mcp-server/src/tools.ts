@@ -87,7 +87,8 @@ import {
   CLASSIFIER_MODEL,
 } from "./ai-helper.js";
 import { MIN_COSINE_THRESHOLD, VECTORIZE_OVERFETCH_FACTOR } from "@engram/ai-config";
-import { vectorizeUpsert, vectorizeDelete, vectorizeQuery } from "./vectorize-helper.js";
+import { vectorizeQuery } from "@engram/vectorize-utils";
+import { vectorizeUpsert, vectorizeDelete } from "./vectorize-helper.js";
 import { writeAnalytics, workspaceTag } from "./analytics.js";
 import { hybridRank } from "./hybrid-rank.js";
 import type { Memory, MemoryEvent } from "@engram/types";

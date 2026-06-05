@@ -1,14 +1,16 @@
 /**
- * RED test stubs for `vectorize-helper.ts` (AI-02 namespace enforcement).
- *
- * These tests COMPILE but FAIL because `../vectorize-helper.js` does not
- * exist yet — Plan 05-02 (Wave 1) creates it. The import failure is the
- * expected RED state. Wave 1 flips these GREEN by shipping the helper.
+ * Tests for `vectorize-helper.ts` (AI-02 namespace enforcement) +
+ * `@engram/vectorize-utils` (D-09 import-swap — `vectorizeQuery` now lives in shared).
  *
  * Requirements covered:
  * - AI-02: every Vectorize call enforces namespace = workspace_id.
  *   A missing or wrong namespace leaks cross-workspace vectors — the helper
  *   makes it a compile error to forget the arg.
+ *
+ * Phase 2 D-09 note: `vectorizeQuery` was moved to `@engram/vectorize-utils`
+ * in Plan 02-02. The `vectorizeQuery` tests below now import from the shared
+ * package to cover the extracted code. `vectorizeUpsert` and `vectorizeDelete`
+ * remain in `vectorize-helper.ts` and import from there.
  *
  * Test patterns:
  * - Inline mock object via `as unknown as VectorizeIndex` cast (matches the
@@ -18,12 +20,10 @@
  * @module @engram/mcp-server/__tests__/vectorize-helper
  */
 /* eslint-disable @typescript-eslint/require-await */
-// Rationale: vectorize-helper.ts does not exist yet (Plan 05-02 deliverable). TypeScript
-// resolves all imports from ../vectorize-helper.js as error-typed, triggering no-unsafe-*
-// and require-await rules. Tests are intentionally RED until Plan 05-02 ships.
 import { describe, it, expect } from "vitest";
 
-import { vectorizeQuery, vectorizeUpsert, vectorizeDelete } from "../vectorize-helper.js";
+import { vectorizeQuery } from "@engram/vectorize-utils";
+import { vectorizeUpsert, vectorizeDelete } from "../vectorize-helper.js";
 
 describe("vectorize-helper (AI-02 namespace mandatory)", () => {
   it("vectorizeQuery sets namespace = workspace_id on every call", async () => {
