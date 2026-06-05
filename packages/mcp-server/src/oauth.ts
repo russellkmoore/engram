@@ -285,22 +285,30 @@ export const defaultHandler: ExportedHandler<EngramOAuthEnv> = {
 
     // ---- PRE-01 admin audit endpoint (NOT an MCP tool — admin-only) ---------
     //
-    // POST /__admin/embedding-audit?workspace_id=<ws>
+    // POST /__admin/embedding-audit?do_id=<hex>       (preferred — admin enumeration)
+    // POST /__admin/embedding-audit?workspace_id=<ws> (legacy — single-workspace check)
     //
-    // Calls WorkspaceDO.assertAllBlocksAtV2({ workspace_id }) and returns
-    // { workspace_id, count_stale } as JSON. Used exclusively by the CI audit
-    // script (scripts/audit/embedding-version-audit.ts) which enumerates all
-    // workspace IDs via the Cloudflare DO Namespace List API and fans out this
-    // call per workspace.
+    // Called by the CI audit script (scripts/audit/embedding-version-audit.ts)
+    // which enumerates all DOs via the Cloudflare DO Namespace List API. That
+    // API only returns internal hex DO IDs (not workspace names), so the
+    // primary code path uses `do_id` and dispatches to the DO's
+    // `auditEmbeddingsByDoId()` method, which has no workspace_id assertion.
+    //
+    // The legacy `workspace_id` path is retained for the rare case of auditing
+    // a single named workspace by hand. It uses the strict
+    // `assertAllBlocksAtV2(workspace_id)` method which keeps the
+    // assertOwnsWorkspace guard.
     //
     // Security (T-01-01 / T-01-02):
     //   - Gated by X-Engram-Admin-Token header matching the ENGRAM_ADMIN_AUDIT_TOKEN
     //     Workers secret (set via `wrangler secret put ENGRAM_ADMIN_AUDIT_TOKEN`).
     //   - Returns 503 (not 401) when the secret is unconfigured so misconfiguration
     //     is loud. 401 on mismatch.
-    //   - WorkspaceDO.assertAllBlocksAtV2 has its own assertOwnsWorkspace guard
-    //     (first executable line) as belt-and-suspenders.
-    //   - Never logs workspace content — only { workspace_id, count_stale }.
+    //   - The `do_id` path skips assertOwnsWorkspace by design (see DO method
+    //     comment). The auth boundary is the admin token + namespace ID, not
+    //     the workspace_id.
+    //   - Never logs workspace content — only { do_id, workspace_name, count_stale }
+    //     or { workspace_id, count_stale }.
     if (url.pathname === "/__admin/embedding-audit" && request.method === "POST") {
       // Guard: secret must be configured
       const secret = env.ENGRAM_ADMIN_AUDIT_TOKEN;
@@ -317,9 +325,35 @@ export const defaultHandler: ExportedHandler<EngramOAuthEnv> = {
       if (provided === null || !(await timingSafeStringEqual(provided, secret))) {
         return new Response("Unauthorized", { status: 401 });
       }
+
+      // `do_id` takes precedence — it's the admin enumeration path.
+      const doIdParam = url.searchParams.get("do_id");
+      if (doIdParam !== null) {
+        let id: DurableObjectId;
+        try {
+          id = env.WORKSPACE.idFromString(doIdParam);
+        } catch {
+          return new Response("invalid do_id (must be 64-char hex)", { status: 400 });
+        }
+        const stub = env.WORKSPACE.get(id);
+        const result = await (
+          stub as unknown as {
+            auditEmbeddingsByDoId: () => Promise<{
+              do_id: string;
+              workspace_name: string | null;
+              count_stale: number;
+            }>;
+          }
+        ).auditEmbeddingsByDoId();
+        return Response.json(result);
+      }
+
+      // Legacy single-workspace path.
       const workspaceId = url.searchParams.get("workspace_id");
       if (!workspaceId) {
-        return new Response("workspace_id query param required", { status: 400 });
+        return new Response("either do_id or workspace_id query param required", {
+          status: 400,
+        });
       }
       const id = env.WORKSPACE.idFromName(workspaceId);
       const stub = env.WORKSPACE.get(id);

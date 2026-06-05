@@ -373,8 +373,13 @@ export class WorkspaceDO extends DurableObject<unknown> {
    * workspace has rows whose Vectorize vectors live in a different embedding
    * space than the current index — silent recall corruption.
    *
-   * Admin-only — invoked from `scripts/audit/embedding-version-audit.ts`
-   * via the WorkspaceDO RPC stub; NOT registered as an MCP tool.
+   * This is the user-facing variant — requires the caller to supply the
+   * workspace_id, which is asserted against `ctx.id.name`. Useful when the
+   * caller already knows which workspace it's checking.
+   *
+   * Admin enumeration callers (audit script via the Worker admin endpoint)
+   * use {@link auditEmbeddingsByDoId} instead, because Cloudflare's DO
+   * Namespace List API only exposes internal hex IDs — not workspace names.
    *
    * STO-07: assertOwnsWorkspace is the FIRST EXECUTABLE LINE (same discipline
    * as markIngestFailed at lines above and every other public method on this
@@ -389,5 +394,43 @@ export class WorkspaceDO extends DurableObject<unknown> {
     this.assertOwnsWorkspace(args.workspace_id);
     const count = countStaleEmbeddingsQuery(this.ctx.storage.sql, EMBEDDING_MODEL);
     return { workspace_id: args.workspace_id, count_stale: count };
+  }
+
+  // admin-only: not registered as an MCP tool (PRE-01)
+  /**
+   * Admin-enumeration variant of the PRE-01 embedding-version audit. Returns
+   * the same `count_stale` signal as {@link assertAllBlocksAtV2}, but with
+   * no `assertOwnsWorkspace` guard because the caller (the cross-workspace
+   * audit script via the Worker admin endpoint) only has the internal hex
+   * DO id from Cloudflare's `GET /accounts/{acct}/workers/durable_objects/
+   * namespaces/{ns}/objects` API. That API never returns the original
+   * `idFromName()` argument — there is no way to recover the workspace_id
+   * from the hex, so an `assertOwnsWorkspace` check is impossible by design.
+   *
+   * Auth model: the admin endpoint that fronts this RPC is gated by the
+   * `ENGRAM_ADMIN_AUDIT_TOKEN` Workers secret (CWE-208 constant-time check),
+   * and the namespace enumeration that feeds it requires a
+   * `CLOUDFLARE_API_TOKEN`. The defense-in-depth here is at the Worker
+   * layer, not the DO layer.
+   *
+   * `ctx.id.name` is best-effort: it is populated when the DO was originally
+   * accessed via `idFromName(workspace_id)` and stayed warm; it is `null`
+   * when reconstructed from a hex string via `idFromString(hex)` cold.
+   * Either way, `ctx.id.toString()` is the stable identifier and is what the
+   * audit script logs and aggregates over.
+   *
+   * @requirement PRE-01 (v0.2)
+   */
+  auditEmbeddingsByDoId(): {
+    do_id: string;
+    workspace_name: string | null;
+    count_stale: number;
+  } {
+    const count = countStaleEmbeddingsQuery(this.ctx.storage.sql, EMBEDDING_MODEL);
+    return {
+      do_id: this.ctx.id.toString(),
+      workspace_name: this.ctx.id.name ?? null,
+      count_stale: count,
+    };
   }
 }
