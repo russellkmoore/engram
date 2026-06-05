@@ -70,6 +70,19 @@ export default defineConfig({
           include: ["src/__tests__/blockconcurrency-lint.test.ts"],
         },
       },
+      {
+        // Empty `eval` project — workspace-do has no AI eval tests of its
+        // own (the F1 / conflict / memorability evals live in mcp-server
+        // and triage-worker). This stub exists so the root `test:eval`
+        // npm script's `--project=eval --workspaces` iteration doesn't
+        // crash here with "No projects matched the filter 'eval'". The
+        // include glob is deliberately impossible (`__never_match__`) so
+        // the project resolves but never collects any files.
+        test: {
+          name: "eval",
+          include: ["src/__tests__/__never_match__/*.eval.test.ts"],
+        },
+      },
     ],
   },
 });
