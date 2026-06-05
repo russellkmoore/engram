@@ -5,16 +5,16 @@
  * - **Phase 5 AI-04:** the hybrid ranking formula is the mandatory re-rank step
  *   after Vectorize returns cosine matches. Spike 003 proved `bge-base-en-v1.5`
  *   encodes domain not memory type — hybrid ranking is REQUIRED, not optional.
- *   Starting weights from AI-SPEC.md §4; tuning lands in Plan 05-06 against the
- *   real-corpus samples.
+ *   Weights live in `@engram/ai-config` (single source of truth per ENG-25).
+ *   v0.2 Phase 2 renamed `cosine` → `rerank` per D-05; bge-reranker invocation
+ *   lands Phase 3 (EXP-06).
  *
  * Design notes (locked):
  * - Pure transform — no env, no IO, no mutation. Mirrors `envelope.ts:357–387`
  *   immutability discipline: every returned object is a NEW spread, never a
  *   mutation of the input.
- * - `HYBRID_WEIGHTS` is exported (not file-local) so Plan 05-06's weight-tuning
- *   task can re-export tuned values with a dated audit comment, and so
- *   `hybrid-rank.test.ts` can assert exact weight values.
+ * - `HYBRID_WEIGHTS` is re-exported from `@engram/ai-config` so `hybrid-rank.test.ts`
+ *   can assert exact weight values from the original import path.
  * - Orphan-tolerant: Vectorize matches whose SQLite hydration row is absent are
  *   silently dropped with `console.warn` (failure mode #3 partial — vector exists
  *   but SQLite row was deleted, or race window on remember+stampEmbedding). The
@@ -31,22 +31,10 @@
  */
 import type { LexicalSearchHit } from "@engram/workspace-do";
 import type { RecallInput } from "./schemas.js";
+import { HYBRID_WEIGHTS, type HybridWeights } from "@engram/ai-config";
 
-/**
- * Starting hybrid ranking weights per AI-SPEC.md §4.
- *
- * LOCKED as starting values — do not edit inline. Plan 05-06's weight-tuning
- * task commits tuned values here with a dated audit comment (e.g.,
- * `// tuned 2026-06-15 against real-corpus N=20`).
- *
- * Formula: `score = cosine·1.0 + recency·0.15 + type_match·0.2 + scope_match·0.15`
- */
-export const HYBRID_WEIGHTS = {
-  cosine: 1.0,
-  recency: 0.15,
-  type_match: 0.2,
-  scope_match: 0.15,
-} as const;
+// Re-export for backwards compatibility — tests that import from "../hybrid-rank.js" continue to work.
+export { HYBRID_WEIGHTS } from "@engram/ai-config";
 
 /** Internal representation including the computed combined score. */
 type RankedHit = LexicalSearchHit & { _score: number };
@@ -71,6 +59,10 @@ type RankedHit = LexicalSearchHit & { _score: number };
  *   and `scope` filters used for the match-boost components.
  * @param now - Current timestamp in milliseconds (Date.now()). Passed explicitly
  *   so tests can produce deterministic scores without clock manipulation.
+ * @param weights - Hybrid-rank component weights. Defaults to `HYBRID_WEIGHTS`
+ *   from `@engram/ai-config`. Plan 02-03's 625-config sweep passes per-config
+ *   weights to drive grid evaluation without duplicating the formula. Zero
+ *   behavior change to production callers (they pass only 4 args).
  * @returns Blocks reordered by combined score (descending). Each returned object
  *   has a `_score` property containing the combined score for debugging/testing.
  */
@@ -79,6 +71,7 @@ export function hybridRank(
   blocks: LexicalSearchHit[],
   args: Partial<RecallInput>,
   now: number = Date.now(),
+  weights: HybridWeights = HYBRID_WEIGHTS,
 ): LexicalSearchHit[] {
   // Build O(1) lookup: id → block row.
   const blockMap = new Map<string, LexicalSearchHit>(blocks.map((b) => [b.id, b]));
@@ -94,8 +87,8 @@ export function hybridRank(
       continue;
     }
 
-    // ---- Component: cosine (already normalized to [0..1] by Vectorize) ----
-    const cosine = match.score;
+    // ---- Component: rerank (raw cosine in v0.2; bge-reranker score in Phase 3 — see HYBRID_WEIGHTS audit comment) ----
+    const rerank = match.score;
 
     // ---- Component: recency (30-day half-life decay) ----
     // spike-findings phase-5-ranking-strategy.md §3:
@@ -118,10 +111,10 @@ export function hybridRank(
 
     // ---- Combined score ----
     const _score =
-      HYBRID_WEIGHTS.cosine * cosine +
-      HYBRID_WEIGHTS.recency * recency +
-      HYBRID_WEIGHTS.type_match * type_match +
-      HYBRID_WEIGHTS.scope_match * scope_match;
+      weights.rerank * rerank +
+      weights.recency * recency +
+      weights.type_match * type_match +
+      weights.scope_match * scope_match;
 
     // Spread into a new object (immutability discipline — mirrors envelope.ts:357–387).
     ranked.push({ ...block, _score });

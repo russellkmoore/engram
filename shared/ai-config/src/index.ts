@@ -120,6 +120,32 @@ export const MIN_COSINE_THRESHOLD = 0.6;
  */
 export const VECTORIZE_OVERFETCH_FACTOR = 2;
 
+/**
+ * Hybrid-rank component weights — single source of truth for both Workers.
+ *
+ * // v0.2 Phase 2: `rerank` weight values tuned against RAW COSINE (`match.score` from Vectorize).
+ * // bge-reranker invocation lands in Phase 3 (EXP-06). Until then, `HYBRID_WEIGHTS.rerank * match.score`
+ * // means "raw-cosine weighted by the tuned rerank weight." Do NOT read `HYBRID_WEIGHTS.rerank` as
+ * // "reranker active" in v0.2.
+ * // Corpus: .planning/evals/recall-corpus.json (100 entries, qwen3-embedding-0.6b, sweep date YYYY-MM-DD)
+ * // Scores: F1=X.XX, MRR=X.XX, top1=X.XX
+ * // Re-tune at v0.3 when corpus grows.
+ *
+ * Weights live in `@engram/ai-config` (single source of truth per ENG-25).
+ * v0.2 Phase 2 renamed `cosine` → `rerank` per D-05; bge-reranker invocation
+ * lands Phase 3 (EXP-06). Plan 02-03 commits tuned values here with real sweep
+ * results replacing the YYYY-MM-DD / X.XX placeholders above.
+ */
+export const HYBRID_WEIGHTS = {
+  rerank: 1.0, // D-05 rename from `cosine`; placeholder pre-tuning value (Plan 02-03 commits the tuned value)
+  recency: 0.15,
+  type_match: 0.2,
+  scope_match: 0.15,
+} as const;
+
+/** Type for `HYBRID_WEIGHTS` — used by `hybridRank()` optional `weights` parameter. */
+export type HybridWeights = typeof HYBRID_WEIGHTS;
+
 // ---------------------------------------------------------------------------
 // Role-named aliases (v0.2 / v0.4 will specialize these; today they all
 // alias INGESTION_CLASSIFIER_MODEL — Scout handles all four roles)
