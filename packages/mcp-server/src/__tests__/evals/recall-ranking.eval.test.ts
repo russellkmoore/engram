@@ -55,10 +55,14 @@ import realCorpusJson from "./fixtures/real-corpus.json" with { type: "json" };
 // ---------------------------------------------------------------------------
 
 // D-01 verbatim — symmetric 5-value grid around v0.1 defaults at index 2. Do NOT modify without re-running the sweep.
-const COSINE_GRID = [0.6, 0.8, 1.0, 1.2, 1.5] as const;
-const RECENCY_GRID = [0.05, 0.1, 0.15, 0.2, 0.3] as const;
-const TYPE_MATCH_GRID = [0.1, 0.15, 0.2, 0.25, 0.35] as const;
-const SCOPE_MATCH_GRID = [0.05, 0.1, 0.15, 0.2, 0.3] as const;
+// prettier-ignore
+const COSINE_GRID     = [0.6, 0.8, 1.0, 1.2, 1.5]           as const;
+// prettier-ignore
+const RECENCY_GRID    = [0.05, 0.10, 0.15, 0.20, 0.30]       as const;
+// prettier-ignore
+const TYPE_MATCH_GRID = [0.10, 0.15, 0.20, 0.25, 0.35]       as const;
+// prettier-ignore
+const SCOPE_MATCH_GRID = [0.05, 0.10, 0.15, 0.20, 0.30]      as const;
 // 5^4 = 625 configs
 
 // ---------------------------------------------------------------------------
