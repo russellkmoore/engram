@@ -143,8 +143,18 @@ export const HYBRID_WEIGHTS = {
   scope_match: 0.15,
 } as const;
 
-/** Type for `HYBRID_WEIGHTS` — used by `hybridRank()` optional `weights` parameter. */
-export type HybridWeights = typeof HYBRID_WEIGHTS;
+/**
+ * Type for `HYBRID_WEIGHTS` — used by `hybridRank()` optional `weights` parameter.
+ * Defined as a structural shape (not `typeof HYBRID_WEIGHTS`) so the Plan 02-03
+ * 625-config sweep can pass arbitrary `number` weights without the readonly literal
+ * types narrowing the parameter to the exact placeholder values.
+ */
+export interface HybridWeights {
+  rerank: number;
+  recency: number;
+  type_match: number;
+  scope_match: number;
+}
 
 // ---------------------------------------------------------------------------
 // Role-named aliases (v0.2 / v0.4 will specialize these; today they all
