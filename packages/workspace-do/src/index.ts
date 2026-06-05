@@ -86,6 +86,7 @@ import {
   moveToColdStorage as moveToColdStorageQuery,
   markIngestFailed as markIngestFailedQuery,
   countStaleEmbeddings as countStaleEmbeddingsQuery,
+  deleteStaleEmbeddings as deleteStaleEmbeddingsQuery,
 } from "./queries.js";
 import type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
 
@@ -431,6 +432,43 @@ export class WorkspaceDO extends DurableObject<unknown> {
       do_id: this.ctx.id.toString(),
       workspace_name: this.ctx.id.name ?? null,
       count_stale: count,
+    };
+  }
+
+  // admin-only one-shot remediation: not registered as an MCP tool (PRE-01)
+  /**
+   * Delete every block whose embedding stamp predates the v0.2 qwen3 cutover.
+   * Same three-arm NULL-trap as {@link auditEmbeddingsByDoId} — anything that
+   * `count_stale` would have counted is what `deleted` removes.
+   *
+   * Companion to {@link auditEmbeddingsByDoId} for the enumeration path.
+   * No `assertOwnsWorkspace` for the same reason: the caller (an admin
+   * sweep over hex DO ids from the namespace list API) cannot know the
+   * original workspace_id. The auth boundary is the admin token + namespace
+   * ID at the Worker layer.
+   *
+   * This is intentionally destructive — deleted rows are gone. Use case is
+   * one-time cleanup of pre-v0.2 stale data flagged by the PRE-01 audit
+   * gate. Going forward, the gate itself prevents new stale data from
+   * accumulating; this method is the remediation tool for what was already
+   * there at the time the gate was wired up.
+   *
+   * Vectorize vectors for the deleted blocks are NOT removed by this RPC
+   * (recall already JOINs against `blocks`, so orphan vectors can't surface
+   * to a client). A future GC pass can sweep them.
+   *
+   * @requirement PRE-01 (v0.2)
+   */
+  deleteStaleEmbeddingsAdmin(): {
+    do_id: string;
+    workspace_name: string | null;
+    deleted: number;
+  } {
+    const deleted = deleteStaleEmbeddingsQuery(this.ctx.storage.sql, EMBEDDING_MODEL);
+    return {
+      do_id: this.ctx.id.toString(),
+      workspace_name: this.ctx.id.name ?? null,
+      deleted,
     };
   }
 }

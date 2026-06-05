@@ -368,6 +368,51 @@ export const defaultHandler: ExportedHandler<EngramOAuthEnv> = {
       return Response.json(result);
     }
 
+    // ---- PRE-01 admin purge endpoint (one-shot remediation) -----------------
+    //
+    // POST /__admin/embedding-purge?do_id=<hex>
+    //
+    // Deletes every block in the targeted DO whose embedding stamp predates
+    // the v0.2 qwen3 cutover — same WHERE clause as the audit count. Returns
+    // {do_id, workspace_name, deleted}. Intentionally destructive; intended
+    // for one-time cleanup of pre-existing stale rows flagged by the audit.
+    //
+    // Auth model: same as the audit endpoint (ENGRAM_ADMIN_AUDIT_TOKEN +
+    // namespace ID access). No assertOwnsWorkspace on the DO side for the
+    // same reason as auditEmbeddingsByDoId: the admin enumeration path only
+    // has hex DO ids, not workspace names.
+    if (url.pathname === "/__admin/embedding-purge" && request.method === "POST") {
+      const secret = env.ENGRAM_ADMIN_AUDIT_TOKEN;
+      if (!secret) {
+        return new Response("Admin token not configured", { status: 503 });
+      }
+      const provided = request.headers.get("X-Engram-Admin-Token");
+      if (provided === null || !(await timingSafeStringEqual(provided, secret))) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+      const doIdParam = url.searchParams.get("do_id");
+      if (doIdParam === null) {
+        return new Response("do_id query param required", { status: 400 });
+      }
+      let purgeId: DurableObjectId;
+      try {
+        purgeId = env.WORKSPACE.idFromString(doIdParam);
+      } catch {
+        return new Response("invalid do_id (must be 64-char hex)", { status: 400 });
+      }
+      const stub = env.WORKSPACE.get(purgeId);
+      const result = await (
+        stub as unknown as {
+          deleteStaleEmbeddingsAdmin: () => Promise<{
+            do_id: string;
+            workspace_name: string | null;
+            deleted: number;
+          }>;
+        }
+      ).deleteStaleEmbeddingsAdmin();
+      return Response.json(result);
+    }
+
     // ---- 404 fall-through --------------------------------------------------
     return new Response("Not found", { status: 404 });
   },

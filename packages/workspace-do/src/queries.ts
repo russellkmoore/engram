@@ -852,3 +852,34 @@ export function countStaleEmbeddings(sql: SqlStorage, modelConstant: string): nu
   }
   return n;
 }
+
+/**
+ * Delete all blocks whose embedding stamp predates the v0.2 qwen3 cutover.
+ * Mirrors {@link countStaleEmbeddings}'s WHERE clause exactly — the same
+ * three-arm NULL-trap (NULL stamp OR embedding_version < 2 OR wrong model).
+ *
+ * Returns the rowcount actually deleted. Sync, single-statement .exec(),
+ * positional ? binding only (D-01 + Pitfall 8). Same narrowing discipline
+ * as countStaleEmbeddings — pull from .toArray() not .one().
+ *
+ * Admin-only one-shot remediation. Called from
+ * WorkspaceDO.deleteStaleEmbeddingsAdmin() which fronts the
+ * `POST /__admin/embedding-purge` endpoint. NOT exposed as an MCP tool.
+ *
+ * Note: Vectorize vectors for the deleted block ids are NOT removed here.
+ * Recall-side queries do a JOIN against `blocks`, so orphaned Vectorize
+ * entries can't actually be returned to a client — they are storage bloat,
+ * not a correctness hazard. A future GC pass can sweep them; PRE-01 only
+ * needs the SQLite rows gone.
+ *
+ * @requirement PRE-01 (v0.2)
+ */
+export function deleteStaleEmbeddings(sql: SqlStorage, modelConstant: string): number {
+  const rows = sql
+    .exec(
+      "DELETE FROM blocks WHERE embedding_version IS NULL OR embedding_version < 2 OR embedding_model != ? RETURNING id",
+      modelConstant,
+    )
+    .toArray();
+  return rows.length;
+}
