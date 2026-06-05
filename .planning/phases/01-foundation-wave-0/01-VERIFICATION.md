@@ -1,27 +1,34 @@
 ---
 phase: 01-foundation-wave-0
 verified: 2026-06-04T08:01:18Z
-status: human_needed
-score: 5/5 must-haves verified
+human_resolved: 2026-06-05T07:35:00Z
+status: passed
+score: 5/5 must-haves verified, 3/3 human items resolved
 overrides_applied: 0
 human_verification:
   - test: "Spot-check 10 random validate-split corpus entries for semantic relevance"
     expected: "Each entry's query meaningfully retrieves the 3 block IDs listed in expected_top_3_block_ids when run against the eval-fixtures workspace"
     why_human: "Block IDs point to eval-fixtures-seed.json memories but cannot be queried without running a live Vectorize instance. Semantic coherence of labels requires human judgment."
+    resolved: 2026-06-05T07:35:00Z
+    resolution: "Approved by user. AI cross-validated labels (Sonnet+Opus, commit 2aea16d amends T-03-AUTO) accepted as defensible against synthetic eval-fixtures-seed.json."
   - test: "Confirm WORKSPACE_NAMESPACE_ID and ENGRAM_ADMIN_AUDIT_TOKEN secrets are set in GitHub Actions"
     expected: "gh secret list shows both WORKSPACE_NAMESPACE_ID and ENGRAM_ADMIN_AUDIT_TOKEN present"
     why_human: "GitHub Actions secrets are not visible in the codebase. User confirmed 'done' during execution but the verifier cannot observe the external secret store."
+    resolved: 2026-06-05T07:35:00Z
+    resolution: "Confirmed via gh secret list. Token rotated 2026-06-05 and synced to both Worker secret store and GH Actions; new value passed local audit + CI."
   - test: "Run CI migration audit step end-to-end against a deployed workspace"
     expected: "scripts/audit/embedding-version-audit.ts exits 0 with all workspaces reporting count_stale=0"
     why_human: "Requires live Cloudflare API credentials, deployed mcp-server, and a production WorkspaceDO namespace — none available in verification environment."
+    resolved: 2026-06-05T07:35:00Z
+    resolution: "GitHub Actions run 27001736375 (HEAD 0e62519) — Migration audit (PRE-01) step green, count_stale=0 across both deployed WorkspaceDOs. 3 stale embeddings from the v0.1->v0.2 model migration were detected and remediated via the new /__admin/embedding-purge endpoint (fb02d21), proving the gate works end-to-end."
 ---
 
 # Phase 1: Foundation (Wave 0) Verification Report
 
 **Phase Goal:** Pre-flight checks pass and the eval corpus is large enough to make every downstream gate statistically meaningful. No feature code ships in this phase — it sets the testing discipline and unblocks Phase 2.
-**Verified:** 2026-06-04T08:01:18Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-06-04T08:01:18Z (automated) / 2026-06-05T07:35:00Z (human items resolved)
+**Status:** passed
+**Re-verification:** No — initial verification + human-item resolution
 
 ---
 
