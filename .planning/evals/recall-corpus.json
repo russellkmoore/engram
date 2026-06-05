@@ -83,7 +83,7 @@
     {
       "id": "rcv2-006",
       "bucket": "known-failure",
-      "query": "the EM at REDACTED-PAYMENTS-CORP",
+      "query": "the EM at Adyen",
       "expected_top_3_block_ids": ["ef-006", "ef-007", "ef-096"],
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
@@ -93,7 +93,7 @@
     {
       "id": "rcv2-007",
       "bucket": "known-failure",
-      "query": "the staff engineer at REDACTED-PAYMENTS-CORP on the ledger team",
+      "query": "the staff engineer at Adyen on the ledger team",
       "expected_top_3_block_ids": ["ef-007", "ef-006", "ef-096"],
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",

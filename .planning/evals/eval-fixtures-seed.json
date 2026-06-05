@@ -3,19 +3,19 @@
   "memories": [
     {
       "id": "ef-001",
-      "content": "I applied to REDACTED-CDN-CORP today for a Senior SWE role at ~$185k. Source: company referral via REDACTED-CONTACT-1. URL: https://redacted-cdn.example/careers/ssr-12345",
+      "content": "I applied to Akamai today for a Senior SWE role at ~$185k. Source: company referral via Alex Kim. URL: https://akamai.example/careers/ssr-12345",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-002",
-      "content": "REDACTED-CONTACT-2 is a recruiter at REDACTED-FINTECH-CORP. Met at a meetup. Reaches out about backend roles ~quarterly. Prefers email over LinkedIn.",
+      "content": "Jordan Park is a recruiter at Stripe. Met at a meetup. Reaches out about backend roles ~quarterly. Prefers email over LinkedIn.",
       "source": "legacy-corpus",
       "type": "contact"
     },
     {
       "id": "ef-003",
-      "content": "REDACTED-EDGE-CORP — small (~80 person) edge-compute company headquartered in Berlin. Series B (2024). Known for solid engineering culture and a flexible-remote stance. Roles tend to require strong distributed-systems background.",
+      "content": "EdgeMesh — small (~80 person) edge-compute company headquartered in Berlin. Series B (2024). Known for solid engineering culture and a flexible-remote stance. Roles tend to require strong distributed-systems background.",
       "source": "legacy-corpus",
       "type": "company"
     },
@@ -33,19 +33,19 @@
     },
     {
       "id": "ef-006",
-      "content": "REDACTED-CONTACT-3 is the EM at REDACTED-PAYMENTS-CORP. Met for coffee in March.",
+      "content": "Marcus Webb is the EM at Adyen. Met for coffee in March.",
       "source": "legacy-corpus",
       "type": "contact"
     },
     {
       "id": "ef-007",
-      "content": "REDACTED-CONTACT-4 is the staff SWE at REDACTED-PAYMENTS-CORP focused on the ledger team. Spoke briefly at a conference.",
+      "content": "Priya Nair is the staff SWE at Adyen focused on the ledger team. Spoke briefly at a conference.",
       "source": "legacy-corpus",
       "type": "contact"
     },
     {
       "id": "ef-008",
-      "content": "Applied to REDACTED-FINTECH-CORP in January 2026 for a backend SWE role. Status: rejected at phone screen.",
+      "content": "Applied to Stripe in January 2026 for a backend SWE role. Status: rejected at phone screen.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
@@ -57,25 +57,25 @@
     },
     {
       "id": "ef-010",
-      "content": "REDACTED-APPLE-CORP is the developer-tooling subsidiary of a large consumer-electronics conglomerate. Roles tend to be tools-platform and internal-developer-experience.",
+      "content": "Xcode Cloud Platform is the developer-tooling subsidiary of a large consumer-electronics conglomerate. Roles tend to be tools-platform and internal-developer-experience.",
       "source": "legacy-corpus",
       "type": "company"
     },
     {
       "id": "ef-011",
-      "content": "Applied to REDACTED-AI-INFRA-CORP for the Tech Lead, ML Platform role on 2026-05-12. Salary band: $220k–$260k base + ~0.3% equity. Source: cold outreach via LinkedIn. Hiring manager: REDACTED-CONTACT-5.",
+      "content": "Applied to CoreWeave for the Tech Lead, ML Platform role on 2026-05-12. Salary band: $220k–$260k base + ~0.3% equity. Source: cold outreach via LinkedIn. Hiring manager: David Chen.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-012",
-      "content": "REDACTED-CONTACT-6 — VP Engineering at REDACTED-DEVTOOLS-CORP. Met at a Cloudflare dev day in Q4 2025. Active reference. Reachable at redacted@example.com.",
+      "content": "Rachel Torres — VP Engineering at Vercel. Met at a Cloudflare dev day in Q4 2025. Active reference. Reachable at r.torres@example.com.",
       "source": "legacy-corpus",
       "type": "contact"
     },
     {
       "id": "ef-013",
-      "content": "REDACTED-OBSV-CORP is a mid-size (~400 person) observability company; Series D 2025; remote-first. Recent product push into AI-pipeline tracing — strong hiring signal there.",
+      "content": "Datadog is a mid-size (~400 person) observability company; Series D 2025; remote-first. Recent product push into AI-pipeline tracing — strong hiring signal there.",
       "source": "legacy-corpus",
       "type": "company"
     },
@@ -111,115 +111,115 @@
     },
     {
       "id": "ef-019",
-      "content": "Applied to a remote Senior Director, Solution Architecture role at REDACTED-DEVOPS-PLATFORM. Base $244,200-$409,500 plus up to 100% incentive pay. Leads SA managers across North America.",
+      "content": "Applied to a remote Senior Director, Solution Architecture role at GitLab. Base $244,200-$409,500 plus up to 100% incentive pay. Leads SA managers across North America.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-020",
-      "content": "Applied to Distinguished Engineer, Agentic SDLC & Non-Linear Productivity at REDACTED-DEVOPS-PLATFORM. Base $260,000-$345,000. Remote US/Canada. Pioneers autonomous AI-agent capabilities across the SDLC.",
+      "content": "Applied to Distinguished Engineer, Agentic SDLC & Non-Linear Productivity at GitLab. Base $260,000-$345,000. Remote US/Canada. Pioneers autonomous AI-agent capabilities across the SDLC.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-021",
-      "content": "Applied to Head of Product, Trust & Safety at REDACTED-FINTECH-PAYMENTS. $304,500-$456,700 USD. Remote or Bay Area. Unifies risk + identity orgs across Square to protect sellers from fraud while enabling growth.",
+      "content": "Applied to Head of Product, Trust & Safety at Block (Square's parent). $304,500-$456,700 USD. Remote or Bay Area. Unifies risk + identity orgs across Square to protect sellers from fraud while enabling growth.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-022",
-      "content": "Applied to Sr. Director, Platform Engineering at REDACTED-RETAIL-CORP today. Base $223,400-$301,600. Pleasanton CA, on-site. Leads cloud platform strategy + CD infrastructure + DevOps across Azure and GCP.",
+      "content": "Applied to Sr. Director, Platform Engineering at Workday today. Base $223,400-$301,600. Pleasanton CA, on-site. Leads cloud platform strategy + CD infrastructure + DevOps across Azure and GCP.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-023",
-      "content": "Applied to Engineering Manager, Data Orchestration Platform at REDACTED-PAYMENTS-PLATFORM. Base $236,000-$354,000. Seattle or remote 35+ miles. Owns the Airflow workflow scheduling platform.",
+      "content": "Applied to Engineering Manager, Data Orchestration Platform at Shopify Payments. Base $236,000-$354,000. Seattle or remote 35+ miles. Owns the Airflow workflow scheduling platform.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-024",
-      "content": "Applied to Global Payments Experiences Engineering Manager at REDACTED-PAYMENTS-PLATFORM. Base $236,000-$354,000. Seattle office (50% in-office minimum). Builds payment solutions for global merchants.",
+      "content": "Applied to Global Payments Experiences Engineering Manager at Shopify Payments. Base $236,000-$354,000. Seattle office (50% in-office minimum). Builds payment solutions for global merchants.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-025",
-      "content": "Applied to Engineering Manager, User Compliance at REDACTED-PAYMENTS-PLATFORM. Base $214,600-$321,800. Remote US. Builds systems for customer data verification + risk management across the compliance platform.",
+      "content": "Applied to Engineering Manager, User Compliance at Shopify Payments. Base $214,600-$321,800. Remote US. Builds systems for customer data verification + risk management across the compliance platform.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-026",
-      "content": "Applied to Engineering Manager, Mobile AI at REDACTED-DOCS-PLATFORM. Leads engineering for mobile AI initiatives.",
+      "content": "Applied to Engineering Manager, Mobile AI at Notion. Leads engineering for mobile AI initiatives.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-027",
-      "content": "Applied to Engineering Manager I, Threat Detection at REDACTED-OBSERVABILITY-VENDOR. Base $192,000-$240,000. New York hybrid. Leads team building detection systems + AI-accelerated threat response.",
+      "content": "Applied to Engineering Manager I, Threat Detection at New Relic. Base $192,000-$240,000. New York hybrid. Leads team building detection systems + AI-accelerated threat response.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-028",
-      "content": "Applied to Distinguished Architect, AI at REDACTED-OBSERVABILITY-VENDOR. Base $300,000-$484,000. New York or San Francisco, hybrid, up to 50% travel. Technical multiplier for AI labs and AI-native companies.",
+      "content": "Applied to Distinguished Architect, AI at New Relic. Base $300,000-$484,000. New York or San Francisco, hybrid, up to 50% travel. Technical multiplier for AI labs and AI-native companies.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-029",
-      "content": "Applied to Principal Software Engineer at REDACTED-COMMS-API. Comp tiered by location: $188,240-$235,300 base. Remote US. Customer-facing technical expert delivering code + demos.",
+      "content": "Applied to Principal Software Engineer at Twilio. Comp tiered by location: $188,240-$235,300 base. Remote US. Customer-facing technical expert delivering code + demos.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-030",
-      "content": "Applied to Director, Custom Product & Operations at REDACTED-APPAREL-WHOLESALER. Base $160,000-$235,000 + bonus. Issaquah WA hybrid. Manages custom product portfolio + ops team + strategic customer relationships.",
+      "content": "Applied to Director, Custom Product & Operations at Columbia Sportswear. Base $160,000-$235,000 + bonus. Issaquah WA hybrid. Manages custom product portfolio + ops team + strategic customer relationships.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-031",
-      "content": "Applied to Director, Product - Enterprise at REDACTED-DESIGN-TOOLS-CORP. Base $290,000-$376,000 USD. SF or NY. Drives product strategy for AI enterprise-focused product areas.",
+      "content": "Applied to Director, Product - Enterprise at Figma. Base $290,000-$376,000 USD. SF or NY. Drives product strategy for AI enterprise-focused product areas.",
       "source": "legacy-corpus",
       "type": "job_application"
     },
     {
       "id": "ef-032",
-      "content": "LinkedIn keyword-search lead: VP, Digital at REDACTED-OUTDOOR-RETAIL-COOP. Just spotted; need to look up the actual posting before deciding to apply. Outdoor retail co-op brand.",
+      "content": "LinkedIn keyword-search lead: VP, Digital at REI. Just spotted; need to look up the actual posting before deciding to apply. Outdoor retail co-op brand.",
       "source": "legacy-corpus",
       "type": "research_note"
     },
     {
       "id": "ef-033",
-      "content": "Spotted on LinkedIn: Director, Engineering, NG-SIEM Serverless Platform at REDACTED-SECURITY-VENDOR. Hybrid arrangement. Worth a closer look — strong security infra play with serverless platform angle.",
+      "content": "Spotted on LinkedIn: Director, Engineering, NG-SIEM Serverless Platform at Elastic Security. Hybrid arrangement. Worth a closer look — strong security infra play with serverless platform angle.",
       "source": "legacy-corpus",
       "type": "research_note"
     },
     {
       "id": "ef-034",
-      "content": "Spotted on LinkedIn: Director, Engineering — Listings and Evaluation at REDACTED-REAL-ESTATE-PLATFORM. Real estate domain; mid-funnel data + ML for property valuation. Haven't applied yet.",
+      "content": "Spotted on LinkedIn: Director, Engineering — Listings and Evaluation at Zillow. Real estate domain; mid-funnel data + ML for property valuation. Haven't applied yet.",
       "source": "legacy-corpus",
       "type": "research_note"
     },
     {
       "id": "ef-035",
-      "content": "Spotted on LinkedIn: VP, Reasoning Systems at REDACTED-ENTERPRISE-AI-PLATFORM. Title is intriguing — sounds like LLM agent / reasoning stack. Haven't applied yet.",
+      "content": "Spotted on LinkedIn: VP, Reasoning Systems at Cohere. Title is intriguing — sounds like LLM agent / reasoning stack. Haven't applied yet.",
       "source": "legacy-corpus",
       "type": "research_note"
     },
     {
       "id": "ef-036",
-      "content": "LinkedIn lead: VP Engineering at REDACTED-LIFE-SCIENCES-SAAS. Need to investigate — strong reputation but smaller engineering footprint than the larger platforms I've been looking at.",
+      "content": "LinkedIn lead: VP Engineering at Veeva Systems. Need to investigate — strong reputation but smaller engineering footprint than the larger platforms I've been looking at.",
       "source": "legacy-corpus",
       "type": "research_note"
     },
     {
       "id": "ef-037",
-      "content": "LinkedIn lead: Head of Business Technology Program Management at REDACTED-LEGAL-AI-STARTUP. Worth understanding what 'BizTech program mgmt' actually means at an AI-first legal startup.",
+      "content": "LinkedIn lead: Head of Business Technology Program Management at Harvey AI. Worth understanding what 'BizTech program mgmt' actually means at an AI-first legal startup.",
       "source": "legacy-corpus",
       "type": "research_note"
     },
@@ -255,7 +255,7 @@
     },
     {
       "id": "ef-043",
-      "content": "Contact: Karri Saarinen — co-founder and CEO at REDACTED-ISSUE-TRACKER. Met at QCon Plus 2025. Worth keeping in the loop as Engram itself shapes up — possible reciprocal interest in MCP-native tooling.",
+      "content": "Contact: Karri Saarinen — co-founder and CEO at Linear. Met at QCon Plus 2025. Worth keeping in the loop as Engram itself shapes up — possible reciprocal interest in MCP-native tooling.",
       "source": "legacy-corpus",
       "type": "contact"
     },
@@ -273,25 +273,25 @@
     },
     {
       "id": "ef-046",
-      "content": "Senior Director of Engineering role at REDACTED-CLOUD-SERVICES. Base $280,000-$370,000. Remote first with quarterly gatherings. Leads distributed platform team of 40+ across 3 sub-teams.",
+      "content": "Senior Director of Engineering role at Fastly. Base $280,000-$370,000. Remote first with quarterly gatherings. Leads distributed platform team of 40+ across 3 sub-teams.",
       "source": "notion-export",
       "type": "job_application"
     },
     {
       "id": "ef-047",
-      "content": "VP of Product at REDACTED-DEVELOPER-TOOLS. Series C startup with $120M ARR. Fully remote. Owns the product roadmap for the developer platform targeting Fortune 500 clients.",
+      "content": "VP of Product at Retool. Series C startup with $120M ARR. Fully remote. Owns the product roadmap for the developer platform targeting Fortune 500 clients.",
       "source": "notion-export",
       "type": "job_application"
     },
     {
       "id": "ef-048",
-      "content": "CTO conversation with REDACTED-CONTACT-7 at REDACTED-AI-STARTUP. Met at NeurIPS 2025. Building LLM routing infrastructure. Interested in advisory relationship.",
+      "content": "CTO conversation with Sam Nguyen at Together AI. Met at NeurIPS 2025. Building LLM routing infrastructure. Interested in advisory relationship.",
       "source": "notion-export",
       "type": "contact"
     },
     {
       "id": "ef-049",
-      "content": "REDACTED-INFRA-VENDOR is the infrastructure platform company building next-gen deployment tools. Series D 2025, ~600 employees. Strong in Kubernetes and serverless orchestration.",
+      "content": "Pulumi is the infrastructure platform company building next-gen deployment tools. Series D 2025, ~600 employees. Strong in Kubernetes and serverless orchestration.",
       "source": "notion-export",
       "type": "company"
     },
@@ -315,19 +315,19 @@
     },
     {
       "id": "ef-053",
-      "content": "Meeting notes from REDACTED-COMPANY-A quarterly planning. Q3 priorities: AI tooling integration, developer experience improvements, and new enterprise tier launch.",
+      "content": "Meeting notes from Amplitude quarterly planning. Q3 priorities: AI tooling integration, developer experience improvements, and new enterprise tier launch.",
       "source": "notion-export",
       "type": "meeting_note"
     },
     {
       "id": "ef-054",
-      "content": "Contact: REDACTED-CONTACT-8, Head of Platform Engineering at REDACTED-FINTECH-B. Referred by REDACTED-CONTACT-1. Strong background in payment infrastructure. Available for coffee next month.",
+      "content": "Contact: Elena Petrov, Head of Platform Engineering at Plaid. Referred by Alex Kim. Strong background in payment infrastructure. Available for coffee next month.",
       "source": "notion-export",
       "type": "contact"
     },
     {
       "id": "ef-055",
-      "content": "Applied to Director of Engineering at REDACTED-MEDIA-CORP. Base $230,000-$295,000. Los Angeles hybrid. Leads the streaming infrastructure and real-time data platform teams.",
+      "content": "Applied to Director of Engineering at Spotify. Base $230,000-$295,000. Los Angeles hybrid. Leads the streaming infrastructure and real-time data platform teams.",
       "source": "notion-export",
       "type": "job_application"
     },
@@ -339,7 +339,7 @@
     },
     {
       "id": "ef-057",
-      "content": "REDACTED-SAAS-CORP is a SaaS platform serving mid-market HR teams. Series B, 200 employees. Offices in Austin TX and Toronto. Recent AI features for workforce analytics.",
+      "content": "Rippling is a SaaS platform serving mid-market HR teams. Series B, 200 employees. Offices in Austin TX and Toronto. Recent AI features for workforce analytics.",
       "source": "notion-export",
       "type": "company"
     },
@@ -351,7 +351,7 @@
     },
     {
       "id": "ef-059",
-      "content": "Applied to Engineering Manager, Platform at REDACTED-FINTECH-C. Base $195,000-$255,000. New York or San Francisco. Leads the core platform team responsible for payment routing.",
+      "content": "Applied to Engineering Manager, Platform at Braintree. Base $195,000-$255,000. New York or San Francisco. Leads the core platform team responsible for payment routing.",
       "source": "notion-export",
       "type": "job_application"
     },
@@ -375,13 +375,13 @@
     },
     {
       "id": "ef-063",
-      "content": "Applied to VP Engineering at REDACTED-MARKETPLACE-CORP. Base $320,000-$420,000. San Francisco hybrid. Leads 120-person engineering org across marketplace, payments, and trust & safety.",
+      "content": "Applied to VP Engineering at Poshmark. Base $320,000-$420,000. San Francisco hybrid. Leads 120-person engineering org across marketplace, payments, and trust & safety.",
       "source": "notion-export",
       "type": "job_application"
     },
     {
       "id": "ef-064",
-      "content": "REDACTED-AI-CO is an AI-native startup building code generation tools. 50 employees, Series A 2025. Fully remote. Strong engineering team from major tech companies.",
+      "content": "Cursor is an AI-native startup building code generation tools. 50 employees, Series A 2025. Fully remote. Strong engineering team from major tech companies.",
       "source": "notion-export",
       "type": "company"
     },
@@ -393,7 +393,7 @@
     },
     {
       "id": "ef-066",
-      "content": "Contact: REDACTED-CONTACT-9, Principal Engineer at REDACTED-CLOUD-PROVIDER. Met at KubeCon 2025. Expert in distributed systems and consensus protocols. Possible engineering advisor.",
+      "content": "Contact: James Liu, Principal Engineer at AWS. Met at KubeCon 2025. Expert in distributed systems and consensus protocols. Possible engineering advisor.",
       "source": "notion-export",
       "type": "contact"
     },
@@ -405,7 +405,7 @@
     },
     {
       "id": "ef-068",
-      "content": "Applied to Staff Engineer, Infrastructure at REDACTED-AI-PLATFORM. Base $280,000-$360,000. Fully remote. Builds the compute infrastructure powering large-scale model training and inference.",
+      "content": "Applied to Staff Engineer, Infrastructure at Lambda Labs. Base $280,000-$360,000. Fully remote. Builds the compute infrastructure powering large-scale model training and inference.",
       "source": "drive-export",
       "type": "job_application"
     },
@@ -417,7 +417,7 @@
     },
     {
       "id": "ef-070",
-      "content": "REDACTED-DEVPLATFORM-CORP builds internal developer platforms. 300 employees, Series C. Remote-first. Product: developer portals, service catalogs, and deployment automation.",
+      "content": "Humanitec builds internal developer platforms. 300 employees, Series C. Remote-first. Product: developer portals, service catalogs, and deployment automation.",
       "source": "drive-export",
       "type": "company"
     },
@@ -435,7 +435,7 @@
     },
     {
       "id": "ef-073",
-      "content": "Applied to Director, AI Platform at REDACTED-ENTERPRISE-SAAS. Base $260,000-$340,000. Chicago or remote. Leads the AI platform team responsible for LLM integration across the product suite.",
+      "content": "Applied to Director, AI Platform at ServiceNow. Base $260,000-$340,000. Chicago or remote. Leads the AI platform team responsible for LLM integration across the product suite.",
       "source": "drive-export",
       "type": "job_application"
     },
@@ -447,19 +447,19 @@
     },
     {
       "id": "ef-075",
-      "content": "Contact: REDACTED-CONTACT-10, Head of Engineering at REDACTED-HEALTHCARE-TECH. Referred through LinkedIn. Background in health data infrastructure and HIPAA-compliant systems.",
+      "content": "Contact: Nina Sharma, Head of Engineering at Health Catalyst. Referred through LinkedIn. Background in health data infrastructure and HIPAA-compliant systems.",
       "source": "drive-export",
       "type": "contact"
     },
     {
       "id": "ef-076",
-      "content": "Applied to VP of Engineering at REDACTED-EDTECH-CORP. Base $240,000-$310,000. New York City hybrid 3 days/week. Leads 80-person engineering team focused on adaptive learning platform.",
+      "content": "Applied to VP of Engineering at Duolingo. Base $240,000-$310,000. New York City hybrid 3 days/week. Leads 80-person engineering team focused on adaptive learning platform.",
       "source": "drive-export",
       "type": "job_application"
     },
     {
       "id": "ef-077",
-      "content": "REDACTED-PLATFORM-CO is a B2B SaaS platform for logistics management. Series D 2025, 500 employees. Offices in Seattle and Amsterdam. Strong in real-time shipment tracking.",
+      "content": "project44 is a B2B SaaS platform for logistics management. Series D 2025, 500 employees. Offices in Seattle and Amsterdam. Strong in real-time shipment tracking.",
       "source": "drive-export",
       "type": "company"
     },
@@ -477,7 +477,7 @@
     },
     {
       "id": "ef-080",
-      "content": "Applied to Senior Director of Product at REDACTED-FINTECH-D. Base $275,000-$350,000. SF Bay Area hybrid. Leads product strategy for the core financial services platform.",
+      "content": "Applied to Senior Director of Product at Affirm. Base $275,000-$350,000. SF Bay Area hybrid. Leads product strategy for the core financial services platform.",
       "source": "drive-export",
       "type": "job_application"
     },
@@ -489,13 +489,13 @@
     },
     {
       "id": "ef-082",
-      "content": "Contact: REDACTED-CONTACT-11, VP Product at REDACTED-API-PLATFORM. Former colleague from REDACTED-PREV-COMPANY. Open to discussing Engram as potential customer use case.",
+      "content": "Contact: Brian Foster, VP Product at Kong. Former colleague from Heroku. Open to discussing Engram as potential customer use case.",
       "source": "drive-export",
       "type": "contact"
     },
     {
       "id": "ef-083",
-      "content": "Applied to Engineering Director, Data Platform at REDACTED-RETAIL-TECH. Base $250,000-$325,000. Remote US. Leads the data engineering organization responsible for analytics and ML infrastructure.",
+      "content": "Applied to Engineering Director, Data Platform at Target Tech. Base $250,000-$325,000. Remote US. Leads the data engineering organization responsible for analytics and ML infrastructure.",
       "source": "drive-export",
       "type": "job_application"
     },
@@ -507,7 +507,7 @@
     },
     {
       "id": "ef-085",
-      "content": "REDACTED-GAMING-CORP is a mobile gaming company with 200M+ users. Series E 2024. San Francisco HQ, remote engineering. Strong in real-time multiplayer infrastructure.",
+      "content": "Jam City is a mobile gaming company with 200M+ users. Series E 2024. San Francisco HQ, remote engineering. Strong in real-time multiplayer infrastructure.",
       "source": "drive-export",
       "type": "company"
     },
@@ -519,7 +519,7 @@
     },
     {
       "id": "ef-087",
-      "content": "Applied to CTO at REDACTED-EARLY-STAGE-STARTUP. Equity-heavy comp, base $200,000-$280,000. San Francisco. Building developer infrastructure tools with AI-first design. 15 employees.",
+      "content": "Applied to CTO at Encore (early-stage). Equity-heavy comp, base $200,000-$280,000. San Francisco. Building developer infrastructure tools with AI-first design. 15 employees.",
       "source": "drive-export",
       "type": "job_application"
     },
@@ -531,7 +531,7 @@
     },
     {
       "id": "ef-089",
-      "content": "Contact: REDACTED-CONTACT-12, Founder at REDACTED-AI-INFRA-STARTUP. Met at a Cloudflare event. Building on similar infrastructure. Possible collaboration on MCP tooling standards.",
+      "content": "Contact: Taylor Kim, Founder at Modal. Met at a Cloudflare event. Building on similar infrastructure. Possible collaboration on MCP tooling standards.",
       "source": "drive-export",
       "type": "contact"
     },
@@ -543,7 +543,7 @@
     },
     {
       "id": "ef-091",
-      "content": "Applied to VP Engineering at REDACTED-HR-TECH. Base $295,000-$385,000. Fully remote. Leads platform engineering for workforce management SaaS serving 50,000+ businesses.",
+      "content": "Applied to VP Engineering at Lattice. Base $295,000-$385,000. Fully remote. Leads platform engineering for workforce management SaaS serving 50,000+ businesses.",
       "source": "drive-export",
       "type": "job_application"
     },
@@ -555,13 +555,13 @@
     },
     {
       "id": "ef-093",
-      "content": "REDACTED-DEVTOOLS-B is a developer tools company building code review and PR automation. Series B 2025, 80 employees. Fully remote. Strong in ML-powered code analysis.",
+      "content": "Graphite is a developer tools company building code review and PR automation. Series B 2025, 80 employees. Fully remote. Strong in ML-powered code analysis.",
       "source": "drive-export",
       "type": "company"
     },
     {
       "id": "ef-094",
-      "content": "Applied to Director, Platform Engineering at REDACTED-FINTECH-E. Base $240,000-$315,000. Chicago or New York. Owns the core payment processing infrastructure and developer APIs.",
+      "content": "Applied to Director, Platform Engineering at Marqeta. Base $240,000-$315,000. Chicago or New York. Owns the core payment processing infrastructure and developer APIs.",
       "source": "drive-export",
       "type": "job_application"
     },
@@ -573,7 +573,7 @@
     },
     {
       "id": "ef-096",
-      "content": "Contact: REDACTED-CONTACT-13, Director of Engineering at REDACTED-FINTECH-F. Recruiter introduced us. Background in distributed payments systems. Coffee scheduled for next week.",
+      "content": "Contact: Derek Huang, Director of Engineering at Checkout.com. Recruiter introduced us. Background in distributed payments systems. Coffee scheduled for next week.",
       "source": "drive-export",
       "type": "contact"
     },
@@ -585,7 +585,7 @@
     },
     {
       "id": "ef-098",
-      "content": "Applied to Staff Engineer, ML Infrastructure at REDACTED-AI-RESEARCH-LAB. Base $310,000-$420,000. Fully remote. Builds the training infrastructure for frontier AI models.",
+      "content": "Applied to Staff Engineer, ML Infrastructure at Mistral AI. Base $310,000-$420,000. Fully remote. Builds the training infrastructure for frontier AI models.",
       "source": "drive-export",
       "type": "job_application"
     },
@@ -597,7 +597,7 @@
     },
     {
       "id": "ef-100",
-      "content": "REDACTED-PROTOCOL-CORP is a web3 infrastructure company building developer tooling for EVM chains. Series C 2025, 120 employees. Offices in NYC and London.",
+      "content": "Alchemy is a web3 infrastructure company building developer tooling for EVM chains. Series C 2025, 120 employees. Offices in NYC and London.",
       "source": "drive-export",
       "type": "company"
     },
@@ -609,13 +609,13 @@
     },
     {
       "id": "ef-102",
-      "content": "Contact: REDACTED-CONTACT-14, Head of AI at REDACTED-ENTERPRISE-B. Met through a mutual connection. Interested in Engram as internal knowledge management tool for their AI team.",
+      "content": "Contact: Casey Morgan, Head of AI at Palantir. Met through a mutual connection. Interested in Engram as internal knowledge management tool for their AI team.",
       "source": "notion-export",
       "type": "contact"
     },
     {
       "id": "ef-103",
-      "content": "Applied to Director of Engineering at REDACTED-CYBERSECURITY-CORP. Base $255,000-$330,000. Remote US. Leads security platform engineering team responsible for threat intelligence infrastructure.",
+      "content": "Applied to Director of Engineering at Recorded Future. Base $255,000-$330,000. Remote US. Leads security platform engineering team responsible for threat intelligence infrastructure.",
       "source": "notion-export",
       "type": "job_application"
     },
@@ -627,7 +627,7 @@
     },
     {
       "id": "ef-105",
-      "content": "REDACTED-DATA-PLATFORM is a data engineering platform company. Series D 2025, 450 employees. San Francisco HQ with remote engineering. Leader in real-time data pipelines.",
+      "content": "Databricks is a data engineering platform company. Series D 2025, 450 employees. San Francisco HQ with remote engineering. Leader in real-time data pipelines.",
       "source": "notion-export",
       "type": "company"
     },
@@ -657,7 +657,7 @@
     },
     {
       "id": "ef-110",
-      "content": "Applied to CTO / VP Engineering at REDACTED-CLIMATE-TECH. Base $280,000-$380,000. San Francisco. Leads full engineering org for climate monitoring SaaS platform.",
+      "content": "Applied to CTO / VP Engineering at Pachama. Base $280,000-$380,000. San Francisco. Leads full engineering org for climate monitoring SaaS platform.",
       "source": "notion-export",
       "type": "job_application"
     },
@@ -669,19 +669,19 @@
     },
     {
       "id": "ef-112",
-      "content": "REDACTED-API-GATEWAY-CO builds enterprise API gateway and management infrastructure. Series C 2026, 180 employees. Offices in Boston and London. Strong in traffic management and security.",
+      "content": "MuleSoft builds enterprise API gateway and management infrastructure. Series C 2026, 180 employees. Offices in Boston and London. Strong in traffic management and security.",
       "source": "notion-export",
       "type": "company"
     },
     {
       "id": "ef-113",
-      "content": "Contact: REDACTED-CONTACT-15, Partner at REDACTED-VC-FIRM. Met at a developer conference. Follow-up on Engram's open-core model and go-to-market strategy for v1.0.",
+      "content": "Contact: Morgan Riley, Partner at Andreessen Horowitz. Met at a developer conference. Follow-up on Engram's open-core model and go-to-market strategy for v1.0.",
       "source": "notion-export",
       "type": "contact"
     },
     {
       "id": "ef-114",
-      "content": "Applied to VP of Technology at REDACTED-AEROSPACE-CORP. Base $300,000-$400,000. Washington DC area. Leads embedded systems and real-time data infrastructure for aerospace applications.",
+      "content": "Applied to VP of Technology at Leidos. Base $300,000-$400,000. Washington DC area. Leads embedded systems and real-time data infrastructure for aerospace applications.",
       "source": "notion-export",
       "type": "job_application"
     },
@@ -705,13 +705,13 @@
     },
     {
       "id": "ef-118",
-      "content": "Contact: REDACTED-CONTACT-16, Engineering Manager at REDACTED-CLOUD-B. Met at a TypeScript meetup. Background in developer tooling and CLI frameworks. Possible Engram contributor.",
+      "content": "Contact: Pat Wilson, Engineering Manager at DigitalOcean. Met at a TypeScript meetup. Background in developer tooling and CLI frameworks. Possible Engram contributor.",
       "source": "notion-export",
       "type": "contact"
     },
     {
       "id": "ef-119",
-      "content": "Applied to Principal Product Manager at REDACTED-DEVTOOLS-C. Base $220,000-$290,000. Remote US. Owns the product strategy for developer productivity tooling serving 500K+ developers.",
+      "content": "Applied to Principal Product Manager at JetBrains. Base $220,000-$290,000. Remote US. Owns the product strategy for developer productivity tooling serving 500K+ developers.",
       "source": "notion-export",
       "type": "job_application"
     },
