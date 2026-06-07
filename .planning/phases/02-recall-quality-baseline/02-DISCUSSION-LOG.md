@@ -169,3 +169,77 @@ None surfaced during this discussion that aren't already captured in REQUIREMENT
 - **Discussion length:** 1 area-selection turn + 5 deep-dive turns = 6 AskUserQuestion calls total. Default-mode budget allows up to 16 (4 areas × 4 turns each); kept tight because most ROADMAP success criteria were already operational locks.
 - **Sub-agent usage:** 1 `Explore` agent scout pass (~300 lines compact codebase report). No `gsd-assumptions-analyzer` or other deep-codebase agents needed.
 - **No `--analyze` overlay used** — the trade-off tables were embedded directly in option descriptions per the user's deliberate-informed decision profile.
+
+---
+
+## Recovery session — 02-03 sweep blocker (2026-06-06)
+
+**Trigger:** Plan 02-03 paused at sweep-design checkpoint on 2026-06-05. All 625 weight configs produced identical F1=0.3619 / flip_rate=0.0000. Diagnosis logged in STATE.md `### Blockers`: three structural collapses (constant `created_at` on fixtures, `args={}` on all corpus queries, qwen3-unreachable expected_top_3 blocks).
+
+**Mode:** discuss (default), `existing context` branch → "Update it" + `existing plans` branch → "Continue and replan after". User selected 3 of 4 candidate gray areas; plan-split structure deferred to Claude's discretion at replan time.
+
+**Areas discussed:** Recency variance source, Type/scope filter variance, Coverage ceiling — qwen3-unreachable blocks
+**Areas skipped:** Plan split structure (left to planner)
+
+## Gray areas presented and selected
+
+Multi-select offered four; user picked three. The Explore scout pass mapped:
+
+- Sweep test at `recall-ranking.eval.test.ts` lines 216/246/296/299 → all `hybridRank(..., {}, ...)`
+- 120 ef-* seed fixtures → no `created_at` field, all `scope: null`, but full type distribution (job_application 34, research_note 28, decision_log 16, contact 15, company 13, project 8, meeting_note 6)
+- 100 corpus queries → no `expected_args` field
+- Hybrid-rank formula → `type_match` binary on `args.types?.includes(block.type)`, `scope_match` binary on `args.scope === block.scope`
+
+This confirmed all three failure modes were independent and could be fixed in parallel within a single recovery context.
+
+## Per-area discussion
+
+### Area 1 — Recency variance source (4 questions → D-22..D-25)
+
+| Question | Options presented | Selection |
+|---|---|---|
+| Where does diverse `created_at` live as source-of-truth? | In eval-fixtures-seed.json / Computed by seeding script / Vectorize metadata only | **Computed by seeding script** |
+| What distribution should the script produce? | Uniform 0–90d / Recency-skewed exp decay / Bucketed by source | **Recency-skewed exp decay** |
+| How is the script wired so the eval test sees timestamps? | Pretest hook / Vectorize upsert step in seed-prep / Inline in the test | **Vectorize upsert step in seed-prep** |
+| Reproducibility — deterministic or jitter? | Fully deterministic / Deterministic + jitter / You decide | **Fully deterministic** |
+
+Notes: User aligned strongly on declarative-JSON + pure-function-script + zero noise. Matches the "do it RIGHT not FAST" project principle (clean regression tracking trumps slight realism gain from jitter).
+
+### Area 2 — Type/scope filter variance (4 questions → D-26..D-29)
+
+| Question | Options presented | Selection |
+|---|---|---|
+| How do corpus queries express filter intent? | Add expected_args to corpus / Derive from expected_top_3 / Mix derive+override | **Add expected_args to recall-corpus.json** |
+| What fraction of queries should carry expected_args? | Natural — only where clear (~40–60%) / Maximally (~80%+) / Strictly (critical-path only) | **Natural — only where clear** |
+| How to handle scope variance (all fixtures scope: null)? | Seed scope variance + label corpus / Defer scope, tune 3/4 weights / Subset only | **Seed scope variance into fixtures + label corpus** |
+| Scope vocabulary? | {personal, project} only / Full {personal, project, org} / personal + named project_ids | **{personal, project} only** |
+
+Notes: User explicitly rejected encoding `org` scope prematurely — v0.2 has no OrgDO, so an `org` label in the eval would be semantically off-spec. Distribution target ~70/30 personal/project emerged from option description; planner can refine.
+
+### Area 3 — Coverage ceiling: qwen3-unreachable blocks (4 questions → D-30..D-33)
+
+| Question | Options presented | Selection |
+|---|---|---|
+| Primary fix for 34/300 unreachable expected blocks? | Relabel to qwen3-reachable / Relabel + raise top-K to 100 / Lower F1 gate / Relative gate | **Relabel to qwen3-reachable IDs** |
+| Who decides the relabeling? | AI-assisted Russell-confirmed / Pure AI + audit trail / Russell from scratch | **Pure AI relabel + audit trail** |
+| D-15 dual-corpus (27-entry) gate handling? | Run reachability check; relabel if affected / Drop D-15 / Keep D-15 advisory only | **Run reachability check; relabel if affected** |
+| Audit-trail format? | Per-entry fields in corpus JSON / Separate audit JSON / Both with pointer | **Per-entry fields in corpus JSON** |
+
+Notes: User chose the strictest-floor option (preserve ≥0.8254 absolute) paired with the fastest-execution option (pure AI relabel). The justification — original corpus is already `ai-cross-validated-extended:auto-accept-tiebreak`, so no human-only invariant is being broken — surfaced as a `<specifics>` note in CONTEXT.md to prevent generalization to other ground-truth corpora.
+
+### Specifics surfaced during recovery session
+
+- **Eval-design honesty is load-bearing** — the 02-03 collapse is a textbook PITFALLS HR-2 reward-hacking case. D-22..D-33 fix the eval before re-running, and any future RNK retune (v0.3) must run the same three diversity checks before claiming "tuned."
+- **AI relabeling is acceptable here, not everywhere** — D-31 protocol is OK because the original labels are already AI-cross-validated. NOT a precedent for the human-labeled 30-pair conflict-precision corpus.
+- **Seed-prep is not the prod ingest path** — the script in D-24 runs once per eval session; production `remember()` still owns its own upsert path.
+
+### Deferred ideas — recovery session
+
+- **02-03 plan split structure** (02-03a/02-03b vs single redone 02-03 vs decimal insert) — explicitly left to Claude's discretion at `/gsd:plan-phase 2 --replan-section` time, not a gray area for this discussion.
+
+### Process notes — recovery session
+
+- **Discussion length:** 1 area-selection turn + 12 deep-dive turns + 1 wrap-up = 14 AskUserQuestion calls. Stayed under the default-mode budget (16 = 4 areas × 4 turns).
+- **Sub-agent usage:** 1 Explore agent — codebase map of sweep test internals + seed fixture schema + corpus schema + hybrid-rank formula. Single pass, ~400-word compact report.
+- **Pre-discussion read budget:** STATE.md `### Blockers` section, 02-03-PLAN.md, recent git log. CONTEXT.md was already loaded for the prior session. No PROJECT.md / REQUIREMENTS.md re-read needed (locked decisions still apply).
+- **No mode overlays used** — default flow, table-style options inside descriptions (matching deliberate-informed profile preference).
