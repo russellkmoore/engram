@@ -57,6 +57,17 @@ import type { MemoryEvent } from "@engram/types";
 
 import handler from "../index.js";
 
+// CON-03: conflictPipeline is vi.mock'd so the wiring test can spy on it without
+// running the real orchestrator (which requires live AI + Vectorize bindings).
+// The mock is hoisted to the top of the module by Vite; the spy in the CON-03
+// describe block asserts call count + arg shape.
+vi.mock("../conflict-pipeline.js", () => ({
+  conflictPipeline: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Import the mocked module so we can access the spy in CON-03 tests.
+import * as conflictPipelineMod from "../conflict-pipeline.js";
+
 // DurableObjectNamespace is sourced as a GLOBAL AMBIENT type (from the wrangler-
 // generated `worker-configuration.d.ts` Cloudflare.Env declaration via `Cloudflare`
 // global namespace). Importing the same name from `@cloudflare/workers-types`
@@ -190,6 +201,18 @@ async function getInboxRowCount(workspace_id: string, blockId: string): Promise<
 }
 
 /**
+ * Build a minimal mock `ExecutionContext`. The queue handler uses only
+ * `ctx.waitUntil` — we stub it as a vi.fn() so CON-03 tests can assert it was
+ * called, and all other tests get a no-op that won't fail type-checking.
+ */
+function buildCtx(): ExecutionContext {
+  return {
+    waitUntil: vi.fn(),
+    passThroughOnException: vi.fn(),
+  } as unknown as ExecutionContext;
+}
+
+/**
  * Patch `env.AI.run` to return a TRIAGE_JSON_SCHEMA-valid response with the
  * given memorability. Lets each test select the routing branch deterministically.
  */
@@ -257,9 +280,9 @@ describe("PIP-03 / IP-1: replay-twice idempotency (inbox path)", () => {
     const event = buildEvent({ workspace_id, id: blockId });
 
     // First Queue delivery.
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, buildCtx());
     // Second Queue delivery — same event id (at-least-once duplicate).
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, buildCtx());
 
     // Exactly one inbox row (INSERT OR IGNORE on PK collision).
     const inboxCount = await getInboxRowCount(workspace_id, blockId);
@@ -291,7 +314,7 @@ describe("PIP-06: ingest_status lifecycle — store-normal (memorability > 0.8)"
     expect(await getIngestStatus(workspace_id, blockId)).toBe("pending");
 
     const event = buildEvent({ workspace_id, id: blockId });
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, buildCtx());
 
     // Status flipped to enriched in the same UPDATE as the enrichment write.
     expect(await getIngestStatus(workspace_id, blockId)).toBe("enriched");
@@ -320,7 +343,7 @@ describe("PIP-06: ingest_status lifecycle — inbox (memorability 0.4–0.8)", (
     expect(await getIngestStatus(workspace_id, blockId)).toBe("pending");
 
     const event = buildEvent({ workspace_id, id: blockId });
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, buildCtx());
 
     // moveToInbox composition: block UPDATE → enriched, inbox INSERT → 1 row.
     expect(await getIngestStatus(workspace_id, blockId)).toBe("enriched");
@@ -348,7 +371,7 @@ describe("PIP-06 / D-03 orthogonality: cold-storage (memorability < 0.4)", () =>
     expect(await getIngestStatus(workspace_id, blockId)).toBe("pending");
 
     const event = buildEvent({ workspace_id, id: blockId });
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, buildCtx());
 
     const row = await getBlockRow(workspace_id, blockId);
     // D-03 orthogonality: cold_storage=1 AND ingest_status='enriched' co-occur.
@@ -378,7 +401,7 @@ describe("PIP-05: Zod parse failure permanent (attempts >= 2)", () => {
     const event = buildEvent({ workspace_id, id: blockId });
     const message = buildMessage(event, 2); // attempts=2 → isLastAttempt true in extract.ts
 
-    await handler.queue(buildBatch([message]), env);
+    await handler.queue(buildBatch([message]), env, buildCtx());
 
     // Block transitioned pending → failed via markIngestFailed RPC.
     expect(await getIngestStatus(workspace_id, blockId)).toBe("failed");
@@ -447,7 +470,7 @@ describe("PIP-05: DO-RPC failure permanent (attempts >= 2, seed-block + vi.spyOn
     const event = buildEvent({ workspace_id, id: blockId });
     const message = buildMessage(event, 2);
 
-    await handler.queue(buildBatch([message]), env);
+    await handler.queue(buildBatch([message]), env, buildCtx());
 
     // (6) Assertions in order (all REQUIRED per plan):
 
@@ -560,7 +583,7 @@ describe("CR-01 + WR-03 regression: per-message error envelope prevents batch po
 
     // Invariant: queue() handler does NOT reject — the throw is caught.
     // Without the wrapper this expect() would fail (rejection propagates).
-    await expect(handler.queue(batch, env as never)).resolves.toBeUndefined();
+    await expect(handler.queue(batch, env as never, buildCtx())).resolves.toBeUndefined();
 
     // ---- Message 1 (successful) — should not be re-processed ----
 
@@ -666,7 +689,9 @@ describe("CR-01 + WR-03 regression: per-message error envelope prevents batch po
     const eventFail = buildEvent({ workspace_id, id: blockIdFail });
     const messageFail = buildMessage(eventFail, 2);
 
-    await expect(handler.queue(buildBatch([messageFail]), env as never)).resolves.toBeUndefined();
+    await expect(
+      handler.queue(buildBatch([messageFail]), env as never, buildCtx()),
+    ).resolves.toBeUndefined();
 
     // attempts>=2: extract.ts's INTERNAL last-attempt branch fires first,
     // calls markIngestFailed + ack, returns null. Wrapper never sees throw.
@@ -706,8 +731,115 @@ describe("end-to-end smoke: queue handler happy path produces enriched block", (
     await seedBlockInDO(workspace_id, blockId, "smoke test for end-to-end pipeline");
 
     const event = buildEvent({ workspace_id, id: blockId });
-    await handler.queue(buildBatch([buildMessage(event, 0)]), env);
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, buildCtx());
 
     expect(await getIngestStatus(workspace_id, blockId)).toBe("enriched");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// (h) CON-03: ctx.waitUntil(conflictPipeline(...)) wiring — Plan 02-07
+//
+// These tests assert the WIRING only — not the orchestrator internals.
+// conflictPipeline is fully mocked via vi.mock at module top.
+// ---------------------------------------------------------------------------
+
+describe("CON-03: conflictPipeline wired via ctx.waitUntil in store-normal branch", () => {
+  it("CON-03: store-normal MemoryEvent fires conflictPipeline via ctx.waitUntil exactly once with 6-field newBlock (no embedding field)", async () => {
+    const workspace_id = "ws-con03-store-normal";
+    const blockId = "blk-con03-store-normal-001";
+    const content = "CON-03 wiring test — high-memorability memory for conflict scan";
+
+    // memorability > 0.8 → store-normal → conflictPipeline should fire.
+    patchAI(0.9, { summary: "CON-03 test summary" });
+    await seedBlockInDO(workspace_id, blockId, content);
+
+    const event = buildEvent({ workspace_id, id: blockId, content });
+
+    // Build a ctx with a real vi.fn() waitUntil so we can assert call count.
+    const ctx = buildCtx();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const waitUntilSpy = ctx.waitUntil as ReturnType<typeof vi.fn>;
+
+    // Reset the conflictPipeline mock call count from any prior test.
+    const conflictPipelineSpy = vi.mocked(conflictPipelineMod.conflictPipeline);
+    conflictPipelineSpy.mockClear();
+
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, ctx);
+
+    // ctx.waitUntil was called exactly once in the store-normal branch.
+    expect(waitUntilSpy).toHaveBeenCalledTimes(1);
+
+    // conflictPipeline itself was called exactly once (ctx.waitUntil receives
+    // the Promise returned by conflictPipeline(...); because the mock is
+    // synchronously invokable, it was called when the waitUntil arg was evaluated).
+    expect(conflictPipelineSpy).toHaveBeenCalledTimes(1);
+
+    // First call arg[0] = env (structural env object).
+    const [firstCallEnv, firstCallNewBlock] = conflictPipelineSpy.mock.calls[0] as [
+      unknown,
+      Record<string, unknown>,
+    ];
+    expect(firstCallEnv).toBe(env);
+
+    // Second call arg (newBlock) has the 6-field shape required by CON-03.
+    expect(firstCallNewBlock).toMatchObject({
+      id: blockId,
+      workspace_id,
+      type: "research_note", // classified_type from patchAI mock
+      scope: "personal",
+      content,
+      created_at: expect.any(Number) as unknown,
+    });
+
+    // CRITICAL: no embedding field on the newBlock passed to conflictPipeline.
+    // Plan 02-06 computes the embedding internally (Path A).
+    expect(firstCallNewBlock).not.toHaveProperty("embedding");
+  });
+
+  it("CON-03: store-inbox MemoryEvent does NOT trigger conflictPipeline (only store-normal wires the scan)", async () => {
+    const workspace_id = "ws-con03-inbox";
+    const blockId = "blk-con03-inbox-001";
+
+    // memorability 0.4–0.8 → inbox branch → NO conflictPipeline call.
+    patchAI(0.6);
+    await seedBlockInDO(workspace_id, blockId, "low-mid memorability inbox content");
+
+    const event = buildEvent({ workspace_id, id: blockId });
+    const ctx = buildCtx();
+
+    const conflictPipelineSpy = vi.mocked(conflictPipelineMod.conflictPipeline);
+    conflictPipelineSpy.mockClear();
+
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, ctx);
+
+    // inbox branch → waitUntil NOT called, conflictPipeline NOT called.
+    expect(conflictPipelineSpy).not.toHaveBeenCalled();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const waitUntilInbox = ctx.waitUntil as ReturnType<typeof vi.fn>;
+    expect(waitUntilInbox).not.toHaveBeenCalled();
+  });
+
+  it("CON-03: cold-storage MemoryEvent does NOT trigger conflictPipeline", async () => {
+    const workspace_id = "ws-con03-cold";
+    const blockId = "blk-con03-cold-001";
+
+    // memorability < 0.4 → cold-storage branch → NO conflictPipeline call.
+    patchAI(0.2);
+    await seedBlockInDO(workspace_id, blockId, "very-low memorability cold content");
+
+    const event = buildEvent({ workspace_id, id: blockId });
+    const ctx = buildCtx();
+
+    const conflictPipelineSpy = vi.mocked(conflictPipelineMod.conflictPipeline);
+    conflictPipelineSpy.mockClear();
+
+    await handler.queue(buildBatch([buildMessage(event, 0)]), env, ctx);
+
+    // cold-storage branch → waitUntil NOT called, conflictPipeline NOT called.
+    expect(conflictPipelineSpy).not.toHaveBeenCalled();
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const waitUntilCold = ctx.waitUntil as ReturnType<typeof vi.fn>;
+    expect(waitUntilCold).not.toHaveBeenCalled();
   });
 });
