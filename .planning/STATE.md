@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
 status: executing
-last_updated: "2026-06-08T17:07:19.270Z"
+last_updated: "2026-06-08T17:15:33.918Z"
 last_activity: 2026-06-08 -- Phase 03 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
   percent: 40
 ---
 
@@ -41,9 +41,9 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 ## Current Position
 
 Phase: 03 (query-expansion-reranker) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Executing Phase 03
-Last activity: 2026-06-08 -- Phase 03 execution started
+Last activity: 2026-06-08 -- Plan 03-02 complete (expandQuery + keepVariantsAboveGate)
 
 ## Phase Status
 
@@ -82,6 +82,7 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 | Phase 02-recall-quality-baseline P07 | ~20min | 1 tasks | 3 files | 2026-06-08 |
 | Phase 02-recall-quality-baseline P08 | ~11min | 3 tasks | 6 files |
 | Phase 03 P03-01 | 5min | 2 tasks | 7 files |
+| Phase 03-query-expansion-reranker P03-02 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -168,3 +169,6 @@ _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
 - [Phase ?]: CON-08 grep gate: no-proactive-notifications.test.ts enforces pull-only architectural invariant in lint-node CI
 - [Phase ?]: EXP-04: reciprocalRankFusion(lists, k=60) pure transform — O(1) Map + insertion-order tiebreak
 - [Phase ?]: EXP-05: RERANKER_MODEL = '@cf/baai/bge-reranker-base' constant in @engram/ai-config; HYBRID_WEIGHTS unchanged (D-05 rename already done in Phase 2)
+- [Phase 03]: EXP-01 (03-02): expandQuery re-throws errors (incl. RateLimitError) to recall()'s catch for EXP-10 single-query fallback — zod gate failure degrades to [originalQuery] silently
+- [Phase 03]: EXP-02 (03-02): keepVariantsAboveGate accepts pre-computed queryVector; original (variants[0]) is never re-embedded or dropped; 0.85 default gate as named parameter for eval override
+- [Phase 03]: EXP-09 (03-02): EXPANSION_SYSTEM_PROMPT encodes anti-HyDE rule + named-entity preservation in the prompt string; behavioral eval assertion in plan 03-05

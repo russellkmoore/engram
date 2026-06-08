@@ -176,13 +176,13 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 **Wave 1** *(no dependencies — parallel)*
 
 - [x] 03-01-PLAN.md — rrf.ts reciprocalRankFusion pure transform (EXP-04) + RERANKER_MODEL constant in ai-config (EXP-05)
-- [ ] 03-02-PLAN.md — query-expansion.ts: expandQuery zod-gate + anchor (EXP-01) + keepVariantsAboveGate 0.85 similarity gate (EXP-02) + anti-HyDE prompt (EXP-09)
+- [x] 03-02-PLAN.md — query-expansion.ts: expandQuery zod-gate + anchor (EXP-01) + keepVariantsAboveGate 0.85 similarity gate (EXP-02) + anti-HyDE prompt (EXP-09)
 
 **Wave 2** *(blocked on Wave 1)*
 
