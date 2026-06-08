@@ -104,7 +104,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 6/10 plans executed
+**Plans:** 7/10 plans executed
 
 Plans:
 **Wave 1**
@@ -129,7 +129,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 02-06-PLAN.md — CON conflict-pipeline orchestrator: prefilter → dupe-skip → parallel detect → inbox write → analytics + CON-08 architectural lock
+- [x] 02-06-PLAN.md — CON conflict-pipeline orchestrator: prefilter → dupe-skip → parallel detect → inbox write → analytics + CON-08 architectural lock
 
 **Wave 7** *(blocked on Wave 6 completion)*
 

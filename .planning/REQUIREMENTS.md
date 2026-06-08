@@ -35,13 +35,13 @@ Russell's calls at milestone start:
 ### Conflict-Detection Wiring (CON) — Feature #2
 
 - [x] **CON-01**: ENG-16's `detectConflict()` 30-pair eval is re-run against current memorability rubric BEFORE wiring goes live; precision must hold ≥ 0.85 and recall ≥ 0.90 or planning re-opens the prompt (PITFALLS CD-2).
-- [ ] **CON-02**: New helper `packages/triage-worker/src/conflict-pipeline.ts` orchestrates: cosine prefilter over top-K=3 same-type same-workspace neighbors at ≥0.7 cosine → bounded-parallel `detectConflict()` calls → inbox writes for contradictions only.
+- [x] **CON-02**: New helper `packages/triage-worker/src/conflict-pipeline.ts` orchestrates: cosine prefilter over top-K=3 same-type same-workspace neighbors at ≥0.7 cosine → bounded-parallel `detectConflict()` calls → inbox writes for contradictions only.
 - [ ] **CON-03**: Conflict scan is invoked via `ctx.waitUntil(conflictPipeline(...))` from the `store-normal` branch in `packages/triage-worker/src/index.ts` AFTER `updateBlockEnrichment`. Never blocks the ingest-response path (PITFALLS CD-3).
 - [x] **CON-04**: Contradictions are written to the `inbox` table with `proposed_type="conflict"` and `proposed_properties = {memory_a_id, memory_b_id, category, ai_confidence, description}`. The `conflicts` table remains UNUSED in v0.2 (reserved for v0.3 `conflict()` MCP tool).
 - [ ] **CON-05**: `EngramResponse.context.conflicts[]` in `recall()` is populated by a SQL join surfacing any inbox-pending `proposed_type="conflict"` rows whose `memory_a_id` or `memory_b_id` matches a returned memory. Read-only envelope extension; no new MCP tool.
-- [ ] **CON-06**: Duplicate guard: cosine(memory_a, memory_b) ≥ 0.92 is skipped (not a conflict — too similar); `created_at` diff > 180 days defaults to `severity="low"` (PITFALLS CD-4 + CD-5).
-- [ ] **CON-07**: Per-write conflict-call budget = 3 (top-K cap). Latency budget for the async branch: < 4s p99 (NOT on the response critical path — `remember()` still returns at v0.1's ~430ms p50).
-- [ ] **CON-08**: No proactive notifications. The conflict surfacing pathway is strictly pull-based (inbox writes + envelope serialization). PITFALLS CD-1 catastrophic adoption gate.
+- [x] **CON-06**: Duplicate guard: cosine(memory_a, memory_b) ≥ 0.92 is skipped (not a conflict — too similar); `created_at` diff > 180 days defaults to `severity="low"` (PITFALLS CD-4 + CD-5).
+- [x] **CON-07**: Per-write conflict-call budget = 3 (top-K cap). Latency budget for the async branch: < 4s p99 (NOT on the response critical path — `remember()` still returns at v0.1's ~430ms p50).
+- [x] **CON-08**: No proactive notifications. The conflict surfacing pathway is strictly pull-based (inbox writes + envelope serialization). PITFALLS CD-1 catastrophic adoption gate.
 
 ### Query Expansion + Reranker (EXP) — Feature #3
 
