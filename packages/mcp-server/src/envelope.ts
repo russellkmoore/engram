@@ -40,7 +40,7 @@
 // Phase 5 will POPULATE these fields with real AI values without changing the envelope shape.
 
 import { encode } from "gpt-tokenizer/encoding/cl100k_base";
-import type { EngramResponse } from "@engram/types";
+import type { EngramResponse, Conflict } from "@engram/types";
 import type { LexicalSearchHit } from "@engram/workspace-do";
 import type {
   RememberResult,
@@ -202,6 +202,12 @@ export function buildRecallResponse(input: {
   synthesis?: string | null;
   /** Phase 5 D-02: suggestions.actions populated when verbosity="chunks" (discoverability triad). */
   suggestions?: { actions: string[] };
+  /**
+   * Plan 02-08 CON-05: inbox-conflict rows mapped to Conflict envelopes by the recall handler.
+   * When non-empty, populated in `context.conflicts`. Omitted (undefined) when no conflicts
+   * touch the ranked memories — keeps the envelope minimal (T-02-08-05 mitigation).
+   */
+  conflicts?: Conflict[];
 }): EngramResponse<RecallResult> {
   const chunksField =
     input.verbosity === "synthesis"
@@ -234,7 +240,19 @@ export function buildRecallResponse(input: {
     context: {
       related: [],
       entities: [],
-      conflicts: [],
+      // CON-05 Plan 02-08: conditionally populate context.conflicts.
+      // - When input.conflicts is undefined (pre-CON-05 callers / D-08 backward compat),
+      //   default to [] so the context.conflicts key is always present (D-08 contract).
+      // - When the CON-05 caller explicitly provides a non-empty Conflict[], use it.
+      // - When the CON-05 caller provides an empty [], omit the field entirely
+      //   (T-02-08-05 — prevents false-positive UI signal from empty array).
+      // exactOptionalPropertyTypes-compatible conditional-spread mirrors the
+      // vectorizeQuery filter-object pattern at tools.ts.
+      ...(input.conflicts === undefined
+        ? { conflicts: [] as Conflict[] } // D-08 backward compat: always present
+        : input.conflicts.length > 0
+          ? { conflicts: input.conflicts } // CON-05: populated conflicts
+          : {}), // CON-05 empty: omit the field (T-02-08-05)
     },
     meta: {
       confidence: null,

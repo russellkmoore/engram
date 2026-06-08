@@ -91,8 +91,8 @@ import { vectorizeQuery } from "@engram/vectorize-utils";
 import { vectorizeUpsert, vectorizeDelete } from "./vectorize-helper.js";
 import { writeAnalytics, workspaceTag } from "./analytics.js";
 import { hybridRank } from "./hybrid-rank.js";
-import type { Memory, MemoryEvent } from "@engram/types";
-import type { WorkspaceDO, LexicalSearchHit } from "@engram/workspace-do";
+import type { Memory, MemoryEvent, Conflict, InboxConflictProperties } from "@engram/types";
+import type { WorkspaceDO, LexicalSearchHit, InboxConflictRow } from "@engram/workspace-do";
 
 import {
   RememberInputSchema,
@@ -596,6 +596,67 @@ export function registerTools(
       // === AI-04 Step 4: hybrid re-rank (spike-validated formula: cosine·1.0 + recency·0.15 + type·0.2 + scope·0.15) ===
       const ranked = hybridRank(filteredMatches, blocks, args, Date.now());
 
+      // === CON-05 Step: hydrate inbox-pending conflicts touching the ranked memories ===
+      // Severity is computed AT READ TIME per RESEARCH §"Pattern 6" — the inbox row
+      // stores raw fields only. PITFALLS CD-5 time-blind mitigation: > 180 days between
+      // the two memories → severity="low" per CON-06. "medium" is never produced in v0.2
+      // (reserved for v0.3 conflict() tool surface).
+      //
+      // CON-08 invariant (PULL-ONLY/PASSIVE): conflicts are surfaced in the envelope
+      // ONLY because the caller asked (recall). NEVER pushed/alerted proactively.
+      const recallIds = ranked.map((r) => r.id);
+      let conflicts: Conflict[] = [];
+      try {
+        // Re-use the existing stub variable — do NOT acquire a second stub.
+        const conflictRows = await (
+          stub as unknown as {
+            listInboxConflictsForMemoryIds: (args: {
+              workspace_id: string;
+              ids: string[];
+            }) => Promise<InboxConflictRow[]>;
+          }
+        ).listInboxConflictsForMemoryIds({
+          workspace_id: props.workspace_id, // ALWAYS from props, NEVER from args (MCP-05 / MT-1)
+          ids: recallIds,
+        });
+
+        const blockAgeById = new Map<string, number>(ranked.map((b) => [b.id, b.created_at]));
+        for (const row of conflictRows) {
+          try {
+            const parsed = JSON.parse(row.proposed_properties) as InboxConflictProperties;
+            // Fall back to row.created_at when the conflicted memory is NOT in the ranked set
+            // (RESEARCH §"Pattern 6" lines 517-519 safe-approximation fallback).
+            const memA_age = blockAgeById.get(parsed.memory_a_id) ?? row.created_at;
+            const memB_age = blockAgeById.get(parsed.memory_b_id) ?? row.created_at;
+            const diffDays = Math.abs(memA_age - memB_age) / (1000 * 60 * 60 * 24);
+            // CON-06 + CD-5: > 180 days → "low"; otherwise "high". "medium" NOT used in v0.2.
+            const severity: "low" | "high" = diffDays > 180 ? "low" : "high";
+            conflicts.push({
+              id: row.id,
+              memory_a_id: parsed.memory_a_id,
+              memory_b_id: parsed.memory_b_id,
+              description: parsed.description,
+              severity,
+              detected_at: row.created_at,
+              resolved_at: null, // v0.2: resolution is v0.3 conflict() tool surface
+            });
+          } catch (parseErr) {
+            // Malformed proposed_properties — skip this row silently (T-02-08-01 mitigation).
+            console.warn("recall:CON-05:inbox-conflict-parse-failed", {
+              row_id: row.id,
+              err: parseErr instanceof Error ? parseErr.message : String(parseErr),
+            });
+          }
+        }
+      } catch (rpcErr) {
+        // Conflicts envelope is AUXILIARY — recall MUST NEVER fail because of it (T-02-08-01).
+        console.warn("recall:CON-05:rpc-failed", {
+          err: rpcErr instanceof Error ? rpcErr.message : String(rpcErr),
+        });
+        conflicts = [];
+      }
+      // === End CON-05 Step ===
+
       // === D-01: synthesis is OPT-IN — skipped on default verbosity="chunks" (no 2–5s latency penalty) ===
       let synthesis: string | null = null;
       if (args.verbosity === "synthesis" || args.verbosity === "both") {
@@ -650,6 +711,9 @@ export function registerTools(
         verbosity: args.verbosity,
         synthesis,
         ...(suggestions !== undefined ? { suggestions } : {}),
+        // CON-05: pass the conflict array; buildRecallResponse conditionally-spreads
+        // it into context.conflicts (omits entirely when empty — T-02-08-05).
+        conflicts,
       });
       // T-05-05-TRUNC backfill: append the recall-query truncation gap when applicable.
       // Done AFTER buildRecallResponse so the gap survives trimToBudget (which preserves meta.gaps).
