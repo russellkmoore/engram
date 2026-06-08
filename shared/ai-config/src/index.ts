@@ -62,6 +62,18 @@ export const INGESTION_CLASSIFIER_MODEL = "@cf/meta/llama-4-scout-17b-16e-instru
 export const EMBEDDING_MODEL = "@cf/qwen/qwen3-embedding-0.6b" as const;
 
 /**
+ * Cross-encoder reranking model consumed via `safeRun` in Phase 3 EXP-06.
+ * Replaces raw Vectorize cosine as the `rerank` input to `hybridRank()`;
+ * invoked between RRF merge and `hybridRank` in the `recall()` handler.
+ *
+ * Called through `safeRun(env, RERANKER_MODEL, body)` to sidestep workerd#5998
+ * (generated `Ai_Cf_Baai_Bge_Reranker_Base_Input` type omits `query`).
+ * Raw logit scores are sigmoid-normalized → [0,1] before entering the
+ * tuned `HYBRID_WEIGHTS.rerank` weight (Phase 2 D-05 rename, EXP-06).
+ */
+export const RERANKER_MODEL = "@cf/baai/bge-reranker-base" as const;
+
+/**
  * Vector dimensions produced by `EMBEDDING_MODEL`. The Vectorize index named
  * `VECTORIZE_INDEX_NAME` was created with these dimensions — swapping the
  * embedding model requires re-creating the index.
