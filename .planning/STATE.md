@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
 status: executing
-last_updated: "2026-06-05T23:45:01.438Z"
-last_activity: 2026-06-05 -- Phase 02 execution started
+last_updated: "2026-06-07T00:00:00.000Z"
+last_activity: 2026-06-07 -- Phase 02 sweep-recovery replanned (02-03 split into 02-03a + 02-03)
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 14
+  total_plans: 15
   completed_plans: 7
   percent: 20
 ---
@@ -52,7 +52,7 @@ v0.2 phase numbering resets to Phase 1. v0.1's phases 1-7 are archived under `mi
 | Phase | Name                       | Requirements             | Plans | Status               |
 | ----- | -------------------------- | ------------------------ | ----- | -------------------- |
 | 1     | Foundation (Wave 0)        | PRE-01..05               | 5     | Done (2026-06-04)    |
-| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | 9     | Planned (2026-06-05) |
+| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | 10    | Planned (2026-06-07) |
 | 3     | Query Expansion + Reranker | EXP-01..12               | TBD   | Pending Phase 2      |
 | 4     | Synthesis Activation Eval  | SYN-01..10               | TBD   | Pending Phase 3      |
 | 5     | Integration Kitchen Sink   | INT-01..05               | TBD   | Pending Phases 2-4   |
@@ -146,5 +146,7 @@ _State updated: 2026-06-03 by /gsd:execute-phase 01-01_
 _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
 
 ### Blockers
+
+- **[RESOLVED 2026-06-07 via `/gsd:plan-phase 2 --replan-section sweep-recovery`]** The sweep blocker below is addressed by the eval-design-fix split. Plan 02-03 was split into **02-03a** (eval-design fix — deterministic seed-prep injects exp-decay `created_at` (0–90d) + `{personal,project}` scope variance into Vectorize metadata per D-22..D-25/D-28/D-29; labels `expected_args` on 40–60 of 100 corpus queries per D-26/D-27; qwen3-relabels the 34 unreachable `expected_top_3` entries + 27-entry real-corpus pre-check with audit trail per D-30..D-33; wave 3, deps [02-02]) and **02-03** (re-run the 625-config sweep on the fixed eval; threads `expected_args` + reads metadata-backed `created_at`/`scope`; adds an anti-reward-hack tunability gate (F1 spread > 1 / flip_rate > 0) that re-opens the blocker on a flatline; retains all original gates D-01/03/04/06/15/21 + RNK-04; wave 4, deps [02-03a]). Downstream 02-04..02-09 wave-bumped +1 (deps unchanged). Both plans passed gsd-plan-checker (all dimensions, zero blockers). Linear: transition the ENG RNK sub-issue from Blocked → Todo. **Ready to execute (`/gsd:execute-phase 2`).** Original blocker record retained below for the audit trail.
 
 - Phase 2 Plan 02-03 PAUSED at sweep-design checkpoint (2026-06-05). The 625-config recall-ranking sweep collapses to pure cosine because (1) all 120 eval fixtures were seeded with identical created_at timestamps → recency component is constant, (2) corpus queries pass args={} → type_match and scope_match are constant, and (3) coverage ceiling is ~0.87 because 34/300 expected blocks rank outside Vectorize top-50 in qwen3-embedding-0.6b space (gate is ≥0.8254). All 625 weight configs produce identical F1=0.3619 with flip_rate=0.0000 — the sweep cannot tune what isn't varied. Two prior unblock attempts (unredact REDACTED tokens, lower EVAL_COSINE_THRESHOLD to 0.45, remove .slice(0,25) cap) did not address the structural issue. Decision: pause + replan via /gsd:discuss-phase 2. Eval-design fix is bigger than Plan 02-03 scope — likely split into 02-03a (fix-eval-design: diversify created_at across 0-90 days, add type/scope variance to corpus queries, possibly relabel expected_top_3_block_ids to qwen3-reachable blocks) + 02-03b (run-sweep on fixed eval). Committed work preserved (5849608 sweep test, 223fabb prettier-ignore, 86c5d6b seed test + workerd fix, e3fba54 unredact). Experimental working-tree changes (threshold drop, slice removal, content enrichment, corpus relabel attempt) reverted. HYBRID_WEIGHTS still hold Plan 02-02 placeholders; docs/hybrid-rank-changelog.md not yet seeded. Linear: ENG RNK sub-issue to be transitioned to Blocked.
