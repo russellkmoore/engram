@@ -54,6 +54,8 @@ export default defineConfig({
           include: ["src/__tests__/**/*.test.ts"],
           exclude: [
             "src/__tests__/lint-no-direct-vectorize.test.ts",
+            // Plan 02-08 CON-08: grep gate uses node:fs — must run in lint-node pool.
+            "src/__tests__/no-proactive-notifications.test.ts",
             // PRE-02: eval tier owns all *.eval.test.ts files — the glob below
             // subsumes the previously-explicit recall-f1.eval.test.ts exclusion.
             "src/__tests__/**/*.eval.test.ts",
@@ -97,6 +99,10 @@ export default defineConfig({
           name: "lint-node",
           include: [
             "src/__tests__/lint-no-direct-vectorize.test.ts",
+            // Plan 02-08 CON-08: architectural grep gate for proactive notification
+            // primitives. Mirrors lint-no-direct-vectorize shape. Runs in Node pool
+            // so node:fs is available for the source-tree walk.
+            "src/__tests__/no-proactive-notifications.test.ts",
             // ENG-25: ai-helper-identity + embedding-consistency files were
             // retired (cross-file drift impossible now that model IDs live
             // in the shared @engram/ai-config package).
