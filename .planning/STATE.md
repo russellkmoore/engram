@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
 status: executing
-last_updated: "2026-06-08T15:14:07.943Z"
+last_updated: "2026-06-08T15:30:30.964Z"
 last_activity: 2026-06-08 -- Phase 02 execution started
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 13
   percent: 20
 ---
 
@@ -41,7 +41,7 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 ## Current Position
 
 Phase: 02 (recall-quality-baseline) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 Status: Executing Phase 02
 Last activity: 2026-06-08 -- Phase 02 execution started
 
@@ -79,6 +79,7 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 | Phase 02-recall-quality-baseline P04 | ~50min | 2 tasks | 2 files |
 | Phase 02-recall-quality-baseline P05 | 7 minutes | 2 tasks | 6 files |
 | Phase 02-recall-quality-baseline P06 | ~25min | 2 tasks | 3 files | 2026-06-08 |
+| Phase 02-recall-quality-baseline P08 | ~11min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -161,3 +162,5 @@ _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
 - [Phase 02]: D-34 (02-03 sweep gate calibration, 2026-06-08): The 625-config sweep proved tunable (HR-2 closed: 7 distinct F1 values, recency/scope/type variance confirmed) but capped at F1=0.3429, far below the RNK-06 0.8254 gate. Root cause: 0.8254 came from recall-f1.eval.test.ts (full production remember→recall pipeline where ingested IDs ARE expected IDs), which is NOT apples-to-apples with the pure-rerank sweep over static ef-* fixtures. The true binding constraint is MIN_COSINE_THRESHOLD=0.6 filtering expected blocks at cosine 0.55-0.60 out BEFORE reranking (no weight config can recover them). Per STATE decision #4, MIN_COSINE_THRESHOLD was always slated for v0.2 tuning. DECISION (Russell deferred to Claude, 'whatever is most reliable'): (1) Add MIN_COSINE_THRESHOLD as a swept dimension [0.45/0.50/0.55/0.60] — zero extra AI calls since candidates are already pre-fetched at topK=50; (2) Keep recall-f1.eval.test.ts UNCHANGED as the absolute 0.8254 production-pipeline regression guard; (3) Recalibrate the SWEEP's gate to the defensible claim: tuned (threshold,weights) must beat the cosine-only baseline by a real margin (not an arbitrary number borrowed from a different architecture); (4) Safety: F1 penalizes noise so winner self-selects threshold; (5) Stop condition: if nothing beats cosine-only baseline, the corpus/embedding is the real problem → replan, do NOT force a pick. The chosen threshold ships to production recall() alongside tuned HYBRID_WEIGHTS.
 - [Phase 02]: D-34-RESULT (02-03 D-34 sweep executed, 2026-06-08): 2500-config sweep (625 weight configs × 4 thresholds [0.45/0.50/0.55/0.60]) passed all gates. Winner: rerank=0.6, recency=0.05, type_match=0.1, scope_match=0.05, threshold=0.45. F1_train=0.4476, cosine-only baseline=0.3381, improvement_delta=0.1095 (gate ≥0.02 PASSED). Tunability confirmed: distinct F1=84 across 2500 configs. D-04 gap=0.0143 (<10pp). RNK-04 top1_flip_rate=0.0268 (2.68%, <30%). HYBRID_WEIGHTS and MIN_COSINE_THRESHOLD committed to shared/ai-config/src/index.ts; docs/hybrid-rank-changelog.md seeded. RNK-01..04, RNK-07 requirements closed.
 - [Phase 02]: 02-06 (conflictPipeline internal embed, 2026-06-08): Path A selected — extract.ts queue path calls only CLASSIFIER_MODEL; no EMBEDDING_MODEL call exists upstream. Embedding computed once inside conflict-pipeline.ts as first try{} step. CON-08 grep test uses Vite ?raw import instead of node:fs readFileSync (workerd does not implement node:fs).
+- [Phase ?]: CON-05 backward-compat: buildRecallResponse undefined conflicts→[] (D-08); empty→omit (T-02-08-05)
+- [Phase ?]: CON-08 grep gate: no-proactive-notifications.test.ts enforces pull-only architectural invariant in lint-node CI

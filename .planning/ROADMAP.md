@@ -104,7 +104,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 7/10 plans executed
+**Plans:** 8/10 plans executed
 
 Plans:
 **Wave 1**
@@ -137,7 +137,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 02-08-PLAN.md — CON recall envelope: context.conflicts[] SQL-join wiring with severity bucketing + lint-node grep gate for notification primitives
+- [x] 02-08-PLAN.md — CON recall envelope: context.conflicts[] SQL-join wiring with severity bucketing + lint-node grep gate for notification primitives
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
