@@ -176,7 +176,7 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 **Wave 1** *(no dependencies — parallel)*
@@ -186,7 +186,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 03-03-PLAN.md — recall() integration: adaptive routing + RRF fan-out (EXP-03/10) + bge-reranker index-align/sigmoid/fallback (EXP-06) + hybrid-rank doc edit
+- [x] 03-03-PLAN.md — recall() integration: adaptive routing + RRF fan-out (EXP-03/10) + bge-reranker index-align/sigmoid/fallback (EXP-06) + hybrid-rank doc edit
 
 **Wave 3** *(blocked on Wave 2 — EXP-07 and EXP-08 evals run in SEPARATE vitest sessions per MAX_AI_CALLS=200)*
 

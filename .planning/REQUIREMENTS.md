@@ -47,14 +47,14 @@ Russell's calls at milestone start:
 
 - [x] **EXP-01**: New `packages/mcp-server/src/query-expansion.ts` exports `expandQuery(env, originalQuery): Promise<string[]>` — calls `QUERY_EXPANSION_MODEL` with a zod-gated prompt that returns 2 paraphrases. Result is always `[original, paraphrase1, paraphrase2]` — original is variant[0] (PITFALLS QE-7 anchor).
 - [x] **EXP-02**: Variant similarity gate: each paraphrase passes only if cosine(original, paraphrase) ≥ 0.85; failing variants are dropped silently (PITFALLS QE-2 drift mitigation).
-- [ ] **EXP-03**: Adaptive routing: `recall()` issues a single-query pass first; only fans out to N-query path if `top1_cosine < 0.65` (PITFALLS QE-1 cost + QE-5 latency).
+- [x] **EXP-03**: Adaptive routing: `recall()` issues a single-query pass first; only fans out to N-query path if `top1_cosine < 0.65` (PITFALLS QE-1 cost + QE-5 latency).
 - [x] **EXP-04**: New `packages/mcp-server/src/rrf.ts` exports `reciprocalRankFusion(lists, k=60)` — pure transform, fully unit-tested with reference vectors from Elasticsearch / AI21 documentation.
 - [x] **EXP-05**: `shared/ai-config/src/index.ts` gains `RERANKER_MODEL = "@cf/baai/bge-reranker-base"` and `HYBRID_WEIGHTS.cosine` is renamed `HYBRID_WEIGHTS.rerank` to reflect the new source of the score component.
-- [ ] **EXP-06**: bge-reranker is invoked between RRF merge and `hybridRank`; reranker-score replaces raw cosine in the rank formula. Reranker failure (429, error) falls back to raw cosine — `match.score` defensive default per v0.1 `safeRun` discipline.
+- [x] **EXP-06**: bge-reranker is invoked between RRF merge and `hybridRank`; reranker-score replaces raw cosine in the rank formula. Reranker failure (429, error) falls back to raw cosine — `match.score` defensive default per v0.1 `safeRun` discipline.
 - [ ] **EXP-07**: bge-reranker contribution is gated by Plan 02's weight sweep — if the reranker doesn't beat raw cosine by ≥ 3% precision@3/F1@3 (D-EXP07: corpus is labeled `expected_top_3_block_ids`, so the gate uses the existing precision@3/F1@3 harness, not precision@5) on the labeled corpus, ship with `HYBRID_WEIGHTS.rerank = 0.0` (effectively disabled) and document the rationale in `docs/hybrid-rank-changelog.md`. The constant lands regardless.
 - [ ] **EXP-08**: `QUERY_EXPANSION_MODEL` stays aliased to `INGESTION_CLASSIFIER_MODEL` (Scout) by default in v0.2. `query-expansion-recall.eval.test.ts` A/B tests `@cf/meta/llama-3.2-3b-instruct` vs Scout. Promotion to 3.2-3b is a one-line follow-on PR if 3.2-3b recall@5 ≥ Scout recall@5 - 5pp (D-2 resolution).
 - [x] **EXP-09**: HyDE is explicitly NOT implemented. The variant prompt forbids hypothetical-doc generation; eval includes an anti-HyDE assertion (PITFALLS QE-3).
-- [ ] **EXP-10**: 429 retry envelope wraps the rewriter call; on persistent failure, recall falls back to the v0.1 single-query path with a `meta.gaps` note "query expansion unavailable" (PITFALLS QE-7).
+- [x] **EXP-10**: 429 retry envelope wraps the rewriter call; on persistent failure, recall falls back to the v0.1 single-query path with a `meta.gaps` note "query expansion unavailable" (PITFALLS QE-7).
 - [ ] **EXP-11**: Recall p50 with expansion ON ≤ 1.8s; p99 ≤ 3s (PITFALLS QE-5 latency budget).
 - [ ] **EXP-12**: Entity preservation: > 80% of named entities present in the original query are present in at least one variant (PITFALLS QE-2 drift quantification).
 
