@@ -104,7 +104,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 5/10 plans executed
+**Plans:** 6/10 plans executed
 
 Plans:
 **Wave 1**
@@ -125,7 +125,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 02-05-PLAN.md — CON workspace-do queries: insertConflictAsInbox + listInboxConflictsForMemoryIds + RPC methods + InboxConflictProperties contract type
+- [x] 02-05-PLAN.md — CON workspace-do queries: insertConflictAsInbox + listInboxConflictsForMemoryIds + RPC methods + InboxConflictProperties contract type
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
