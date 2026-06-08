@@ -45,7 +45,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 - [x] **Phase 1: Foundation (Wave 0)** — Re-embed audit, tiered test strategy, eval-corpus expansion (27 → 100+), integration-matrix doc, CF-code-assist routing scaffolding (completed 2026-06-04)
 - [x] **Phase 2: Recall Quality Baseline** — Hybrid-rank weight tuning + conflict-detection wiring (parallel-trackable: different workers, no shared files) (completed 2026-06-08)
-- [ ] **Phase 3: Query Expansion + Reranker** — Multi-query + RRF + bge-reranker integration in `recall()` with adaptive routing
+- [x] **Phase 3: Query Expansion + Reranker** — Multi-query + RRF + bge-reranker integration in `recall()` with adaptive routing (completed 2026-06-08)
 - [ ] **Phase 4: Synthesis Activation Eval** — Promote scaffolded `verbosity=synthesis|both` path with LLM-judge faithfulness gate; default stays `chunks`
 - [ ] **Phase 5: Integration Kitchen Sink** — Cross-feature integration tests + envelope budget audit + extended cross-workspace pentest
 
@@ -176,7 +176,7 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1** *(no dependencies — parallel)*
@@ -191,7 +191,7 @@ Plans:
 **Wave 3** *(blocked on Wave 2 — EXP-07 and EXP-08 evals run in SEPARATE vitest sessions per MAX_AI_CALLS=200)*
 
 - [x] 03-04-PLAN.md — reranker-ablation eval (EXP-07, D-EXP07 precision@3/F1@3 gate) + HYBRID_WEIGHTS.rerank decision + changelog row
-- [ ] 03-05-PLAN.md — query-expansion-recall A/B (EXP-08) + anti-HyDE eval (EXP-09) + entity-preservation (EXP-12) + recall-latency p50/p99 (EXP-11)
+- [x] 03-05-PLAN.md — query-expansion-recall A/B (EXP-08) + anti-HyDE eval (EXP-09) + entity-preservation (EXP-12) + recall-latency p50/p99 (EXP-11)
 
 #### Phase 4: Synthesis Activation Eval
 

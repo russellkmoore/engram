@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
 status: executing
-last_updated: "2026-06-08T17:45:17.514Z"
-last_activity: 2026-06-08 -- Plan 03-04 complete (EXP-07 reranker ablation eval authored, D-EXP07 precision@3/F1@3 gate, live run deferred to CI)
+last_updated: "2026-06-08T17:53:52.622Z"
+last_activity: 2026-06-08 -- Plan 03-03 complete (recall() adaptive routing + RRF + bge-reranker + EXP-10)
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 20
-  completed_plans: 19
-  percent: 40
+  completed_plans: 20
+  percent: 60
 ---
 
 # Project State: Engram
@@ -85,6 +85,7 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 | Phase 03-query-expansion-reranker P03-02 | 5min | 2 tasks | 2 files |
 | Phase 03-query-expansion-reranker P03-03 | ~45min | 2 tasks | 5 files | 2026-06-08 |
 | Phase 03 P03-04 | ~20min | 2 tasks | 2 files |
+| Phase 03 P05 | 18m | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -178,3 +179,4 @@ _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
 - [Phase 03]: EXP-06 (03-03): safeRun(env, RERANKER_MODEL, {query, contexts}) bypasses workerd#5998; r.id is INTEGER INDEX into contexts[] (not a block id); sigmoid(x)=1/(1+e^-x) normalizes logit to [0,1] before hybridRank
 - [Phase 03]: EXP-10 (03-03): expansionUnavailable flag set in catch; META_GAPS.queryExpansionUnavailable appended AFTER buildRecallResponse so it survives trimToBudget; byte-frozen per D-10
 - [Phase 03]: PITFALL-6 (03-03): blockTextMap pre-computes content/summary; empty-content candidates excluded from contexts[]; excluded candidates keep raw cosine via ?? m.score default in rerankedMatches
+- [Phase ?]: Eval-only constant for A/B challenger model
