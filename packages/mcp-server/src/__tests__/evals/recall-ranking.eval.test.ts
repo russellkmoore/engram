@@ -83,6 +83,8 @@ interface CorpusEntry {
   bucket: "critical-path" | "known-failure" | "extraction" | "edge";
   query: string;
   expected_top_3_block_ids: [string, string, string];
+  /** D-26: labeled by 02-03a Task 2; present on ~40-60 of 100 entries. */
+  expected_args?: { types?: string[]; scope?: "personal" | "project" | "org" };
   split: "train" | "validate";
   labeled_by: string;
   labeled_at: string;
@@ -212,8 +214,16 @@ function scoreSplit(
   for (const entry of entries) {
     const res = resolutions.get(entry.id);
     if (!res) continue;
+    // D-26: pass per-entry expected_args so type_match/scope_match contribute.
+    // For unlabeled queries (no expected_args), pass {} — same as before.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-    const ranked = hybridRank(res.matches, res.blocks as any, {}, Date.now(), cfg);
+    const ranked = hybridRank(
+      res.matches,
+      res.blocks as any,
+      entry.expected_args ?? {},
+      Date.now(),
+      cfg,
+    );
     totalF1 += computeF1(ranked, entry.expected_top_3_block_ids);
     totalMRR += computeMRR(ranked, entry.expected_top_3_block_ids);
     totalTop1 += computeTop1(ranked, entry.expected_top_3_block_ids);
@@ -292,12 +302,25 @@ function top1FlipRate(
     for (const entry of trainSet) {
       const res = resolutions.get(entry.id);
       if (!res) continue;
+      // D-26: thread per-entry expected_args so type_match/scope_match contribute
+      // consistently in the sensitivity analysis (same as scoreSplit above).
+      const entryArgs = entry.expected_args ?? {};
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-      const winnerTop1 = hybridRank(res.matches, res.blocks as any, {}, Date.now(), winnerCfg)[0]
-        ?.id;
+      const winnerTop1 = hybridRank(
+        res.matches,
+        res.blocks as any,
+        entryArgs,
+        Date.now(),
+        winnerCfg,
+      )[0]?.id;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
-      const perturbedTop1 = hybridRank(res.matches, res.blocks as any, {}, Date.now(), perturbed)[0]
-        ?.id;
+      const perturbedTop1 = hybridRank(
+        res.matches,
+        res.blocks as any,
+        entryArgs,
+        Date.now(),
+        perturbed,
+      )[0]?.id;
       if (winnerTop1 !== perturbedTop1) totalFlips++;
       totalComparisons++;
     }
@@ -358,6 +381,15 @@ describe("RNK-01 corpus integrity (no creds required)", () => {
     const validateSet = corpus.entries.filter((e) => e.split === "validate");
     expect(trainSet.length).toBeGreaterThan(0);
     expect(validateSet.length).toBeGreaterThan(0);
+  });
+
+  it("recall-corpus-v2.json has 40-60 entries with expected_args (D-26 labeling gate)", () => {
+    // 02-03a Task 2 labeled 40-60 of 100 corpus entries with natural-intent
+    // expected_args (types / scope). If this fails, the sweep's type_match and
+    // scope_match components will remain near-constant (D-26).
+    const labeledCount = corpus.entries.filter((e) => e.expected_args !== undefined).length;
+    expect(labeledCount).toBeGreaterThanOrEqual(40);
+    expect(labeledCount).toBeLessThanOrEqual(60);
   });
 
   it("real-corpus.json has 27 entries", () => {
@@ -456,6 +488,33 @@ describe("RNK-01..04 + RNK-06: 625-config sweep, Pareto selection, sensitivity, 
     );
 
     // -------------------------------------------------------------------------
+    // Variance precondition (D-24): assert 02-03a's metadata seed took effect.
+    // If either collapses to a single distinct value, the reseed did not run
+    // or metadata is missing — fail fast with a clear message before the sweep.
+    // -------------------------------------------------------------------------
+
+    const allBlocks = [...resolutions.values()].flatMap((r) => r.blocks);
+    const distinctCreatedAt = new Set(
+      allBlocks.map((b) => (b as { created_at?: unknown }).created_at),
+    ).size;
+    const distinctScope = new Set(allBlocks.map((b) => (b as { scope?: unknown }).scope)).size;
+    console.log(
+      `[RNK] Variance check: distinct created_at=${String(distinctCreatedAt)}, distinct scope=${String(distinctScope)}`,
+    );
+    if (distinctCreatedAt <= 1) {
+      throw new Error(
+        "[RNK] VARIANCE-FAIL: All blocks have the same created_at — 02-03a reseed did NOT take effect. " +
+          "Run: cd packages/mcp-server && npm run test:eval -- seed-eval-fixtures.eval.test.ts",
+      );
+    }
+    if (distinctScope <= 1) {
+      throw new Error(
+        "[RNK] VARIANCE-FAIL: All blocks have the same scope — 02-03a reseed did NOT take effect. " +
+          "Run: cd packages/mcp-server && npm run test:eval -- seed-eval-fixtures.eval.test.ts",
+      );
+    }
+
+    // -------------------------------------------------------------------------
     // Step 2: Enumerate 625 configs — PURE-MATH reranking only.
     // No env.AI or env.VECTORIZE calls in this loop.
     // -------------------------------------------------------------------------
@@ -472,6 +531,33 @@ describe("RNK-01..04 + RNK-06: 625-config sweep, Pareto selection, sensitivity, 
     expect(sweepResults.length).toBe(625);
 
     console.log(`[RNK] Sweep complete: ${String(sweepResults.length)} configs evaluated`);
+
+    // -------------------------------------------------------------------------
+    // Anti-reward-hack tunability assertion (closes HR-2 blocker).
+    // The F1 surface must be non-degenerate: at least 2 distinct train.f1 values
+    // across the 625 configs. If all 625 share one F1, the three variance sources
+    // (recency, type_match, scope_match) are still constant → the 02-03a reseed +
+    // expected_args labeling did NOT take effect in the running eval.
+    // -------------------------------------------------------------------------
+
+    const distinctF1Values = new Set(sweepResults.map((r) => r.train.f1));
+    const f1Min = Math.min(...sweepResults.map((r) => r.train.f1));
+    const f1Max = Math.max(...sweepResults.map((r) => r.train.f1));
+    console.log(
+      `[RNK] f1 spread: min=${f1Min.toFixed(4)} max=${f1Max.toFixed(4)} distinct=${String(distinctF1Values.size)}`,
+    );
+    if (distinctF1Values.size <= 1) {
+      throw new Error(
+        "[RNK] TUNABILITY-FAIL (HR-2): All 625 configs produced identical F1=" +
+          f1Min.toFixed(4) +
+          ". The eval is not tunable — check that:\n" +
+          "  1. seed-eval-fixtures.eval.test.ts ran AFTER 02-03a (new created_at+scope metadata)\n" +
+          "  2. expected_args is wired in scoreSplit (see this file's D-26 call sites)\n" +
+          "  3. Vectorize returned blocks with real metadata (distinct created_at > 1)",
+      );
+    }
+    // Assert non-degenerate spread (vitest assertion form for test reporting).
+    expect(distinctF1Values.size).toBeGreaterThan(1);
 
     // -------------------------------------------------------------------------
     // Step 3: D-03 selection — top-3 by train.f1, then Pareto front.
