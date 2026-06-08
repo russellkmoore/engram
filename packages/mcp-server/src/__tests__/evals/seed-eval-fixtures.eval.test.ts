@@ -15,7 +15,11 @@
  * (upsert is NOT counted by eval-budget.setup.ts — only VECTORIZE.query is counted).
  * Real AI budget: 120 < 200 (within MAX_AI_CALLS limit).
  *
- * Idempotent: re-running will re-embed and re-upsert the same vectors.
+ * Idempotent: re-running will re-embed and re-upsert the same vectors. Each run
+ * anchors to a fresh Date.now() so absolute timestamps shift, but the RELATIVE
+ * distribution (recency curve shape + scope assignments) is byte-identical across
+ * runs (D-25). The recency + scope variance is fully deterministic from entry
+ * index via seed-prep.ts — no PRNG, no jitter (D-22..D-25, D-28, D-29).
  *
  * @module seed-eval-fixtures
  */
@@ -23,6 +27,7 @@
 import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:workers";
 import { EMBEDDING_MODEL } from "@engram/ai-config";
+import { createdAtForEntry, scopeForEntry, projectIdForEntry } from "./seed-prep.js";
 
 // Loaded as a build-time JSON import (Vite bundles it; fs.readFileSync fails in workerd).
 import seedJson from "../../../../../.planning/evals/eval-fixtures-seed.json" with { type: "json" };
@@ -63,7 +68,15 @@ describe("seed-eval-fixtures: one-time workspace setup (requires eval creds)", (
     let seeded = 0;
     let failed = 0;
 
-    for (const fixture of seed.memories) {
+    // Capture a single `now` anchor ONCE so all 120 timestamps share the same
+    // reference point. Re-running gives a fresh `now`, but the relative
+    // distribution (recency offsets + scope assignments) is byte-identical
+    // across runs — same exp-decay curve, same index-derived offsets (D-25).
+    const now = Date.now();
+
+    for (let i = 0; i < seed.memories.length; i++) {
+      const fixture = seed.memories[i];
+      if (!fixture) continue;
       try {
         // Embed the fixture content (1 AI call per block).
         const embedResult = await env.AI.run(EMBEDDING_MODEL as "@cf/qwen/qwen3-embedding-0.6b", {
@@ -76,17 +89,31 @@ describe("seed-eval-fixtures: one-time workspace setup (requires eval creds)", (
           continue;
         }
 
+        // Derive per-entry deterministic metadata from index `i` via seed-prep.ts.
+        // D-22..D-25: recency variance via exp-decay curve (createdAtForEntry).
+        // D-28..D-29: scope variance {personal, project} ~70/30 (scopeForEntry).
+        const scope = scopeForEntry(i);
+        const created_at = createdAtForEntry(i, now);
+        const project_id = projectIdForEntry(i);
+
+        // Build metadata; omit project_id key when null to avoid Vectorize null
+        // metadata rejection on some binding versions.
+        const metadata: Record<string, string | number> = {
+          type: fixture.type,
+          scope,
+          created_at,
+        };
+        if (project_id !== null) {
+          metadata.project_id = project_id;
+        }
+
         // Upsert to Vectorize (NOT counted by eval-budget.setup.ts — only query is tracked).
         await env.VECTORIZE.upsert([
           {
             id: fixture.id,
             values: vector,
             namespace: EVAL_WORKSPACE,
-            metadata: {
-              type: fixture.type,
-              scope: "personal",
-              created_at: Date.now(),
-            },
+            metadata,
           },
         ]);
 
