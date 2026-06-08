@@ -566,9 +566,14 @@ export function registerTools(
       // ENG-22: with exactOptionalPropertyTypes, passing `filter: undefined` is
       // rejected — must conditionally include the key via spread when args.types
       // is set, omit entirely when empty/absent.
+      // CR-01: capture the type filter ONCE so the EXP-03 fan-out path applies the
+      // SAME metadata filter as the single-query pass. Without this, a type-filtered
+      // recall() that trips the adaptive gate would leak off-type memories (the
+      // type_match boost in hybridRank only re-orders, it does not exclude).
+      const typeFilter = args.types?.length ? { filter: { type: { $in: args.types } } } : {};
       const result = await vectorizeQuery(env, props.workspace_id, queryVector, {
         topK: fetchSize,
-        ...(args.types?.length ? { filter: { type: { $in: args.types } } } : {}),
+        ...typeFilter,
         returnMetadata: "all",
       });
 
@@ -594,6 +599,7 @@ export function registerTools(
               if (!variantVec) return [] as typeof result.matches;
               const variantResult = await vectorizeQuery(env, props.workspace_id, variantVec, {
                 topK: fetchSize,
+                ...typeFilter, // CR-01: fan-out honors the same type filter as the single-query pass
                 returnMetadata: "all",
               });
               return variantResult.matches;

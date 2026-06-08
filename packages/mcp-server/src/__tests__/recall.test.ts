@@ -350,6 +350,32 @@ describe("EXP-03: adaptive routing", () => {
       expect(call[1]).toBe(WS_ID);
     }
   });
+
+  it("Test 5 (CR-01 type filter in fan-out): every fan-out vectorizeQuery applies the same type filter as the single-query pass", async () => {
+    const doStub = makeDoStub([makeBlock("m1")]);
+    const recall = captureRecallCallback(WS_ID, doStub);
+
+    // top1 = 0.5 → below threshold → fan-out fires.
+    mockVectorizeQuery.mockResolvedValue({
+      matches: [makeMatch("m1", 0.5)],
+      count: 1,
+    });
+    mockExpandQuery.mockResolvedValue(["query", "variant1", "variant2"]);
+    mockKeepVariantsAboveGate.mockResolvedValue(["query", "variant1", "variant2"]);
+    mockSafeRun.mockResolvedValue({ data: [MOCK_QUERY_VECTOR], shape: [1, EMBEDDING_DIMS] });
+    mockRRF.mockReturnValue([{ id: "m1", rrfScore: 0.1, item: makeMatch("m1", 0.5) }]);
+    mockHybridRank.mockReturnValue([makeBlock("m1")] as never[]);
+
+    await recall({ query: "test query", types: ["contact"] });
+
+    // Every vectorizeQuery call (single-query pass AND all fan-out variant calls)
+    // must carry the same metadata filter — otherwise the fan-out leaks off-type memories.
+    const expectedFilter = { type: { $in: ["contact"] } };
+    expect(mockVectorizeQuery.mock.calls.length).toBeGreaterThanOrEqual(2);
+    for (const call of mockVectorizeQuery.mock.calls) {
+      expect(call[3]).toMatchObject({ filter: expectedFilter });
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------
