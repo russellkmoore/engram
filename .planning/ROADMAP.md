@@ -291,6 +291,36 @@ Target ship: 2026-08-02. Anticipated focus:
 
 Target ship: 2026-09-01. Managed hosting, Stripe billing, OAuth, admin UI, connector registry, OSS launch. `engram-conflicts` Queue if multi-tenant volume justifies separating async stages.
 
+## Backlog
+
+> Unsequenced ideas captured for future planning. Promote with `/gsd:review-backlog` when ready to slot into a milestone.
+
+### Phase 999.1: v0.3 Identity + Surface milestone — consent UI + inbox UI + minimal admin (BACKLOG)
+
+**Goal:** Replace the terminal-side `kv:bootstrap` dance with a real browser-based sign-in flow so a second user can connect Engram via Claude Desktop Custom Connectors without ever cloning the repo. Consolidates UI work currently scattered across milestones (consent UI undefined; inbox UI is a v0.4 one-line item that's already late since v0.2 conflict suggestions land in the inbox table with no human-readable surface; memory browser absent; admin is a v1.0 wave-hand mention).
+
+**Requirements:** TBD — open scope decisions to resolve at `/gsd:new-milestone` time:
+
+1. Tight scope (auth + inbox only, ~3 weeks) vs wide scope (auth + inbox + memory browser + minimal admin, ~5 weeks).
+2. Upstream auth provider — Cloudflare Email Routing magic links / GitHub OAuth upstream / Google OAuth.
+3. Whether the admin surface includes the eval-budget dashboard (would consolidate `scripts/eval-budget-summary.mjs`) or stays workspace+identity-only.
+
+**Plans:** 0 plans
+
+**Predecessors already shipped (v0.1):**
+
+- `@cloudflare/workers-oauth-provider` OAuth Resource Server pattern ([packages/mcp-server/src/index.ts:121-128](../packages/mcp-server/src/index.ts#L121-L128))
+- KV-backed identity records ([packages/mcp-server/src/oauth.ts:197-284](../packages/mcp-server/src/oauth.ts#L197-L284))
+- `kv:bootstrap-interactive` terminal helper (`scripts/kv-bootstrap-interactive.mjs`)
+
+**Promise in code:** [packages/mcp-server/src/oauth.ts:223-228](../packages/mcp-server/src/oauth.ts#L223-L228) reads "v0.2 will replace this with a real consent UI" — that promise slipped when v0.2 scope became the Intelligence Layer. Original deferral rationale + post-v0.1 reversal: [RETROSPECTIVE.md:28](RETROSPECTIVE.md#L28), [.planning/proposals/ENG-11-first-run-auth-flow-DESIGN.md](proposals/ENG-11-first-run-auth-flow-DESIGN.md).
+
+**Proposed milestone slot:** insert between current v0.2 and current v0.3, pushing Workspaces+Memory Types → v0.4, Connectors+Alerts → v0.5. v1.0 target stays 2026-09-01.
+
+Plans:
+
+- [ ] TBD (promote with `/gsd:review-backlog` when ready)
+
 ## Progress
 
 | Milestone | Phases | Status | Shipped |
