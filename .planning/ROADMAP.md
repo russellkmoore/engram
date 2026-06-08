@@ -104,7 +104,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 4/10 plans executed
+**Plans:** 5/10 plans executed
 
 Plans:
 **Wave 1**
@@ -121,7 +121,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 02-04-PLAN.md — CON-01 prerequisite gate: unskip conflict-precision eval + assert P≥0.85, R≥0.90; D-18 STOP procedure on failure
+- [x] 02-04-PLAN.md — CON-01 prerequisite gate: unskip conflict-precision eval + assert P≥0.85, R≥0.90; D-18 STOP procedure on failure
 
 **Wave 5** *(blocked on Wave 4 completion)*
 

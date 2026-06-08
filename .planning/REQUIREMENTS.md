@@ -24,17 +24,17 @@ Russell's calls at milestone start:
 
 ### Hybrid-Rank Tuning (RNK) — Feature #1
 
-- [ ] **RNK-01**: `recall-ranking.eval.test.ts` runs a coarse grid search over `{cosine|rerank, recency, type_match, scope_match}` weights, 5 values each (625 configs), against the labeled corpus from PRE-03.
-- [ ] **RNK-02**: Top-3 configs by F1 are re-scored by **MRR** and **top-1 accuracy** to surface a Pareto front (PITFALLS HR-2 reward-hacking mitigation).
-- [ ] **RNK-03**: Winning weight set passes the held-out 30% validate split with **train→validate F1 gap < 10 percentage points** (PITFALLS HR-4 overfit gate).
-- [ ] **RNK-04**: Sensitivity analysis: swapping any single weight by ±0.05 from the winner changes the top-3 rank order in <30% of queries (PITFALLS HR-3 weight stability gate).
+- [x] **RNK-01**: `recall-ranking.eval.test.ts` runs a coarse grid search over `{cosine|rerank, recency, type_match, scope_match}` weights, 5 values each (625 configs), against the labeled corpus from PRE-03.
+- [x] **RNK-02**: Top-3 configs by F1 are re-scored by **MRR** and **top-1 accuracy** to surface a Pareto front (PITFALLS HR-2 reward-hacking mitigation).
+- [x] **RNK-03**: Winning weight set passes the held-out 30% validate split with **train→validate F1 gap < 10 percentage points** (PITFALLS HR-4 overfit gate).
+- [x] **RNK-04**: Sensitivity analysis: swapping any single weight by ±0.05 from the winner changes the top-3 rank order in <30% of queries (PITFALLS HR-3 weight stability gate).
 - [x] **RNK-05**: Selected weights are written to `shared/ai-config/src/index.ts` `HYBRID_WEIGHTS` with an audit comment naming the corpus filename, sweep date, F1/MRR/top-1 scores, and a "re-tune at v0.3 if corpus grows" follow-up note.
 - [ ] **RNK-06**: F1 against the labeled corpus is **≥ v0.1 baseline** (currently 0.83 on the 27-entry corpus); MRR is **≥ v0.1 baseline**. Regression is blocking.
-- [ ] **RNK-07**: `docs/hybrid-rank-changelog.md` (new file) records the v0.2 weight changes and the small-N caveat. Future weight changes append rows.
+- [x] **RNK-07**: `docs/hybrid-rank-changelog.md` (new file) records the v0.2 weight changes and the small-N caveat. Future weight changes append rows.
 
 ### Conflict-Detection Wiring (CON) — Feature #2
 
-- [ ] **CON-01**: ENG-16's `detectConflict()` 30-pair eval is re-run against current memorability rubric BEFORE wiring goes live; precision must hold ≥ 0.85 and recall ≥ 0.90 or planning re-opens the prompt (PITFALLS CD-2).
+- [x] **CON-01**: ENG-16's `detectConflict()` 30-pair eval is re-run against current memorability rubric BEFORE wiring goes live; precision must hold ≥ 0.85 and recall ≥ 0.90 or planning re-opens the prompt (PITFALLS CD-2).
 - [ ] **CON-02**: New helper `packages/triage-worker/src/conflict-pipeline.ts` orchestrates: cosine prefilter over top-K=3 same-type same-workspace neighbors at ≥0.7 cosine → bounded-parallel `detectConflict()` calls → inbox writes for contradictions only.
 - [ ] **CON-03**: Conflict scan is invoked via `ctx.waitUntil(conflictPipeline(...))` from the `store-normal` branch in `packages/triage-worker/src/index.ts` AFTER `updateBlockEnrichment`. Never blocks the ingest-response path (PITFALLS CD-3).
 - [ ] **CON-04**: Contradictions are written to the `inbox` table with `proposed_type="conflict"` and `proposed_properties = {memory_a_id, memory_b_id, category, ai_confidence, description}`. The `conflicts` table remains UNUSED in v0.2 (reserved for v0.3 `conflict()` MCP tool).
