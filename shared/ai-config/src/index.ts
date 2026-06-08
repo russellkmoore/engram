@@ -74,6 +74,19 @@ export const EMBEDDING_MODEL = "@cf/qwen/qwen3-embedding-0.6b" as const;
 export const RERANKER_MODEL = "@cf/baai/bge-reranker-base" as const;
 
 /**
+ * A/B challenger model for EXP-08 query-expansion recall comparison.
+ *
+ * EVAL-ONLY CONSTANT — do NOT use in production code. Scout (`QUERY_EXPANSION_MODEL`)
+ * stays the default for query expansion. This constant is imported only by
+ * `query-expansion-recall.eval.test.ts` to A/B test whether the smaller/faster
+ * llama-3.2-3b model can match Scout's recall@5 within 5pp (the promotion gate).
+ *
+ * Promotion decision (if 3.2-3b recall@5 ≥ Scout − 0.05): follow-on PR, NOT this phase.
+ * Verified on CF catalog: @cf/meta/llama-3.2-3b-instruct (2026-06-08).
+ */
+export const EXPANSION_CHALLENGER_MODEL = "@cf/meta/llama-3.2-3b-instruct" as const;
+
+/**
  * Vector dimensions produced by `EMBEDDING_MODEL`. The Vectorize index named
  * `VECTORIZE_INDEX_NAME` was created with these dimensions — swapping the
  * embedding model requires re-creating the index.
