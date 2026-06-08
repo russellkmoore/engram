@@ -104,7 +104,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 8/10 plans executed
+**Plans:** 9/10 plans executed
 
 Plans:
 **Wave 1**
@@ -133,7 +133,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 02-07-PLAN.md — CON triage-worker wiring: ctx.waitUntil(conflictPipeline(...)) in store-normal branch after updateBlockEnrichment; embedding reuse
+- [x] 02-07-PLAN.md — CON triage-worker wiring: ctx.waitUntil(conflictPipeline(...)) in store-normal branch after updateBlockEnrichment; embedding reuse
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
