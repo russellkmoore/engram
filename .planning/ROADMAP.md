@@ -176,6 +176,23 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
+**Plans:** 5 plans
+
+Plans:
+**Wave 1** *(no dependencies — parallel)*
+
+- [ ] 03-01-PLAN.md — rrf.ts reciprocalRankFusion pure transform (EXP-04) + RERANKER_MODEL constant in ai-config (EXP-05)
+- [ ] 03-02-PLAN.md — query-expansion.ts: expandQuery zod-gate + anchor (EXP-01) + keepVariantsAboveGate 0.85 similarity gate (EXP-02) + anti-HyDE prompt (EXP-09)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 03-03-PLAN.md — recall() integration: adaptive routing + RRF fan-out (EXP-03/10) + bge-reranker index-align/sigmoid/fallback (EXP-06) + hybrid-rank doc edit
+
+**Wave 3** *(blocked on Wave 2 — EXP-07 and EXP-08 evals run in SEPARATE vitest sessions per MAX_AI_CALLS=200)*
+
+- [ ] 03-04-PLAN.md — reranker-ablation eval (EXP-07, D-EXP07 precision@3/F1@3 gate) + HYBRID_WEIGHTS.rerank decision + changelog row
+- [ ] 03-05-PLAN.md — query-expansion-recall A/B (EXP-08) + anti-HyDE eval (EXP-09) + entity-preservation (EXP-12) + recall-latency p50/p99 (EXP-11)
+
 #### Phase 4: Synthesis Activation Eval
 
 **Goal:** Promote the scaffolded `verbosity=synthesis|both` branch from "implemented but unvalidated" to "shipped with eval gate." Default verbosity stays `"chunks"` — flipping to `"both"` is explicitly v0.3 territory.
