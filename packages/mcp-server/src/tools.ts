@@ -86,8 +86,14 @@ import {
   EMBEDDING_DIMS,
   CLASSIFIER_MODEL,
 } from "./ai-helper.js";
-import { MIN_COSINE_THRESHOLD, VECTORIZE_OVERFETCH_FACTOR } from "@engram/ai-config";
+import {
+  MIN_COSINE_THRESHOLD,
+  VECTORIZE_OVERFETCH_FACTOR,
+  RERANKER_MODEL,
+} from "@engram/ai-config";
 import { vectorizeQuery } from "@engram/vectorize-utils";
+import { expandQuery, keepVariantsAboveGate } from "./query-expansion.js";
+import { reciprocalRankFusion } from "./rrf.js";
 import { vectorizeUpsert, vectorizeDelete } from "./vectorize-helper.js";
 import { writeAnalytics, workspaceTag } from "./analytics.js";
 import { hybridRank } from "./hybrid-rank.js";
@@ -566,13 +572,49 @@ export function registerTools(
         returnMetadata: "all",
       });
 
+      // === EXP-03: Adaptive routing gate — single-query pass first, fan-out only when top1 < 0.65 ===
+      // QE-5 lever: raise to 0.70 if latency budget (EXP-11) is exceeded.
+      const ADAPTIVE_TOP1_THRESHOLD = 0.65;
+      const top1 = result.matches[0]?.score ?? 0;
+
+      let mergedMatches = result.matches;
+      let expansionUnavailable = false;
+      if (top1 < ADAPTIVE_TOP1_THRESHOLD) {
+        try {
+          // [4] expandQuery — [original, p1, p2] (EXP-01). Re-throws on 429/error for EXP-10 catch.
+          const variants = await expandQuery(env, queryForEmbed);
+          // [5] keepVariantsAboveGate — cosine ≥ 0.85 (EXP-02). Reuses already-computed queryVector.
+          const kept = await keepVariantsAboveGate(env, queryVector, variants, 0.85);
+          // [6] Fan-out: embed each surviving variant + vectorize in parallel.
+          // workspace_id ALWAYS from props — V4 access control (T-03-05 / INT-03).
+          const lists = await Promise.all(
+            kept.map(async (v) => {
+              const variantEmbedResp = await safeRun(env, EMBEDDING_MODEL, { text: [v] });
+              const variantVec = (variantEmbedResp as { data?: number[][] }).data?.[0];
+              if (!variantVec) return [] as typeof result.matches;
+              const variantResult = await vectorizeQuery(env, props.workspace_id, variantVec, {
+                topK: fetchSize,
+                returnMetadata: "all",
+              });
+              return variantResult.matches;
+            }),
+          );
+          // [7] RRF merge — scale-invariant, rank-based merge of per-variant result lists (EXP-04).
+          mergedMatches = reciprocalRankFusion(lists).map((x) => x.item);
+        } catch {
+          // EXP-10: persistent 429 or any expansion error → fall back to single-query path.
+          expansionUnavailable = true;
+          mergedMatches = result.matches;
+        }
+      }
+
       // ENG-25 hybrid-rank tuning: drop matches below MIN_COSINE_THRESHOLD,
       // then cap at the user's requested topK. Vectorize returns the BEST
       // fetchSize matches but doesn't filter on absolute relevance — without
       // this gate, a query with no genuinely-good matches still returns
       // fetchSize loosely-related ones, tanking precision. With qwen3-
       // embedding-0.6b's tight clustering, this gate is essential.
-      const filteredMatches = result.matches
+      const filteredMatches = mergedMatches
         .filter((m) => m.score >= MIN_COSINE_THRESHOLD)
         .slice(0, topK);
 
@@ -593,8 +635,78 @@ export function registerTools(
         ids,
       });
 
+      // === EXP-06: bge-reranker invocation (between RRF/hydrate and hybridRank) ===
+      // Builds contexts index-aligned with filteredMatches (after MIN_COSINE_THRESHOLD filter).
+      // Empty-content candidates are excluded (Pitfall 6 — keeps them at raw cosine).
+      //
+      // CRITICAL: `id` in the reranker response is the INTEGER INDEX into the request
+      // contexts[] array (reordered by score), NOT a memory/block id (T-03-08 / Pitfall 1).
+      // The contexts[] array only contains candidates that survived the empty-content filter,
+      // so we keep a parallel `rankedCandidates` array index-aligned with `contexts`.
+      //
+      // The reranker is called through safeRun (NOT raw env.AI.run) to sidestep workerd#5998
+      // which omits the required `query` field from the generated Ai_Cf_Baai_Bge_Reranker_Base_Input
+      // type. safeRun's body: Record<string,unknown> sidesteps the typed overload entirely.
+      //
+      // Reranker logit scores → sigmoid(x)=1/(1+e^-x) → [0,1] before hybridRank.
+      // HYBRID_WEIGHTS.rerank was tuned against cosine in [0,1] (Pitfall 2).
+      function sigmoid(x: number): number {
+        return 1 / (1 + Math.exp(-x));
+      }
+
+      // rankedCandidates: only the candidates that have non-empty content/summary.
+      // contexts[i] corresponds to rankedCandidates[i].
+      // blocks is typed as Memory[] but Memory.content / Memory.summary can be null.
+      interface BlockWithText { id: string; content?: string | null; summary?: string | null }
+      const blockTextMap = new Map<string, string>(
+        (blocks as BlockWithText[]).map((b) => [
+          b.id,
+          b.content ?? b.summary ?? "",
+        ]),
+      );
+      const rankedCandidates = filteredMatches.filter((m) => {
+        const text = blockTextMap.get(m.id) ?? "";
+        return text.length > 0;
+      });
+      const contexts = rankedCandidates.map((m) => ({
+        text: blockTextMap.get(m.id) ?? "",
+      }));
+
+      const rerankScores = new Map<string, number>();
+      if (contexts.length > 0) {
+        try {
+          const rerankResp = await safeRun(env, RERANKER_MODEL, {
+            query: args.query, // raw user query STRING (NOT the embedding vector, NOT a prefixed variant)
+            contexts,
+          });
+          // Response: { response: [{ id: <index into contexts[]>, score: number }] }
+          const reranked =
+            (rerankResp as { response?: { id: number; score: number }[] }).response ?? [];
+          for (const r of reranked) {
+            const cand = rankedCandidates[r.id]; // id is the ORIGINAL contexts index (T-03-08)
+            if (cand !== undefined) {
+              rerankScores.set(cand.id, sigmoid(r.score)); // sigmoid-normalize logit → [0,1]
+            }
+          }
+        } catch (rerankErr) {
+          // EXP-06 fallback: reranker 429/error → leave rerankScores empty.
+          // Each match falls back to raw cosine via the ?? m.score default below.
+          console.warn("recall:EXP-06:reranker-failed", {
+            err: rerankErr instanceof Error ? rerankErr.message : String(rerankErr),
+          });
+        }
+      }
+
+      // Apply reranker scores to filteredMatches (or keep raw cosine via defensive default).
+      const rerankedMatches = filteredMatches.map((m) => ({
+        ...m,
+        score: rerankScores.get(m.id) ?? m.score, // ?? m.score = raw-cosine fallback (EXP-06)
+      }));
+
       // === AI-04 Step 4: hybrid re-rank (spike-validated formula: cosine·1.0 + recency·0.15 + type·0.2 + scope·0.15) ===
-      const ranked = hybridRank(filteredMatches, blocks, args, Date.now());
+      // EXP-06: rerankedMatches feeds the `rerank` component (sigmoid-normalized bge-reranker score
+      // when available; raw cosine on fallback). Formula UNCHANGED from Phase 2 (D-34 sweep result).
+      const ranked = hybridRank(rerankedMatches, blocks, args, Date.now());
 
       // === CON-05 Step: hydrate inbox-pending conflicts touching the ranked memories ===
       // Severity is computed AT READ TIME per RESEARCH §"Pattern 6" — the inbox row
@@ -719,6 +831,11 @@ export function registerTools(
       // Done AFTER buildRecallResponse so the gap survives trimToBudget (which preserves meta.gaps).
       if (queryWasTruncated) {
         envelope.meta.gaps = [...envelope.meta.gaps, META_GAPS.recallQueryTruncated];
+      }
+      // EXP-10: append meta.gaps note when query expansion fell back to single-query.
+      // Done AFTER buildRecallResponse so the gap survives trimToBudget.
+      if (expansionUnavailable) {
+        envelope.meta.gaps = [...envelope.meta.gaps, META_GAPS.queryExpansionUnavailable];
       }
       return wrapMcpContent(trimToBudget(envelope));
     } catch (err) {

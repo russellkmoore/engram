@@ -97,6 +97,10 @@ export const META_GAPS = {
   // truncationOver1800Chars contract. Byte-frozen per D-10 — do NOT paraphrase.
   recallQueryTruncated:
     "Query over 1,800 chars; only the first ~512 tokens were embedded. Refine the query for better recall.",
+  // Phase 3 Plan 03-03 EXP-10: surfaced in meta.gaps when the query expansion rewriter hits a
+  // persistent 429 (or any error) and recall falls back to the v0.1 single-query path.
+  // Byte-frozen per D-10 — do NOT paraphrase.
+  queryExpansionUnavailable: "query expansion unavailable",
 } as const;
 
 // ---------------------------------------------------------------------------

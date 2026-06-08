@@ -87,7 +87,13 @@ export function hybridRank(
       continue;
     }
 
-    // ---- Component: rerank (raw cosine in v0.2; bge-reranker score in Phase 3 — see HYBRID_WEIGHTS audit comment) ----
+    // ---- Component: rerank (bge-reranker score, sigmoid-normalized to [0,1], live as of Phase 3 EXP-06) ----
+    // Phase 3 Plan 03-03 change: before calling hybridRank, recall() invokes bge-reranker via
+    // safeRun(env, RERANKER_MODEL, { query, contexts }) and maps each reranker logit score
+    // through sigmoid(x)=1/(1+e^-x) to [0,1] before it arrives here as match.score.
+    // The formula below is UNCHANGED from Phase 2 D-34 (sweep-validated weights) — only
+    // what feeds the rerank component changed. On reranker failure (429/error), match.score
+    // is the raw Vectorize cosine (EXP-06 fallback; ?? m.score default in recall handler).
     const rerank = match.score;
 
     // ---- Component: recency (30-day half-life decay) ----

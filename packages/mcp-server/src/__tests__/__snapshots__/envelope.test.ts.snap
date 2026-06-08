@@ -7,6 +7,7 @@ exports[`META_GAPS byte-determinism (D-10 fixture stability) > META_GAPS strings
   "ingest": [
     "Async enrichment pipeline lands in Phase 6 — job is recorded but not yet processed.",
   ],
+  "queryExpansionUnavailable": "query expansion unavailable",
   "recall": [],
   "recallChunksOmittedSynthesis": "Synthesis omitted — re-call with verbosity: 'synthesis' or 'both' to add an LLM summary.",
   "recallQueryTruncated": "Query over 1,800 chars; only the first ~512 tokens were embedded. Refine the query for better recall.",
