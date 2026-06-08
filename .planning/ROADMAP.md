@@ -176,7 +176,7 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 
 Plans:
 **Wave 1** *(no dependencies — parallel)*
@@ -190,7 +190,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 — EXP-07 and EXP-08 evals run in SEPARATE vitest sessions per MAX_AI_CALLS=200)*
 
-- [ ] 03-04-PLAN.md — reranker-ablation eval (EXP-07, D-EXP07 precision@3/F1@3 gate) + HYBRID_WEIGHTS.rerank decision + changelog row
+- [x] 03-04-PLAN.md — reranker-ablation eval (EXP-07, D-EXP07 precision@3/F1@3 gate) + HYBRID_WEIGHTS.rerank decision + changelog row
 - [ ] 03-05-PLAN.md — query-expansion-recall A/B (EXP-08) + anti-HyDE eval (EXP-09) + entity-preservation (EXP-12) + recall-latency p50/p99 (EXP-11)
 
 #### Phase 4: Synthesis Activation Eval

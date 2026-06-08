@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
 status: executing
-last_updated: "2026-06-08T17:36:27.088Z"
-last_activity: 2026-06-08 -- Plan 03-03 complete (recall() adaptive routing + RRF + bge-reranker + EXP-10)
+last_updated: "2026-06-08T17:45:17.514Z"
+last_activity: 2026-06-08 -- Plan 03-04 complete (EXP-07 reranker ablation eval authored, D-EXP07 precision@3/F1@3 gate, live run deferred to CI)
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 20
-  completed_plans: 18
+  completed_plans: 19
   percent: 40
 ---
 
@@ -41,7 +41,7 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 ## Current Position
 
 Phase: 03 (query-expansion-reranker) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Executing Phase 03
 Last activity: 2026-06-08 -- Plan 03-03 complete (recall() adaptive routing + RRF + bge-reranker + EXP-10)
 
@@ -84,6 +84,7 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 | Phase 03 P03-01 | 5min | 2 tasks | 7 files |
 | Phase 03-query-expansion-reranker P03-02 | 5min | 2 tasks | 2 files |
 | Phase 03-query-expansion-reranker P03-03 | ~45min | 2 tasks | 5 files | 2026-06-08 |
+| Phase 03 P03-04 | ~20min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
