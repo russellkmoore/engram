@@ -35,6 +35,9 @@
       "bucket": "critical-path",
       "query": "what's the most recent role I applied for at a CDN company",
       "expected_top_3_block_ids": ["ef-001", "ef-003", "ef-019"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -45,6 +48,9 @@
       "bucket": "critical-path",
       "query": "which recruiter from the fintech meetup keeps reaching out about backend work",
       "expected_top_3_block_ids": ["ef-002", "ef-054", "ef-008"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -55,6 +61,9 @@
       "bucket": "critical-path",
       "query": "which Berlin-based edge compute company has the strong engineering reputation",
       "expected_top_3_block_ids": ["ef-003", "ef-049", "ef-070"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -65,6 +74,9 @@
       "bucket": "critical-path",
       "query": "what's the current status of the engram v0.1 milestone",
       "expected_top_3_block_ids": ["ef-004", "ef-044", "ef-109"],
+      "expected_args": {
+        "scope": "project"
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -75,6 +87,9 @@
       "bucket": "critical-path",
       "query": "why is AI integration in v0.1 instead of deferred",
       "expected_top_3_block_ids": ["ef-005", "ef-004", "ef-038"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -85,6 +100,9 @@
       "bucket": "known-failure",
       "query": "the EM at Adyen",
       "expected_top_3_block_ids": ["ef-006", "ef-007", "ef-096"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -95,6 +113,9 @@
       "bucket": "known-failure",
       "query": "the staff engineer at Adyen on the ledger team",
       "expected_top_3_block_ids": ["ef-007", "ef-006", "ef-096"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -105,6 +126,9 @@
       "bucket": "known-failure",
       "query": "what was that fintech role I applied for at the start of the year",
       "expected_top_3_block_ids": ["ef-008", "ef-059", "ef-002"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -125,6 +149,9 @@
       "bucket": "known-failure",
       "query": "the apple-related developer tooling company I researched",
       "expected_top_3_block_ids": ["ef-010", "ef-003", "ef-049"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -135,6 +162,9 @@
       "bucket": "extraction",
       "query": "what's the senior ML platform role I applied to in mid-May",
       "expected_top_3_block_ids": ["ef-011", "ef-068", "ef-086"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -145,6 +175,9 @@
       "bucket": "extraction",
       "query": "the VP Engineering reference from cloudflare dev day",
       "expected_top_3_block_ids": ["ef-012", "ef-066", "ef-047"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -155,6 +188,9 @@
       "bucket": "extraction",
       "query": "the observability vendor that's pushing into AI tracing",
       "expected_top_3_block_ids": ["ef-013", "ef-027", "ef-028"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -165,6 +201,9 @@
       "bucket": "extraction",
       "query": "my linear archive CLI side project",
       "expected_top_3_block_ids": ["ef-014", "ef-050", "ef-071"],
+      "expected_args": {
+        "types": ["project"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -175,6 +214,9 @@
       "bucket": "extraction",
       "query": "the decision on whether engram v0.1 has a web UI",
       "expected_top_3_block_ids": ["ef-015", "ef-005", "ef-038"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -185,6 +227,9 @@
       "bucket": "edge",
       "query": "what did I learn about Vectorize metadata filter cardinality",
       "expected_top_3_block_ids": ["ef-018", "ef-016", "ef-052"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -195,6 +240,9 @@
       "bucket": "edge",
       "query": "the CAP theorem note where I mixed in French",
       "expected_top_3_block_ids": ["ef-017", "ef-016", "ef-018"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -205,6 +253,9 @@
       "bucket": "edge",
       "query": "which Vectorize research note discusses metadata filter cardinality and post-filtering",
       "expected_top_3_block_ids": ["ef-016", "ef-018", "ef-052"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -245,6 +296,9 @@
       "bucket": "critical-path",
       "query": "the fintech payments company's trust and safety product lead role",
       "expected_top_3_block_ids": ["ef-021", "ef-080", "ef-059"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -255,6 +309,9 @@
       "bucket": "critical-path",
       "query": "the retail company's platform engineering director role in Pleasanton",
       "expected_top_3_block_ids": ["ef-022", "ef-083", "ef-030"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -265,6 +322,9 @@
       "bucket": "extraction",
       "query": "the Airflow data orchestration EM role at the payments platform",
       "expected_top_3_block_ids": ["ef-023", "ef-024", "ef-025"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -275,6 +335,9 @@
       "bucket": "critical-path",
       "query": "the docs platform's mobile AI engineering manager role",
       "expected_top_3_block_ids": ["ef-026", "ef-047", "ef-067"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -285,6 +348,9 @@
       "bucket": "extraction",
       "query": "the threat detection engineering manager role at the observability vendor",
       "expected_top_3_block_ids": ["ef-027", "ef-028", "ef-013"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -295,6 +361,9 @@
       "bucket": "extraction",
       "query": "the comms API platform's principal engineer customer-facing role",
       "expected_top_3_block_ids": ["ef-029", "ef-082", "ef-066"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -305,6 +374,9 @@
       "bucket": "critical-path",
       "query": "the apparel wholesaler's custom product director role in Issaquah",
       "expected_top_3_block_ids": ["ef-030", "ef-022", "ef-083"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -315,6 +387,9 @@
       "bucket": "critical-path",
       "query": "the design tools company's enterprise AI product director role",
       "expected_top_3_block_ids": ["ef-031", "ef-047", "ef-064"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -345,6 +420,9 @@
       "bucket": "critical-path",
       "query": "the decision about deferring conflict detection out of v0.1",
       "expected_top_3_block_ids": ["ef-038", "ef-005", "ef-015"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -355,6 +433,9 @@
       "bucket": "critical-path",
       "query": "the decision about switching to Zod v4's native JSON schema converter",
       "expected_top_3_block_ids": ["ef-039", "ef-072", "ef-009"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -375,6 +456,9 @@
       "bucket": "critical-path",
       "query": "the cf-code-assist routing tracker Phase 4 post-mortem",
       "expected_top_3_block_ids": ["ef-042", "ef-014", "ef-004"],
+      "expected_args": {
+        "scope": "project"
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -405,6 +489,9 @@
       "bucket": "extraction",
       "query": "the CTO contact from NeurIPS 2025 building LLM routing infrastructure",
       "expected_top_3_block_ids": ["ef-048", "ef-089", "ef-102"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -415,6 +502,9 @@
       "bucket": "extraction",
       "query": "the infrastructure platform company doing Series D in 2025 with Kubernetes strength",
       "expected_top_3_block_ids": ["ef-049", "ef-105", "ef-070"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -425,6 +515,9 @@
       "bucket": "critical-path",
       "query": "my TypeScript-first CLI framework personal project",
       "expected_top_3_block_ids": ["ef-050", "ef-071", "ef-014"],
+      "expected_args": {
+        "types": ["project"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -435,6 +528,9 @@
       "bucket": "critical-path",
       "query": "the decision to use Bun for internal tooling scripts",
       "expected_top_3_block_ids": ["ef-051", "ef-009", "ef-065"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -445,6 +541,9 @@
       "bucket": "extraction",
       "query": "research comparing Cloudflare D1 vs Durable Objects for multi-tenant storage",
       "expected_top_3_block_ids": ["ef-052", "ef-016", "ef-060"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -455,6 +554,9 @@
       "bucket": "critical-path",
       "query": "the Q3 AI tooling priorities meeting notes from the quarterly planning",
       "expected_top_3_block_ids": ["ef-053", "ef-067", "ef-044"],
+      "expected_args": {
+        "types": ["meeting_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -465,6 +567,9 @@
       "bucket": "extraction",
       "query": "the platform engineering head contact at the fintech company referred by my network",
       "expected_top_3_block_ids": ["ef-054", "ef-096", "ef-002"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -495,6 +600,9 @@
       "bucket": "critical-path",
       "query": "the HR tech SaaS company with Austin and Toronto offices",
       "expected_top_3_block_ids": ["ef-057", "ef-091", "ef-077"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -525,6 +633,9 @@
       "bucket": "extraction",
       "query": "vector database comparison research Pinecone versus Cloudflare Vectorize",
       "expected_top_3_block_ids": ["ef-060", "ef-086", "ef-016"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -535,6 +646,9 @@
       "bucket": "critical-path",
       "query": "my OAuth proxy server side project using Hono",
       "expected_top_3_block_ids": ["ef-061", "ef-050", "ef-071"],
+      "expected_args": {
+        "types": ["project"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -605,6 +719,9 @@
       "bucket": "critical-path",
       "query": "the decision to use Zod v4 as the primary schema validation library",
       "expected_top_3_block_ids": ["ef-072", "ef-039", "ef-074"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -675,6 +792,10 @@
       "bucket": "critical-path",
       "query": "the decision to use stateless JWT validation for Engram's MCP server",
       "expected_top_3_block_ids": ["ef-095", "ef-117", "ef-005"],
+      "expected_args": {
+        "types": ["decision_log"],
+        "scope": "project"
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -685,6 +806,9 @@
       "bucket": "critical-path",
       "query": "what was that recent job I applied to at a payments company",
       "expected_top_3_block_ids": ["ef-059", "ef-021", "ef-080"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -715,6 +839,9 @@
       "bucket": "critical-path",
       "query": "what's the status of the Engram project",
       "expected_top_3_block_ids": ["ef-004", "ef-044", "ef-109"],
+      "expected_args": {
+        "scope": "project"
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -755,6 +882,9 @@
       "bucket": "known-failure",
       "query": "recruiter outreach I got",
       "expected_top_3_block_ids": ["ef-002", "ef-054", "ef-012"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -765,6 +895,9 @@
       "bucket": "known-failure",
       "query": "jobs I rejected",
       "expected_top_3_block_ids": ["ef-008", "ef-023", "ef-059"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -785,6 +918,9 @@
       "bucket": "critical-path",
       "query": "what research notes do I have about embedding models",
       "expected_top_3_block_ids": ["ef-086", "ef-108", "ef-069"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -815,6 +951,9 @@
       "bucket": "critical-path",
       "query": "what meeting notes do I have from this week",
       "expected_top_3_block_ids": ["ef-044", "ef-053", "ef-067"],
+      "expected_args": {
+        "types": ["meeting_note"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
