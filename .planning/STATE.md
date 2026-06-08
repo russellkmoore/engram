@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: completed
-last_updated: "2026-06-08T16:58:36.034Z"
-last_activity: 2026-06-08 -- Phase 02 marked complete
+status: executing
+last_updated: "2026-06-08T17:07:19.270Z"
+last_activity: 2026-06-08 -- Phase 03 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 20
-  completed_plans: 15
+  completed_plans: 16
   percent: 40
 ---
 
@@ -40,10 +40,10 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 
 ## Current Position
 
-Phase: 02 — COMPLETE
-Plan: 10 of 10
-Status: Phase 02 complete
-Last activity: 2026-06-08 -- Phase 02 marked complete
+Phase: 03 (query-expansion-reranker) — EXECUTING
+Plan: 2 of 5
+Status: Executing Phase 03
+Last activity: 2026-06-08 -- Phase 03 execution started
 
 ## Phase Status
 
@@ -81,6 +81,7 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 | Phase 02-recall-quality-baseline P06 | ~25min | 2 tasks | 3 files | 2026-06-08 |
 | Phase 02-recall-quality-baseline P07 | ~20min | 1 tasks | 3 files | 2026-06-08 |
 | Phase 02-recall-quality-baseline P08 | ~11min | 3 tasks | 6 files |
+| Phase 03 P03-01 | 5min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -165,3 +166,5 @@ _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
 - [Phase 02]: 02-06 (conflictPipeline internal embed, 2026-06-08): Path A selected — extract.ts queue path calls only CLASSIFIER_MODEL; no EMBEDDING_MODEL call exists upstream. Embedding computed once inside conflict-pipeline.ts as first try{} step. CON-08 grep test uses Vite ?raw import instead of node:fs readFileSync (workerd does not implement node:fs).
 - [Phase ?]: CON-05 backward-compat: buildRecallResponse undefined conflicts→[] (D-08); empty→omit (T-02-08-05)
 - [Phase ?]: CON-08 grep gate: no-proactive-notifications.test.ts enforces pull-only architectural invariant in lint-node CI
+- [Phase ?]: EXP-04: reciprocalRankFusion(lists, k=60) pure transform — O(1) Map + insertion-order tiebreak
+- [Phase ?]: EXP-05: RERANKER_MODEL = '@cf/baai/bge-reranker-base' constant in @engram/ai-config; HYBRID_WEIGHTS unchanged (D-05 rename already done in Phase 2)
