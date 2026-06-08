@@ -22,9 +22,18 @@
 // — this is a pure local filesystem copy.
 
 import { argv, exit, stdout, stderr } from "node:process";
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdtempSync,
+  unlinkSync,
+  rmdirSync,
+} from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { execSync } from "node:child_process";
+import { tmpdir } from "node:os";
 
 const TAG = "[sync-eval-corpus]";
 
@@ -95,8 +104,10 @@ const vendoredObj = {
   ...sourceObj,
 };
 
-// Canonical serialization: 2-space indent, trailing newline. This is what the
-// target file must equal byte-for-byte under --check.
+// Canonical serialization: 2-space indent, trailing newline.
+// Note: the on-disk target is also prettier-formatted (we run `npx prettier --write`
+// after writing). For --check mode, we compare against the prettier-canonical form
+// by writing to a temp buffer and prettier-formatting it in memory.
 const vendoredSerialized = JSON.stringify(vendoredObj, null, 2) + "\n";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -111,8 +122,31 @@ if (checkOnly) {
     );
     exit(1);
   }
+
+  // Compute the prettier-canonical expected content by writing to a temp file and
+  // running prettier --write on it (same pipeline as the default write path).
+  const tmpDir = mkdtempSync(`${tmpdir()}/sync-eval-corpus-`);
+  const tmpFile = resolve(tmpDir, "vendored.json");
+  writeFileSync(tmpFile, vendoredSerialized, "utf8");
+  try {
+    execSync(`npx prettier --write "${tmpFile}"`, { stdio: "pipe" });
+  } catch {
+    // prettier failure: fall back to raw comparison
+  }
+  const expectedContent = readFileSync(tmpFile, "utf8");
+  try {
+    unlinkSync(tmpFile);
+  } catch {
+    /* ignore */
+  }
+  try {
+    rmdirSync(tmpDir);
+  } catch {
+    /* ignore */
+  }
+
   const targetRaw = readFileSync(TARGET_PATH, "utf8");
-  if (targetRaw === vendoredSerialized) {
+  if (targetRaw === expectedContent) {
     stdout.write(`${TAG} in sync: ${TARGET_PATH}\n`);
     exit(0);
   }
@@ -126,5 +160,18 @@ if (checkOnly) {
 }
 
 writeFileSync(TARGET_PATH, vendoredSerialized, "utf8");
+
+// Run prettier on the target so the on-disk file is always in prettier-canonical
+// format. This prevents the lint-staged hook from producing a diff between the
+// script-generated content and the prettier-reformatted content on commit.
+try {
+  execSync(`npx prettier --write "${TARGET_PATH}"`, { stdio: "pipe" });
+} catch {
+  // prettier failure is non-fatal — the file is still written correctly.
+  stderr.write(
+    `${TAG} WARNING: prettier --write failed on target; file may not be prettier-canonical.\n`,
+  );
+}
+
 stdout.write(`${TAG} wrote: ${TARGET_PATH}\n`);
 exit(0);
