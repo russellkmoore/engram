@@ -192,6 +192,42 @@ export interface Conflict {
 }
 
 // ---------------------------------------------------------------------------
+// InboxConflictProperties — shape stored in inbox.proposed_properties for conflict rows
+// ---------------------------------------------------------------------------
+
+/**
+ * Shape of `inbox.proposed_properties` when `proposed_type === "conflict"`.
+ *
+ * Written by `insertConflictAsInbox` (CON-04 in
+ * `packages/triage-worker/src/conflict-pipeline.ts`).
+ * Read by `listInboxConflictsForMemoryIds` + the recall handler's CON-05
+ * SQL-join in `packages/mcp-server/src/tools.ts buildRecallResponse(...)`.
+ *
+ * The shared type eliminates the read-side/write-side drift risk
+ * (RESEARCH §Pitfall 5). Stored serialized as JSON; the caller
+ * `JSON.stringify`s on write and `JSON.parse`s on read.
+ *
+ * `category` is hard-locked to `"contradiction"` because CON-04 only writes
+ * contradictions to inbox — benign_update and unrelated verdicts are dropped
+ * silently by the caller before this helper is invoked.
+ */
+export interface InboxConflictProperties {
+  /** ID of the first memory involved in the conflict. */
+  memory_a_id: string;
+  /** ID of the second memory involved in the conflict. */
+  memory_b_id: string;
+  /**
+   * Hard-locked to `"contradiction"` — only contradiction verdicts reach the
+   * inbox writer. benign_update and unrelated are filtered by the caller.
+   */
+  category: "contradiction";
+  /** CF AI's confidence in the contradiction (0–1). Stored in `memorability_score`. */
+  ai_confidence: number;
+  /** Human-readable description of the contradiction. Stored in `content`. */
+  description: string;
+}
+
+// ---------------------------------------------------------------------------
 // EngramResponse<T> — Universal Response Envelope
 // ---------------------------------------------------------------------------
 

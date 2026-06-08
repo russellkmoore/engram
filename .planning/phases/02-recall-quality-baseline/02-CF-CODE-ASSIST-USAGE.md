@@ -86,6 +86,7 @@ The following task shapes are flagged as cf-code-assist defaults per CONTEXT.md 
 | 02-03-T2-run | `shared/ai-config/src/index.ts` audit comment fill + HYBRID_WEIGHTS tuned + MIN_COSINE_THRESHOLD tuned; `docs/hybrid-rank-changelog.md` first row; `hybrid-rank.test.ts` weight assertions updated | claude | Y/N/N | Q1=Y: D-06 byte-frozen contract + threshold/weights must move together as a coordinated production change; Q2=N: ~40 LOC total changes across 3 files; Q3=N: audit-comment authoring is the work (no stable template for the cross-phase footgun warning text). | n/a |
 | 02-04-T1 | `conflict-precision.eval.test.ts` — unskip + add V02_SHIP_PRECISION_THRESHOLD/V02_SHIP_RECALL_THRESHOLD constants + update gate assertion + add [CON-01] log line | claude | N/N/N | Q1=N (single file, no cross-file synthesis); Q2=N (<15 lines changed — constants + toggle + log line); Q3=N (no stable codegen template for targeted assertion rewrites). All three answers disqualify cf-code-assist; direct edit is faster than context-prep. | n/a |
 | 02-04-T2 | Eval run + Linear sub-issue update (verification step) | claude | N/N/N | Runtime execution + log interpretation is Claude work; cf-code-assist cannot see test output or Linear. | n/a |
+| 02-05-T1 | `shared/types/src/index.ts` — `InboxConflictProperties` interface | claude | N/N/N | Q1=N (single-file); Q2=N (~15 lines, below 50-line savings threshold); Q3=Y (stable 5-field spec from PLAN.md); diff-size heuristic: context-prep overhead exceeds savings at <15 lines. | n/a |
 
 ---
 
