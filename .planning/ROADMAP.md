@@ -104,7 +104,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 3/10 plans executed
+**Plans:** 4/10 plans executed
 
 Plans:
 **Wave 1**
@@ -117,7 +117,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-03-PLAN.md — RNK sweep: 625-config recall-ranking eval + Pareto + sensitivity + D-15 dual-corpus gate; commit tuned weights + complete D-06 audit comment + seed hybrid-rank-changelog.md
+- [x] 02-03-PLAN.md — RNK sweep: 625-config recall-ranking eval + Pareto + sensitivity + D-15 dual-corpus gate; commit tuned weights + complete D-06 audit comment + seed hybrid-rank-changelog.md
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
