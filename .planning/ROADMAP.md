@@ -159,7 +159,7 @@ Plans:
 4. `packages/mcp-server/src/rrf.ts` exports `reciprocalRankFusion(lists, k=60)` — pure transform, unit-tested against reference vectors from Elasticsearch / AI21 docs (EXP-04).
 5. `shared/ai-config/src/index.ts` gains `RERANKER_MODEL = "@cf/baai/bge-reranker-base"`; `HYBRID_WEIGHTS.cosine` is renamed `HYBRID_WEIGHTS.rerank` (EXP-05).
 6. bge-reranker is invoked between RRF merge and `hybridRank`; reranker-score replaces raw cosine in the rank formula; reranker failure falls back to raw cosine via the v0.1 `safeRun` discipline (EXP-06).
-7. Plan-internal weight sweep validates reranker contribution against the expanded corpus; if the reranker doesn't beat raw cosine by ≥ 3% precision@5, ship with `HYBRID_WEIGHTS.rerank = 0.0` and document in `docs/hybrid-rank-changelog.md` (EXP-07).
+7. Plan-internal weight sweep validates reranker contribution against the expanded corpus; if the reranker doesn't beat raw cosine by ≥ 3% precision@3/F1@3 (D-EXP07 — corpus labels top-3, gate reuses the precision@3/F1@3 harness, not precision@5), ship with `HYBRID_WEIGHTS.rerank = 0.0` and document in `docs/hybrid-rank-changelog.md` (EXP-07).
 8. `QUERY_EXPANSION_MODEL` stays aliased to Scout; `query-expansion-recall.eval.test.ts` A/B tests `@cf/meta/llama-3.2-3b-instruct` vs Scout. Promotion to 3.2-3b is a follow-on PR if recall@5 stays within 5pp of Scout (EXP-08).
 9. HyDE is explicitly NOT implemented; the variant prompt forbids hypothetical-doc generation; eval includes an anti-HyDE assertion (EXP-09).
 10. 429 retry envelope wraps the rewriter call; persistent failure falls back to v0.1 single-query path with `meta.gaps` note "query expansion unavailable" (EXP-10).

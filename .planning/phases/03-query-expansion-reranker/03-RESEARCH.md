@@ -428,22 +428,25 @@ Phase 3 is a **code + config change** (new modules, model-ID constants, recall-h
 | A4 | The eval-budget MAX_AI_CALLS=200 counter is sufficient for EXP-07 + EXP-08 if run in **separate sessions** (each ~100-query pre-resolve) | Validation Architecture | The Phase 2 `recall-ranking.eval` already hit the cap with one 100-query sweep; running two evals together would exceed 200. Plans must run EXP-07 and EXP-08 in separate vitest sessions (the existing harness already documents this constraint). |
 | A5 | Capitalized-token regex is an adequate named-entity proxy for EXP-12 | Code Examples | Misses lowercase entities / multi-word names; acceptable for a >80% aggregate gate but may need a small curated entity list per corpus query if it proves noisy. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does bge-reranker enforce a max `contexts[]` length?**
    - What we know: embedding batch cap is 100; reranker docs specify no cap.
    - What's unclear: whether sending 25–50 contexts is safe (almost certainly yes).
    - Recommendation: rerank only the recall topK (≤25 after MIN_COSINE_THRESHOLD) — stays well under any plausible limit. Confirm in the first eval run.
+   - **RESOLVED:** rerank topK ≤ 25 (post-MIN_COSINE_THRESHOLD); 03-04 caps accordingly and confirms the raw range in the first live eval run.
 
 2. **Exact reranker score range (logit vs already-sigmoid)?**
    - What we know: docs say scores are "mapped to [0,1] by sigmoid," implying raw output is pre-sigmoid logit.
    - What's unclear: whether `env.AI.run` returns the logit or the sigmoid-mapped value.
    - Recommendation: log raw reranker scores in the EXP-07 ablation's first run; if any are <0 or >1, apply sigmoid. The ablation tunes the weight either way.
+   - **RESOLVED:** 03-03 applies sigmoid normalization unconditionally (idempotent on already-[0,1] values is not assumed — sigmoid is applied to the raw model output before hybridRank); 03-04 Task 2 logs the raw score range on the first live run to confirm.
 
 3. **Where does precision@5 get measured for EXP-07 (the spec says precision@5, the Phase 2 harness computes F1@3)?**
    - What we know: `recall-ranking.eval.test.ts` has `computeF1` (precision@3 ∩ recall@3) and the corpus has `expected_top_3_block_ids`.
    - What's unclear: EXP-07 says "precision@5" but the corpus labels top-3. precision@5 against a top-3 gold set caps at 0.6.
    - Recommendation: either (a) compute precision@3 to match the existing labels and adjust the EXP-07 gate wording, or (b) extend corpus labels to top-5. Flag to the planner — this is a corpus-vs-metric mismatch that needs a decision before the ablation is written.
+   - **RESOLVED by D-EXP07 (orchestrator decision, 2026-06-08):** option (a) — EXP-07 is measured with **precision@3 / F1@3** reusing the existing `computeF1` harness; ship `HYBRID_WEIGHTS.rerank = 0.0` if the reranker doesn't beat raw cosine by ≥3% on that metric. The metric substitution is documented in `docs/hybrid-rank-changelog.md` (03-04 Task 3). ROADMAP success criterion #7 and REQUIREMENTS EXP-07 updated to match.
 
 ## Environment Availability
 
