@@ -27,12 +27,15 @@ interface RankableMemory {
 }
 
 describe("hybridRank (AI-04 formula)", () => {
-  it("weights are at Phase 2 D-05 values with rerank key (renamed from cosine)", () => {
+  it("weights are at Plan 02-03 D-34 tuned values with rerank key (renamed from cosine per D-05)", () => {
+    // D-34 (2026-06-08): weights tuned via 2500-config sweep (625 weight configs × 4 thresholds).
+    // Winner: rerank=0.6, recency=0.05, type_match=0.1, scope_match=0.05, threshold=0.45
+    // Cosine-only baseline F1=0.3381; winner F1=0.4476; improvement_delta=0.1095 (gate ≥0.02).
     expect(HYBRID_WEIGHTS).toEqual({
-      rerank: 1.0,
-      recency: 0.15,
-      type_match: 0.2,
-      scope_match: 0.15,
+      rerank: 0.6,
+      recency: 0.05,
+      type_match: 0.1,
+      scope_match: 0.05,
     });
   });
 

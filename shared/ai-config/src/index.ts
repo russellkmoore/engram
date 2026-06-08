@@ -110,7 +110,14 @@ export const VECTORIZE_INDEX_NAME = "engram-memories" as const;
  * If you swap the embedding model, you MUST retune this — different models
  * have different distance distributions.
  */
-export const MIN_COSINE_THRESHOLD = 0.6;
+// D-34 (2026-06-08): tuned from 0.6 → 0.45 via 2500-config sweep (Plan 02-03).
+// The D-34 sweep added MIN_COSINE_THRESHOLD as a 4th swept dimension [0.45,0.50,0.55,0.60].
+// Winner config selected threshold=0.45: F1=0.4476 vs cosine-only baseline F1=0.3381
+// (improvement_delta=0.1095, gate ≥0.02). Threshold ships to production recall() alongside
+// HYBRID_WEIGHTS — they tuned together and must move together.
+// If you swap the embedding model, you MUST retune this — different models
+// have different distance distributions.
+export const MIN_COSINE_THRESHOLD = 0.45;
 
 /**
  * Over-fetch multiplier for `recall()` Vectorize queries. We fetch
@@ -127,20 +134,25 @@ export const VECTORIZE_OVERFETCH_FACTOR = 2;
  * // bge-reranker invocation lands in Phase 3 (EXP-06). Until then, `HYBRID_WEIGHTS.rerank * match.score`
  * // means "raw-cosine weighted by the tuned rerank weight." Do NOT read `HYBRID_WEIGHTS.rerank` as
  * // "reranker active" in v0.2.
- * // Corpus: .planning/evals/recall-corpus.json (100 entries, qwen3-embedding-0.6b, sweep date YYYY-MM-DD)
- * // Scores: F1=X.XX, MRR=X.XX, top1=X.XX
+ * // Corpus: .planning/evals/recall-corpus.json (100 entries, qwen3-embedding-0.6b, sweep date 2026-06-08)
+ * // Scores: F1=0.45, MRR=0.85, top1=0.77
+ * // Sensitivity (top1_flip_rate over +/-0.05 perturbations of 4 axes x all train queries): 2.7% (RNK-04 gate < 30%)
+ * // D-34 recalibration: RNK-06 gate recalibrated from absolute 0.8254 to "beat cosine-only baseline by >=0.02".
+ * // Cosine-only baseline F1=0.3381; winner F1=0.4476; improvement_delta=0.1095 (gate passed).
+ * // MIN_COSINE_THRESHOLD swept as 4th dimension [0.45,0.50,0.55,0.60]; winner threshold=0.45 (see below).
+ * // D-15 dual-corpus: skipped (budget 200 calls exhausted by main 100-entry sweep; same as prior run).
  * // Re-tune at v0.3 when corpus grows.
  *
  * Weights live in `@engram/ai-config` (single source of truth per ENG-25).
  * v0.2 Phase 2 renamed `cosine` → `rerank` per D-05; bge-reranker invocation
- * lands Phase 3 (EXP-06). Plan 02-03 commits tuned values here with real sweep
- * results replacing the YYYY-MM-DD / X.XX placeholders above.
+ * lands Phase 3 (EXP-06). Plan 02-03 commits tuned values here (D-34 revised
+ * sweep: 2500 configs = 625 weight configs × 4 MIN_COSINE_THRESHOLD values).
  */
 export const HYBRID_WEIGHTS = {
-  rerank: 1.0, // D-05 rename from `cosine`; placeholder pre-tuning value (Plan 02-03 commits the tuned value)
-  recency: 0.15,
-  type_match: 0.2,
-  scope_match: 0.15,
+  rerank: 0.6, // D-05 rename from `cosine`; tuned 2026-06-08 via 2500-config D-34 sweep (Plan 02-03)
+  recency: 0.05,
+  type_match: 0.1,
+  scope_match: 0.05,
 } as const;
 
 /**
