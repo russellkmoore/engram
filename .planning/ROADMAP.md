@@ -44,7 +44,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 > v0.2 adds 4 net-new capabilities on top of v0.1's foundation. Phases are dependency-ordered: Foundation (Wave 0 prerequisites) → Recall Quality Baseline (hybrid-rank + conflict-wiring, parallel-trackable) → Query Expansion + Reranker → Synthesis Activation Eval → Integration Kitchen Sink.
 
 - [x] **Phase 1: Foundation (Wave 0)** — Re-embed audit, tiered test strategy, eval-corpus expansion (27 → 100+), integration-matrix doc, CF-code-assist routing scaffolding (completed 2026-06-04)
-- [ ] **Phase 2: Recall Quality Baseline** — Hybrid-rank weight tuning + conflict-detection wiring (parallel-trackable: different workers, no shared files)
+- [x] **Phase 2: Recall Quality Baseline** — Hybrid-rank weight tuning + conflict-detection wiring (parallel-trackable: different workers, no shared files) (completed 2026-06-08)
 - [ ] **Phase 3: Query Expansion + Reranker** — Multi-query + RRF + bge-reranker integration in `recall()` with adaptive routing
 - [ ] **Phase 4: Synthesis Activation Eval** — Promote scaffolded `verbosity=synthesis|both` path with LLM-judge faithfulness gate; default stays `chunks`
 - [ ] **Phase 5: Integration Kitchen Sink** — Cross-feature integration tests + envelope budget audit + extended cross-workspace pentest
@@ -104,7 +104,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
-**Plans:** 9/10 plans executed
+**Plans:** 10/10 plans complete
 
 Plans:
 **Wave 1**
@@ -141,7 +141,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 
-- [ ] 02-09-PLAN.md — CON observability: eval-budget-summary.mjs --conflict-pipeline-p99 mode for CON-07 4s p99 budget verification
+- [x] 02-09-PLAN.md — CON observability: eval-budget-summary.mjs --conflict-pipeline-p99 mode for CON-07 4s p99 budget verification
 
 #### Phase 3: Query Expansion + Reranker
 
