@@ -35,14 +35,18 @@
       "id": "rcv2-001",
       "bucket": "critical-path",
       "query": "what's the most recent role I applied for at a CDN company",
-      "expected_top_3_block_ids": ["ef-001", "ef-003", "ef-019"],
+      "expected_top_3_block_ids": ["ef-001", "ef-003", "ef-008"],
       "expected_args": {
         "types": ["job_application"]
       },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-001", "ef-003", "ef-019"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-002",
@@ -100,14 +104,18 @@
       "id": "rcv2-006",
       "bucket": "known-failure",
       "query": "the EM at Adyen",
-      "expected_top_3_block_ids": ["ef-006", "ef-007", "ef-096"],
+      "expected_top_3_block_ids": ["ef-006", "ef-007", "ef-002"],
       "expected_args": {
         "types": ["contact"]
       },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-006", "ef-007", "ef-096"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-007",
@@ -240,14 +248,18 @@
       "id": "rcv2-017",
       "bucket": "edge",
       "query": "the CAP theorem note where I mixed in French",
-      "expected_top_3_block_ids": ["ef-017", "ef-016", "ef-018"],
+      "expected_top_3_block_ids": ["ef-017", "ef-120", "ef-086"],
       "expected_args": {
         "types": ["research_note"]
       },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-017", "ef-016", "ef-018"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-018",
@@ -348,14 +360,18 @@
       "id": "rcv2-026",
       "bucket": "extraction",
       "query": "the threat detection engineering manager role at the observability vendor",
-      "expected_top_3_block_ids": ["ef-027", "ef-028", "ef-013"],
+      "expected_top_3_block_ids": ["ef-027", "ef-026", "ef-013"],
       "expected_args": {
         "types": ["job_application"]
       },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-027", "ef-028", "ef-013"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-027",
@@ -374,14 +390,18 @@
       "id": "rcv2-028",
       "bucket": "critical-path",
       "query": "the apparel wholesaler's custom product director role in Issaquah",
-      "expected_top_3_block_ids": ["ef-030", "ef-022", "ef-083"],
+      "expected_top_3_block_ids": ["ef-030", "ef-026", "ef-021"],
       "expected_args": {
         "types": ["job_application"]
       },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-030", "ef-022", "ef-083"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-029",
@@ -400,11 +420,15 @@
       "id": "rcv2-030",
       "bucket": "critical-path",
       "query": "the real estate platform's listings engineering director role",
-      "expected_top_3_block_ids": ["ef-034", "ef-033", "ef-032"],
+      "expected_top_3_block_ids": ["ef-034", "ef-033", "ef-036"],
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-034", "ef-033", "ef-032"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-031",
@@ -446,11 +470,15 @@
       "id": "rcv2-034",
       "bucket": "critical-path",
       "query": "the agents SDK getAgentByName async pitfall",
-      "expected_top_3_block_ids": ["ef-041", "ef-092", "ef-052"],
+      "expected_top_3_block_ids": ["ef-041", "ef-092", "ef-069"],
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-041", "ef-092", "ef-052"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-035",
@@ -580,21 +608,29 @@
       "id": "rcv2-045",
       "bucket": "critical-path",
       "query": "the media company's director of engineering streaming infrastructure role in LA",
-      "expected_top_3_block_ids": ["ef-055", "ef-083", "ef-076"],
+      "expected_top_3_block_ids": ["ef-055", "ef-083", "ef-026"],
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-055", "ef-083", "ef-076"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-046",
       "bucket": "extraction",
       "query": "research on WebAssembly for edge-native data processing in Workers",
-      "expected_top_3_block_ids": ["ef-056", "ef-097", "ef-099"],
+      "expected_top_3_block_ids": ["ef-056", "ef-097", "ef-069"],
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-056", "ef-097", "ef-099"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-047",
@@ -806,14 +842,18 @@
       "id": "rcv2-066",
       "bucket": "critical-path",
       "query": "what was that recent job I applied to at a payments company",
-      "expected_top_3_block_ids": ["ef-059", "ef-021", "ef-080"],
+      "expected_top_3_block_ids": ["ef-059", "ef-021", "ef-008"],
       "expected_args": {
         "types": ["job_application"]
       },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-059", "ef-021", "ef-080"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-067",
@@ -829,24 +869,32 @@
       "id": "rcv2-068",
       "bucket": "critical-path",
       "query": "what companies have I been tracking in the edge computing space",
-      "expected_top_3_block_ids": ["ef-003", "ef-049", "ef-070"],
+      "expected_top_3_block_ids": ["ef-003", "ef-049", "ef-013"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-003", "ef-049", "ef-070"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-069",
       "bucket": "critical-path",
       "query": "what's the status of the Engram project",
-      "expected_top_3_block_ids": ["ef-004", "ef-044", "ef-109"],
+      "expected_top_3_block_ids": ["ef-004", "ef-053", "ef-109"],
       "expected_args": {
         "scope": "project"
       },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-004", "ef-044", "ef-109"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-070",
@@ -895,14 +943,18 @@
       "id": "rcv2-074",
       "bucket": "known-failure",
       "query": "jobs I rejected",
-      "expected_top_3_block_ids": ["ef-008", "ef-023", "ef-059"],
+      "expected_top_3_block_ids": ["ef-008", "ef-023", "ef-026"],
       "expected_args": {
         "types": ["job_application"]
       },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-008", "ef-023", "ef-059"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-075",
@@ -941,11 +993,15 @@
       "id": "rcv2-078",
       "bucket": "critical-path",
       "query": "which companies am I actively interviewing at",
-      "expected_top_3_block_ids": ["ef-022", "ef-083", "ef-094"],
+      "expected_top_3_block_ids": ["ef-008", "ef-026", "ef-001"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-022", "ef-083", "ef-094"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-079",
@@ -984,11 +1040,15 @@
       "id": "rcv2-082",
       "bucket": "extraction",
       "query": "my notes about MCP protocol tool surface design constraints",
-      "expected_top_3_block_ids": ["ef-078", "ef-041", "ef-062"],
+      "expected_top_3_block_ids": ["ef-078", "ef-092", "ef-120"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-078", "ef-041", "ef-062"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-083",
@@ -1004,11 +1064,15 @@
       "id": "rcv2-084",
       "bucket": "known-failure",
       "query": "what's in my inbox",
-      "expected_top_3_block_ids": ["ef-044", "ef-053", "ef-109"],
+      "expected_top_3_block_ids": ["ef-069", "ef-053", "ef-109"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-044", "ef-053", "ef-109"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-085",
@@ -1024,31 +1088,43 @@
       "id": "rcv2-086",
       "bucket": "critical-path",
       "query": "key decisions I've made in the past month",
-      "expected_top_3_block_ids": ["ef-038", "ef-005", "ef-081"],
+      "expected_top_3_block_ids": ["ef-117", "ef-005", "ef-081"],
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-038", "ef-005", "ef-081"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-087",
       "bucket": "edge",
       "query": "the",
-      "expected_top_3_block_ids": ["ef-001", "ef-009", "ef-016"],
+      "expected_top_3_block_ids": ["ef-026", "ef-081", "ef-086"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-001", "ef-009", "ef-016"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-088",
       "bucket": "critical-path",
       "query": "open source projects in the MCP ecosystem I should follow",
-      "expected_top_3_block_ids": ["ef-078", "ef-041", "ef-043"],
+      "expected_top_3_block_ids": ["ef-078", "ef-115", "ef-089"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-078", "ef-041", "ef-043"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-089",
@@ -1074,11 +1150,15 @@
       "id": "rcv2-091",
       "bucket": "critical-path",
       "query": "what roles have I applied to in the healthcare or life sciences space",
-      "expected_top_3_block_ids": ["ef-036", "ef-075", "ef-110"],
+      "expected_top_3_block_ids": ["ef-036", "ef-075", "ef-008"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-036", "ef-075", "ef-110"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-092",
@@ -1124,11 +1204,15 @@
       "id": "rcv2-096",
       "bucket": "edge",
       "query": "tell me everything",
-      "expected_top_3_block_ids": ["ef-004", "ef-014", "ef-042"],
+      "expected_top_3_block_ids": ["ef-004", "ef-014", "ef-116"],
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-004", "ef-014", "ef-042"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-097",
