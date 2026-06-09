@@ -28,7 +28,7 @@ result: PASSED (live run 2026-06-08, after EVAL_QUERY_CAP 20→12 budget fix). S
 
 ### 3. EXP-11 — Recall latency budget — PASSED (smoke); production SLA deferred
 expected: `npx vitest run --project=eval recall-latency`.
-result: PASSED as a LOCAL SMOKE TEST (hang-guard p99 < 20s, with 2-query warmup + reranker gated off to mirror production). The real p50 ≤ 1800ms / p99 ≤ 3000ms is a PRODUCTION-EDGE SLA — the local eval measures dev→remote-Cloudflare network latency, not the edge path, so it cannot prove it. ⚠ STILL TO CONFIRM ON DEPLOY: inspect Analytics Engine 'mcp-server' recall latency blobs on the deployed Worker (03-VALIDATION Manual-Only). QE-5 lever if production is over budget: LOWER ADAPTIVE_TOP1_THRESHOLD 0.65 → 0.60 (fan out less).
+result: PASSED as a LOCAL SMOKE TEST (hang-guard p99 < 20s, with 2-query warmup + reranker gated off to mirror production). The real p50 ≤ 1800ms / p99 ≤ 3000ms is a PRODUCTION-EDGE SLA. **Worker deployed to production 2026-06-09 (engram-mcp-server v6a8317aa).** ⚠ PRODUCTION TELEMETRY STILL PENDING REAL TRAFFIC: analytics logs per-op latency (`blob1='mcp-server'`, `blob2` op-kind, `double1`=latency-ms) in dataset `engram_ai_analytics` — there is NO single end-to-end recall blob, so production EXP-11 = sum of the `embedding` + `vectorize-query` op latencies (reranker now disabled, so no reranker op). Drive recall() traffic via the MCP client, then query Analytics Engine (or read MCP-client round-trip). QE-5 lever if over budget: LOWER ADAPTIVE_TOP1_THRESHOLD 0.65 → 0.60 (fan out less).
 
 ## Summary
 
