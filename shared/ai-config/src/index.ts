@@ -89,10 +89,12 @@ export const RERANKER_MODEL = "@cf/baai/bge-reranker-base" as const;
  * corpus shows the reranker earns its keep. The EXP-06 wiring is preserved behind
  * this flag for that re-enable.
  */
-// Typed `boolean` (not `false as const`) so it reads as a runtime feature flag:
-// the literal type would make `if (RERANKER_ENABLED && …)` lint as dead code and
-// block the future re-enable. Flip to `true` to reactivate the EXP-06 wiring.
-export const RERANKER_ENABLED = false;
+// `as boolean` (not `false` / `false as const`) so it reads as a runtime feature
+// flag: a literal `false` type makes `if (RERANKER_ENABLED && …)` lint as dead code
+// (no-unnecessary-condition) and blocks the future re-enable. The cast also survives
+// the eslint `no-inferrable-types` autofix that strips a bare `: boolean` annotation.
+// Flip to `true` to reactivate the EXP-06 wiring.
+export const RERANKER_ENABLED = false as boolean;
 
 /**
  * A/B challenger model for EXP-08 query-expansion recall comparison.
