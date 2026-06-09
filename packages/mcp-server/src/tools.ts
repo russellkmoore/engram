@@ -510,6 +510,12 @@ export function registerTools(
       );
     }
     try {
+      // EXP-11: end-to-end recall latency clock — captures the FULL handler
+      // (embed → adaptive route → fan-out/RRF → hydrate → hybridRank → conflict
+      // hydrate → envelope build). Written as a single 'recall' op blob before the
+      // return so the production p50/p99 SLA is a one-row Analytics Engine query
+      // instead of summing per-op latencies.
+      const recallStart = Date.now();
       const stub = workspaceNs.get(workspaceNs.idFromName(props.workspace_id));
 
       // T-05-05-TRUNC backfill (Plan 05-06 Task 5): recall-side query-length truncation warn.
@@ -579,12 +585,14 @@ export function registerTools(
       });
 
       // === EXP-03: Adaptive routing gate — single-query pass first, fan-out only when top1 < 0.65 ===
-      // QE-5 lever: raise to 0.70 if latency budget (EXP-11) is exceeded.
+      // QE-5 latency lever: to fan out LESS often (cut EXP-11 latency), LOWER this to 0.60.
+      // Fan-out fires when top1 < threshold, so RAISING it widens the gate and adds latency.
       const ADAPTIVE_TOP1_THRESHOLD = 0.65;
       const top1 = result.matches[0]?.score ?? 0;
 
       let mergedMatches = result.matches;
       let expansionUnavailable = false;
+      let fanOutFired = false; // EXP-11 telemetry: did the multi-query expansion path run?
       if (top1 < ADAPTIVE_TOP1_THRESHOLD) {
         try {
           // [4] expandQuery — [original, p1, p2] (EXP-01). Re-throws on 429/error for EXP-10 catch.
@@ -608,6 +616,7 @@ export function registerTools(
           );
           // [7] RRF merge — scale-invariant, rank-based merge of per-variant result lists (EXP-04).
           mergedMatches = reciprocalRankFusion(lists).map((x) => x.item);
+          fanOutFired = true;
         } catch {
           // EXP-10: persistent 429 or any expansion error → fall back to single-query path.
           expansionUnavailable = true;
@@ -849,6 +858,17 @@ export function registerTools(
       if (expansionUnavailable) {
         envelope.meta.gaps = [...envelope.meta.gaps, META_GAPS.queryExpansionUnavailable];
       }
+
+      // EXP-11: single end-to-end recall latency datapoint (op-kind 'recall').
+      // doubles[0]=total handler latency, [1]=ranked-result count, [2]=fan-out fired,
+      // [3]=expansion-unavailable (degraded path). Lets the production p50/p99 SLA be a
+      // one-row Analytics Engine query (blob2='recall') instead of summing per-op latencies.
+      writeAnalytics(env, {
+        blobs: ["mcp-server", "recall", wsTag, ranked.length === 0 ? "zero-match" : "success"],
+        doubles: [Date.now() - recallStart, ranked.length, fanOutFired ? 1 : 0, expansionUnavailable ? 1 : 0],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
+
       return wrapMcpContent(trimToBudget(envelope));
     } catch (err) {
       throw mapToMcpError(err);

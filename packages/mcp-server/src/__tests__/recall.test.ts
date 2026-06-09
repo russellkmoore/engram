@@ -82,6 +82,7 @@ import { vectorizeQuery } from "@engram/vectorize-utils";
 import { expandQuery, keepVariantsAboveGate } from "../query-expansion.js";
 import { reciprocalRankFusion } from "../rrf.js";
 import { hybridRank } from "../hybrid-rank.js";
+import { writeAnalytics } from "../analytics.js";
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -191,6 +192,7 @@ const mockExpandQuery = vi.mocked(expandQuery);
 const mockKeepVariantsAboveGate = vi.mocked(keepVariantsAboveGate);
 const mockRRF = vi.mocked(reciprocalRankFusion);
 const mockHybridRank = vi.mocked(hybridRank);
+const mockWriteAnalytics = vi.mocked(writeAnalytics);
 
 const WS_ID = "ws-recall-test";
 
@@ -230,6 +232,33 @@ describe("EXP-03: adaptive routing", () => {
     // Only embedding call expected; no RERANKER call in Task 1 tests (reranker wired in Task 2).
     const embeddingCalls = safeRunCalls.filter((c) => c[1] !== "@cf/baai/bge-reranker-base");
     expect(embeddingCalls).toHaveLength(1);
+  });
+
+  it("EXP-11 telemetry: emits one end-to-end 'recall' analytics datapoint (singleQuery, fanOut=0)", async () => {
+    const blocks = [makeBlock("m1"), makeBlock("m2")];
+    const doStub = makeDoStub(blocks);
+    const recall = captureRecallCallback(WS_ID, doStub);
+
+    // top1 = 0.70 ≥ 0.65 → single-query path, no fan-out.
+    mockVectorizeQuery.mockResolvedValue({
+      matches: [makeMatch("m1", 0.7), makeMatch("m2", 0.68)],
+      count: 2,
+    });
+    mockHybridRank.mockReturnValue(blocks as never[]);
+
+    await recall({ query: "find contact" });
+
+    // Exactly one 'recall' op-kind datapoint, with end-to-end latency + fanOut flag = 0.
+    const recallWrites = mockWriteAnalytics.mock.calls.filter(
+      (c) => (c[1] as { blobs: string[] }).blobs[1] === "recall",
+    );
+    expect(recallWrites).toHaveLength(1);
+    const dp = recallWrites[0][1] as { blobs: string[]; doubles: number[] };
+    expect(dp.blobs[0]).toBe("mcp-server");
+    expect(dp.blobs[3]).toBe("success"); // 2 ranked results → not zero-match
+    expect(dp.doubles[0]).toBeGreaterThanOrEqual(0); // latency-ms
+    expect(dp.doubles[1]).toBe(2); // ranked-result count
+    expect(dp.doubles[2]).toBe(0); // fan-out did NOT fire
   });
 
   it("Test 2 (fire fan-out): expandQuery called and RRF merges lists when top1 cosine < 0.65", async () => {
