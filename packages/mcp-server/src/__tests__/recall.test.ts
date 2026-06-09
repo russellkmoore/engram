@@ -249,11 +249,16 @@ describe("EXP-03: adaptive routing", () => {
     await recall({ query: "find contact" });
 
     // Exactly one 'recall' op-kind datapoint, with end-to-end latency + fanOut flag = 0.
+    // blobs/doubles are readonly tuples on AnalyticsDataPoint — type the cast as readonly.
+    interface AnalyticsArg {
+      blobs: readonly string[];
+      doubles: readonly number[];
+    }
     const recallWrites = mockWriteAnalytics.mock.calls.filter(
-      (c) => (c[1] as { blobs: string[] }).blobs[1] === "recall",
+      (c) => (c[1] as AnalyticsArg).blobs[1] === "recall",
     );
     expect(recallWrites).toHaveLength(1);
-    const dp = recallWrites[0][1] as { blobs: string[]; doubles: number[] };
+    const dp = recallWrites[0]?.[1] as AnalyticsArg;
     expect(dp.blobs[0]).toBe("mcp-server");
     expect(dp.blobs[3]).toBe("success"); // 2 ranked results → not zero-match
     expect(dp.doubles[0]).toBeGreaterThanOrEqual(0); // latency-ms
