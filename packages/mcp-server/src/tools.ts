@@ -90,6 +90,7 @@ import {
   MIN_COSINE_THRESHOLD,
   VECTORIZE_OVERFETCH_FACTOR,
   RERANKER_MODEL,
+  RERANKER_ENABLED,
 } from "@engram/ai-config";
 import { vectorizeQuery } from "@engram/vectorize-utils";
 import { expandQuery, keepVariantsAboveGate } from "./query-expansion.js";
@@ -678,8 +679,13 @@ export function registerTools(
         text: blockTextMap.get(m.id) ?? "",
       }));
 
+      // EXP-07 (live ablation 2026-06-08): the bge-reranker is decisively worse
+      // than raw cosine on the labeled corpus (F1@3 0.26 vs 0.46), so RERANKER_ENABLED
+      // ships false — raw cosine fills the rerank slot via the `?? m.score` default
+      // below at the tuned HYBRID_WEIGHTS.rerank=0.6 weight. Gating the call off also
+      // removes one Workers AI round-trip per recall (EXP-11 latency).
       const rerankScores = new Map<string, number>();
-      if (contexts.length > 0) {
+      if (RERANKER_ENABLED && contexts.length > 0) {
         try {
           const rerankResp = await safeRun(env, RERANKER_MODEL, {
             query: args.query, // raw user query STRING (NOT the embedding vector, NOT a prefixed variant)

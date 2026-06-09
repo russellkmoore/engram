@@ -58,6 +58,15 @@ vi.mock("../hybrid-rank.js", () => ({
   HYBRID_WEIGHTS: { rerank: 0.6, recency: 0.05, type_match: 0.1, scope_match: 0.05 },
 }));
 
+// Production ships RERANKER_ENABLED=false (EXP-07 ablation: reranker worse than
+// raw cosine). The EXP-06 tests below validate the reranker LOGIC (index-alignment,
+// sigmoid, fallback), which is preserved behind the flag — so force the flag true
+// here while keeping every other real ai-config export intact.
+vi.mock("@engram/ai-config", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return { ...actual, RERANKER_ENABLED: true };
+});
+
 // analytics is fire-and-forget — stub it to avoid env binding errors.
 vi.mock("../analytics.js", () => ({
   writeAnalytics: vi.fn(),

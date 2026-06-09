@@ -72,7 +72,12 @@ import corpusJson from "./fixtures/recall-corpus-v2.json" with { type: "json" };
  * SEPARATE SESSION FROM reranker-ablation (A4): do NOT co-run with plan 03-04's
  * eval — that eval alone uses ~200 calls; combining would blow the budget.
  */
-const EVAL_QUERY_CAP = 20;
+// Live-run calibration (2026-06-08): the A/B doubles expansion cost (Scout +
+// challenger) and each query spends ~10–14 AI calls (orig embed + 2 expansions +
+// per-variant embeds). At cap=20 the run blew the MAX_AI_CALLS=200 budget at
+// call 205 mid-A/B. Cap lowered to 12 (~12×14=168 worst-case ≤ 200) per the
+// PRE-02 "tighten the eval, never raise the cap" rule.
+const EVAL_QUERY_CAP = 12;
 
 // Eval workspace — stable seeded fixtures, isolated from production (T-03-13).
 const EVAL_WORKSPACE_ID = "eval-fixtures";

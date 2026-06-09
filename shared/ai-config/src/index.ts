@@ -74,6 +74,27 @@ export const EMBEDDING_MODEL = "@cf/qwen/qwen3-embedding-0.6b" as const;
 export const RERANKER_MODEL = "@cf/baai/bge-reranker-base" as const;
 
 /**
+ * Whether the bge-reranker is invoked in `recall()`. **Shipped `false`** per the
+ * EXP-07 weight ablation (Plan 03-04, live run 2026-06-08): on the labeled corpus
+ * the reranker was decisively WORSE than raw cosine — F1@3 0.2611 vs 0.4556,
+ * MRR 0.4824 vs 0.8437, top1 0.3500 vs 0.7667 (gate_passed=false, delta −0.1944,
+ * threshold +0.03). D-EXP07's literal "set HYBRID_WEIGHTS.rerank=0.0" was a
+ * misformulation: `rerank` weights the PRIMARY relevance signal (reranker score
+ * when active, raw cosine on fallback), so zeroing it would delete the cosine
+ * signal too and rank by recency/filters only. The correct realization of the
+ * ablation outcome is to disable the reranker INVOCATION and let raw cosine fill
+ * the `rerank` slot at its tuned 0.6 weight (== the ablation's "off" arm, F1@3
+ * 0.4556). Skipping the call also removes one Workers AI round-trip per recall
+ * (EXP-11 latency). Flip back to `true` only if a future re-tune on a larger
+ * corpus shows the reranker earns its keep. The EXP-06 wiring is preserved behind
+ * this flag for that re-enable.
+ */
+// Typed `boolean` (not `false as const`) so it reads as a runtime feature flag:
+// the literal type would make `if (RERANKER_ENABLED && …)` lint as dead code and
+// block the future re-enable. Flip to `true` to reactivate the EXP-06 wiring.
+export const RERANKER_ENABLED = false;
+
+/**
  * A/B challenger model for EXP-08 query-expansion recall comparison.
  *
  * EVAL-ONLY CONSTANT — do NOT use in production code. Scout (`QUERY_EXPANSION_MODEL`)
