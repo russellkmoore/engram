@@ -10,6 +10,12 @@ updated: 2026-06-08
 
 [awaiting human testing — run the three eval suites under Cloudflare credentials]
 
+> **How to run (corrected):** there is no `test:eval` npm script in `packages/mcp-server`.
+> From `packages/mcp-server`, with `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` exported,
+> invoke the `eval` vitest project directly:
+> `npx vitest run --project=eval <suite>` — one suite per invocation (each eval file gets a
+> fresh MAX_AI_CALLS=200 budget; bundling multiplies the spend).
+
 ## Tests
 
 ### 1. EXP-07 — Reranker weight ablation (precision@3/F1@3, D-EXP07)
