@@ -110,6 +110,19 @@ export const RERANKER_ENABLED = false as boolean;
 export const EXPANSION_CHALLENGER_MODEL = "@cf/meta/llama-3.2-3b-instruct" as const;
 
 /**
+ * LLM judge model for `synthesis-fidelity.eval.test.ts` faithfulness gate (SYN-02).
+ *
+ * EVAL-ONLY CONSTANT — do NOT call in the production recall() path. The judge
+ * is invoked exclusively inside the eval harness to assess synthesis faithfulness
+ * against source memories. Using a larger model than SYNTHESIS_MODEL (Scout)
+ * is required — Scout-judging-Scout is self-lenient (D-04).
+ *
+ * Model confirmed active on CF catalog 2026-06-09. Do not substitute
+ * `@cf/meta/llama-3.1-70b-instruct` — deprecated 2026-05-30.
+ */
+export const JUDGE_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast" as const;
+
+/**
  * Vector dimensions produced by `EMBEDDING_MODEL`. The Vectorize index named
  * `VECTORIZE_INDEX_NAME` was created with these dimensions — swapping the
  * embedding model requires re-creating the index.
