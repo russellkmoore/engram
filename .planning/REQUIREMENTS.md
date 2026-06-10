@@ -63,12 +63,12 @@ Russell's calls at milestone start:
 - [x] **SYN-01**: `synthesis-fidelity.eval.test.ts` (promptfoo + LLM-judge model) scores synthesis outputs across the expanded corpus from PRE-03 augmented with `expected_synthesis` ground-truth captions.
 - [ ] **SYN-02**: LLM-judge faithfulness pass rate ≥ 90% on the eval corpus; zero hallucinated entities (PITFALLS SY-1 + SY-2 catastrophic gates).
 - [x] **SYN-03**: Citation density ≥ 1 `[memory_id]` marker per 80 chars of synthesis output; post-process drops any sentence without an inline citation (PITFALLS SY-2 grounding lock).
-- [ ] **SYN-04**: Synthesis output p50 ≤ 5s, p99 ≤ 8s when invoked via `recall(verbosity="synthesis")` or `recall(verbosity="both")` (PITFALLS SY-6 latency budget).
+- [x] **SYN-04**: Synthesis output p50 ≤ 5s, p99 ≤ 8s when invoked via `recall(verbosity="synthesis")` or `recall(verbosity="both")` (PITFALLS SY-6 latency budget).
 - [x] **SYN-05**: Pre-flight token-count assertion: serialized retrieved-memory context ≤ 6K tokens before synthesis call; over-budget retrievals are truncated by recency-descending order with a `meta.gaps` note (PITFALLS SY-3).
 - [x] **SYN-06**: Cosine-aware hedging: synthesis prompt includes a "low-confidence input" instruction whenever `min(cosine across retrieved memories) < 0.7`. Output then opens with explicit hedging language (PITFALLS SY-4).
 - [x] **SYN-07**: Single-memory synthesis is rejected at the handler — `recall()` returns the chunk directly with `meta.gaps = ["synthesis skipped: only one source"]` (PITFALLS SY-5).
-- [ ] **SYN-08**: `verbosity` default in `recall()` stays `"chunks"`. Flipping to `"both"` is explicitly OUT of v0.2 scope (D-7 resolution).
-- [ ] **SYN-09**: Analytics blob extension: `analyticsEngine.writeDataPoint` for synthesized recalls records `blobs[1]="synthesis"`, `doubles[0]=latency_ms`, `doubles[1]=token_count`. Used for v0.3 default-flip decision.
+- [x] **SYN-08**: `verbosity` default in `recall()` stays `"chunks"`. Flipping to `"both"` is explicitly OUT of v0.2 scope (D-7 resolution).
+- [x] **SYN-09**: Analytics blob extension: `analyticsEngine.writeDataPoint` for synthesized recalls records `blobs[1]="synthesis"`, `doubles[0]=latency_ms`, `doubles[1]=token_count`. Used for v0.3 default-flip decision.
 - [x] **SYN-10**: `SYNTHESIS_MODEL` stays aliased to `INGESTION_CLASSIFIER_MODEL` (Scout). Byte-frozen `SYNTHESIS_SYSTEM_PROMPT` per ENG-22 contract; any prompt change requires re-running this eval set.
 
 ### Integration / Kitchen Sink (INT) — Wave 4

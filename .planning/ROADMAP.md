@@ -224,7 +224,7 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1** *(no dependencies — parallel)*
@@ -234,7 +234,7 @@ Plans:
 
 **Wave 2** *(blocked on 04-01)*
 
-- [ ] 04-03-PLAN.md — tools.ts synthesis block hardening: SYN-05 preflight throw + SYN-07 single-memory guard + SYN-06 hedge + D-02 position→id mapping + D-09 uncited-sentence drop + SYN-09 analytics + export post-processor helpers
+- [x] 04-03-PLAN.md — tools.ts synthesis block hardening: SYN-05 preflight throw + SYN-07 single-memory guard + SYN-06 hedge + D-02 position→id mapping + D-09 uncited-sentence drop + SYN-09 analytics + export post-processor helpers
 
 **Wave 3** *(blocked on 04-02 + 04-03)*
 
