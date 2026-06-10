@@ -120,7 +120,7 @@ interface CorpusEntry {
   split: "train" | "validate";
   labeled_by: string;
   labeled_at: string;
-  expected_synthesis: null;
+  expected_synthesis: string | null; // null for train; string for validate after SYN-01 augmentation
 }
 
 interface CorpusFile {
