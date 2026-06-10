@@ -894,14 +894,42 @@ export function registerTools(
 
       // === D-01: synthesis is OPT-IN — skipped on default verbosity="chunks" (no 2–5s latency penalty) ===
       let synthesis: string | null = null;
-      if (args.verbosity === "synthesis" || args.verbosity === "both") {
+      // Synthesis gaps accumulated during the block; merged into envelope.meta.gaps after
+      // buildRecallResponse (same pattern as queryWasTruncated / expansionUnavailable — EXP-10).
+      const synthesisGaps: string[] = [];
+
+      // SYN-07: single-memory synthesis is not useful — skip and note in meta.gaps.
+      if (
+        (args.verbosity === "synthesis" || args.verbosity === "both") &&
+        ranked.length < 2
+      ) {
+        synthesisGaps.push("synthesis skipped: only one source");
+        // synthesis stays null; fall through to buildRecallResponse
+      }
+
+      if (
+        (args.verbosity === "synthesis" || args.verbosity === "both") &&
+        ranked.length >= 2
+      ) {
         // AI-SPEC.md §4b "Context Window Strategy": cap synthesis input at ~6K tokens.
         // Drop trailing memories first (lowest-ranked position after hybridRank).
-        const trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
+        // SYN-05: trimRankedForSynthesis throws when ALL memories exceed budget;
+        // the catch below handles it via honest-stubs posture.
         const synthStart = Date.now();
-        const synthInput = formatBlocksForSynthesis(trimmedForSynth, args.query);
+        // SYN-06: compute lowConfidence flag BEFORE safeRun, from cosine scores of trimmed set.
+        // Must be computed here (before the try/catch) so it's in scope for post-processing.
+        let lowConfidence = false;
+        let trimmedForSynth: LexicalSearchHit[] = [];
+        let synthInput = "";
         try {
-           
+          trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
+          // SYN-06: lowConfidence = min(cosine over trimmed set) < 0.7
+          const cosineScores = trimmedForSynth.map((m) => m.score ?? 0);
+          const minCosine = cosineScores.length > 0 ? Math.min(...cosineScores) : 0;
+          lowConfidence = minCosine < 0.7;
+
+          synthInput = formatBlocksForSynthesis(trimmedForSynth, args.query);
+
           const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
             messages: [
               { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
@@ -911,23 +939,44 @@ export function registerTools(
             max_tokens: 1024,
           });
           synthesis = typeof synthResp.response === "string" ? synthResp.response : null;
-           
+
+          // Post-processing chain (runs AFTER safeRun, BEFORE writeAnalytics):
+          // SYN-06: hedge prefix, D-02: position→id mapping, D-09: uncited-sentence drop.
+          if (synthesis !== null) {
+            synthesis = applyHedgePrefix(synthesis, lowConfidence); // SYN-06
+            synthesis = mapPositionsToCitationIds(synthesis, trimmedForSynth); // D-02
+            synthesis = dropUncitedSentences(synthesis, trimmedForSynth, {
+              lowConfidenceHedge: lowConfidence,
+            }); // D-09
+          }
+
+          // SYN-09: blobs[1]="synthesis" (operation-kind discriminator); doubles[1]=estimated token count.
           writeAnalytics(env, {
-            blobs: ["mcp-server", CLASSIFIER_MODEL, wsTag, "success"],
-            doubles: [Date.now() - synthStart, synthInput.length, 0, 0],
+            blobs: ["mcp-server", "synthesis", wsTag, "success"],
+            doubles: [Date.now() - synthStart, Math.ceil(synthInput.length / 4), 0, 0],
             indexes: [ANALYTICS_ENV_TAG],
           });
         } catch (synthErr) {
           // Per CONTEXT.md D-07 honest-stubs posture — synthesis failures leave synthesis=null;
           // meta.gaps surfaces the failure rather than crashing the recall.
           console.warn("recall:synthesis-failed", { synthErr });
+
+          // SYN-05: surface preflight failure in meta.gaps.
+          if (
+            synthErr instanceof Error &&
+            synthErr.message.includes("synthesis-preflight:")
+          ) {
+            synthesisGaps.push("synthesis skipped: context exceeded 6K token budget");
+          }
+
           const synthOutcome =
             synthErr != null && typeof synthErr === "object" && "isRateLimit" in synthErr
               ? "retry-429"
               : "synthesis-failed";
-           
+
+          // SYN-09: blobs[1]="synthesis" (operation-kind discriminator).
           writeAnalytics(env, {
-            blobs: ["mcp-server", CLASSIFIER_MODEL, wsTag, synthOutcome],
+            blobs: ["mcp-server", "synthesis", wsTag, synthOutcome],
             doubles: [Date.now() - synthStart, 0, 0, synthOutcome === "retry-429" ? 1 : 0],
             indexes: [ANALYTICS_ENV_TAG],
           });
@@ -959,6 +1008,11 @@ export function registerTools(
       // Done AFTER buildRecallResponse so the gap survives trimToBudget.
       if (expansionUnavailable) {
         envelope.meta.gaps = [...envelope.meta.gaps, META_GAPS.queryExpansionUnavailable];
+      }
+      // SYN-07/SYN-05: merge synthesis-specific gaps (single-source skip, preflight overflow).
+      // Done AFTER buildRecallResponse, same pattern as queryWasTruncated/expansionUnavailable.
+      if (synthesisGaps.length > 0) {
+        envelope.meta.gaps = [...envelope.meta.gaps, ...synthesisGaps];
       }
 
       // EXP-11: single end-to-end recall latency datapoint (op-kind 'recall').
