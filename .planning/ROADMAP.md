@@ -224,6 +224,22 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
+**Plans:** 4 plans
+
+Plans:
+**Wave 1** *(no dependencies — parallel)*
+
+- [ ] 04-01-PLAN.md — Wave 0 infrastructure: JUDGE_MODEL constant + CF-CODE-ASSIST-USAGE.md scaffold + synthesis-postprocess.test.ts + synthesis-preflight.test.ts + Intl.Segmenter probe
+- [ ] 04-02-PLAN.md — Corpus caption augmentation: generate-synthesis-captions.mjs + 30 validate-split expected_synthesis captions + sync to vendored fixture (SYN-01)
+
+**Wave 2** *(blocked on 04-01)*
+
+- [ ] 04-03-PLAN.md — tools.ts synthesis block hardening: SYN-05 preflight throw + SYN-07 single-memory guard + SYN-06 hedge + D-02 position→id mapping + D-09 uncited-sentence drop + SYN-09 analytics + export post-processor helpers
+
+**Wave 3** *(blocked on 04-02 + 04-03)*
+
+- [ ] 04-04-PLAN.md — Eval gate: synthesis-fidelity.eval.test.ts with LLM-judge faithfulness ≥90% + zero hallucinated entities + latency gate (SYN-01, SYN-02, SYN-04)
+
 #### Phase 5: Integration Kitchen Sink
 
 **Goal:** Verify all 4 v0.2 features compose cleanly under the v0.1 envelope contract. Last gate before milestone close.
