@@ -46,7 +46,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 - [x] **Phase 1: Foundation (Wave 0)** — Re-embed audit, tiered test strategy, eval-corpus expansion (27 → 100+), integration-matrix doc, CF-code-assist routing scaffolding (completed 2026-06-04)
 - [x] **Phase 2: Recall Quality Baseline** — Hybrid-rank weight tuning + conflict-detection wiring (parallel-trackable: different workers, no shared files) (completed 2026-06-08)
 - [x] **Phase 3: Query Expansion + Reranker** — Multi-query + RRF + bge-reranker integration in `recall()` with adaptive routing (completed 2026-06-08)
-- [ ] **Phase 4: Synthesis Activation Eval** — Promote scaffolded `verbosity=synthesis|both` path with LLM-judge faithfulness gate; default stays `chunks`
+- [x] **Phase 4: Synthesis Activation Eval** — Promote scaffolded `verbosity=synthesis|both` path with LLM-judge faithfulness gate; default stays `chunks` (completed 2026-06-10)
 - [ ] **Phase 5: Integration Kitchen Sink** — Cross-feature integration tests + envelope budget audit + extended cross-workspace pentest
 
 #### Phase 1: Foundation (Wave 0)
@@ -224,7 +224,7 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1** *(no dependencies — parallel)*
@@ -238,7 +238,7 @@ Plans:
 
 **Wave 3** *(blocked on 04-02 + 04-03)*
 
-- [ ] 04-04-PLAN.md — Eval gate: synthesis-fidelity.eval.test.ts with LLM-judge faithfulness ≥90% + zero hallucinated entities + latency gate (SYN-01, SYN-02, SYN-04)
+- [x] 04-04-PLAN.md — Eval gate: synthesis-fidelity.eval.test.ts with LLM-judge faithfulness ≥90% + zero hallucinated entities + latency gate (SYN-01, SYN-02, SYN-04)
 
 #### Phase 5: Integration Kitchen Sink
 
