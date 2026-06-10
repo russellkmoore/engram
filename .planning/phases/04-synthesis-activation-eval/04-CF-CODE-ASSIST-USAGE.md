@@ -62,6 +62,7 @@ The following task shapes are flagged as cf-code-assist candidates per CONTEXT.m
 |------|----------|-------|----------------------|--------|---------------------|
 | _seed_ | _(no rows yet — first executor task appends below this line)_ | _n/a_ | _n/a_ | _Tracking starts at execute-phase kickoff_ | _n/a_ |
 | 04-01-T1 | `shared/ai-config/src/index.ts` JUDGE_MODEL constant + `04-CF-CODE-ASSIST-USAGE.md` tracker scaffold | claude | Y/N/N | <10 lines constant + doc scaffold, under 50-line threshold; no stable template for the doc-on-doc routing (mirrors Phase 2 02-01-T3 precedent). | n/a |
+| 04-01-T2 | `packages/mcp-server/src/__tests__/synthesis-postprocess.test.ts` + `synthesis-preflight.test.ts` | claude | N/N/Y | <50 LOC each (two small unit test files); context-prep overhead exceeds savings at this size; stable spec available (PATTERNS.md + RESEARCH.md) but borderline — claude handles to preserve hoisting rules and import contracts across two related files. | n/a |
 
 ---
 
