@@ -1,0 +1,226 @@
+{
+  "_purpose": "Curated synthesis-faithfulness corpus for synthesis-fidelity.eval.test.ts (SYN-02). Each case is a query answered by 3 mutually-coherent memories with real content. Unlike reference/real-corpus.json (single-memory, adversarial ingest-robustness fixtures), every memory set here is internally consistent and collectively answers its query, so a faithful synthesizer should summarize without fabricating. Hand-authored 2026-06; no PII (synthetic names/companies).",
+  "corpus_version": 1,
+  "cases": [
+    {
+      "id": "syn-001",
+      "topic": "job-applications-status",
+      "query": "where do my recent senior backend job applications stand?",
+      "memories": [
+        {
+          "id": "blk-001",
+          "type": "job_application",
+          "content": "Applied to Northwind Systems for a Senior Backend Engineer role on 2026-05-12. Base range $180k-$205k. Source: referral from Priya Nair. Status: phone screen scheduled for next week."
+        },
+        {
+          "id": "blk-002",
+          "type": "job_application",
+          "content": "Applied to Cobalt Labs for a Staff Backend Engineer position on 2026-05-18. Comp $210k base plus equity. Status: waiting to hear back after submitting the take-home."
+        },
+        {
+          "id": "blk-003",
+          "type": "job_application",
+          "content": "Applied to Meridian Data for a Senior Platform Engineer role on 2026-05-20. Recruiter said the team is backend-heavy. Status: rejected — they wanted more Kubernetes depth."
+        }
+      ]
+    },
+    {
+      "id": "syn-002",
+      "topic": "recruiter-history",
+      "query": "what's my interaction history with the recruiter Priya Nair?",
+      "memories": [
+        {
+          "id": "blk-010",
+          "type": "contact",
+          "content": "Priya Nair is a technical recruiter at Northwind Systems. We first connected at the BackendConf meetup in April 2026. She focuses on backend and platform roles."
+        },
+        {
+          "id": "blk-011",
+          "type": "meeting_note",
+          "content": "Call with Priya Nair on 2026-05-10: she walked through the Northwind interview loop (phone screen, system design, two coding rounds) and offered to refer me."
+        },
+        {
+          "id": "blk-012",
+          "type": "research_note",
+          "content": "Priya Nair followed up by email on 2026-05-13 confirming my referral was submitted and that the phone screen is being scheduled."
+        }
+      ]
+    },
+    {
+      "id": "syn-003",
+      "topic": "database-decision",
+      "query": "what did we decide about the database for the Atlas project and why?",
+      "memories": [
+        {
+          "id": "blk-020",
+          "type": "decision_log",
+          "content": "Atlas project: decided to use Postgres over DynamoDB on 2026-04-02. Rationale: the team needs relational joins for the reporting layer and already has Postgres operational experience."
+        },
+        {
+          "id": "blk-021",
+          "type": "decision_log",
+          "content": "Atlas project: rejected MongoDB for the primary store because the access patterns are highly relational and schema stability matters for the analytics exports."
+        },
+        {
+          "id": "blk-022",
+          "type": "meeting_note",
+          "content": "Atlas architecture review 2026-04-02: agreed Postgres is the primary datastore; Redis added as a cache layer for hot read paths. Owner: Diego Alvarez."
+        }
+      ]
+    },
+    {
+      "id": "syn-004",
+      "topic": "vector-search-research",
+      "query": "what have I learned about choosing a vector database?",
+      "memories": [
+        {
+          "id": "blk-030",
+          "type": "research_note",
+          "content": "Vector DB note: HNSW indexes give fast approximate nearest-neighbor search but use more memory than IVF. Good default for under ~10M vectors."
+        },
+        {
+          "id": "blk-031",
+          "type": "research_note",
+          "content": "Vector DB note: managed services like Pinecone and Cloudflare Vectorize remove ops burden but cost more per query than self-hosting pgvector for small workloads."
+        },
+        {
+          "id": "blk-032",
+          "type": "research_note",
+          "content": "Vector DB note: cosine similarity is the standard metric for text embeddings; normalize vectors first so dot product equals cosine."
+        }
+      ]
+    },
+    {
+      "id": "syn-005",
+      "topic": "company-profile",
+      "query": "what do I know about Cobalt Labs?",
+      "memories": [
+        {
+          "id": "blk-040",
+          "type": "company",
+          "content": "Cobalt Labs is a Series B developer-tools company, roughly 120 employees, headquartered in Austin. They build CI/CD infrastructure."
+        },
+        {
+          "id": "blk-041",
+          "type": "contact",
+          "content": "Marcus Webb is an engineering manager at Cobalt Labs. He led the take-home review for my Staff Backend application."
+        },
+        {
+          "id": "blk-042",
+          "type": "research_note",
+          "content": "Cobalt Labs raised a $45M Series B in early 2026 led by Foundry Ventures. They are hiring aggressively on the backend team."
+        }
+      ]
+    },
+    {
+      "id": "syn-006",
+      "topic": "meeting-action-items",
+      "query": "what were the action items from the Q2 planning meetings?",
+      "memories": [
+        {
+          "id": "blk-050",
+          "type": "meeting_note",
+          "content": "Q2 planning part 1 (2026-04-05): action item — Diego to finalize the Atlas migration plan by end of April. Sarah to draft the API deprecation notice."
+        },
+        {
+          "id": "blk-051",
+          "type": "meeting_note",
+          "content": "Q2 planning part 2 (2026-04-12): action item — engineering to cut the v2.0 release candidate by May 1. Priya to coordinate the hiring pipeline for two backend roles."
+        },
+        {
+          "id": "blk-052",
+          "type": "meeting_note",
+          "content": "Q2 planning wrap-up (2026-04-19): confirmed owners — Diego (migration), Sarah (deprecation docs), and agreed to revisit the caching strategy in Q3."
+        }
+      ]
+    },
+    {
+      "id": "syn-007",
+      "topic": "salary-benchmarks",
+      "query": "what salary ranges have I seen for senior and staff backend roles?",
+      "memories": [
+        {
+          "id": "blk-060",
+          "type": "research_note",
+          "content": "Comp data: Northwind Systems Senior Backend Engineer base range was $180k-$205k, no signing bonus mentioned."
+        },
+        {
+          "id": "blk-061",
+          "type": "research_note",
+          "content": "Comp data: Cobalt Labs Staff Backend Engineer offered $210k base plus equity, Austin-based."
+        },
+        {
+          "id": "blk-062",
+          "type": "research_note",
+          "content": "Comp data: an industry survey put US senior backend total comp around $230k median and staff around $300k median for 2026."
+        }
+      ]
+    },
+    {
+      "id": "syn-008",
+      "topic": "project-status-rollup",
+      "query": "what is the current status of the Atlas migration?",
+      "memories": [
+        {
+          "id": "blk-070",
+          "type": "project",
+          "content": "Atlas migration: phase 1 (schema port to Postgres) completed 2026-05-01. Owner Diego Alvarez. No data loss reported."
+        },
+        {
+          "id": "blk-071",
+          "type": "project",
+          "content": "Atlas migration: phase 2 (dual-write and backfill) in progress as of 2026-05-15, roughly 60% of historical rows backfilled."
+        },
+        {
+          "id": "blk-072",
+          "type": "meeting_note",
+          "content": "Atlas standup 2026-05-20: phase 2 backfill on track; cutover to Postgres as the source of truth targeted for early June."
+        }
+      ]
+    },
+    {
+      "id": "syn-009",
+      "topic": "conference-takeaways",
+      "query": "what were my main takeaways from BackendConf 2026?",
+      "memories": [
+        {
+          "id": "blk-080",
+          "type": "research_note",
+          "content": "BackendConf 2026 takeaway: the keynote argued for boring, well-understood databases over novel ones unless you have a specific scale problem."
+        },
+        {
+          "id": "blk-081",
+          "type": "research_note",
+          "content": "BackendConf 2026 takeaway: a talk on idempotency keys showed a clean pattern for safe retries in payment APIs using a dedicated dedupe table."
+        },
+        {
+          "id": "blk-082",
+          "type": "contact",
+          "content": "Met Priya Nair at BackendConf 2026; she recruits for backend roles and we exchanged contact details."
+        }
+      ]
+    },
+    {
+      "id": "syn-010",
+      "topic": "tooling-decision",
+      "query": "what did the team decide about the CI/CD tooling and who owns it?",
+      "memories": [
+        {
+          "id": "blk-090",
+          "type": "decision_log",
+          "content": "Decided on 2026-03-15 to standardize CI on GitHub Actions across all repos, retiring the legacy Jenkins server by Q3. Owner: Sarah Kim."
+        },
+        {
+          "id": "blk-091",
+          "type": "decision_log",
+          "content": "Rejected migrating CI to Cobalt Labs' hosted runners for now — cost was not justified for the current build volume. Revisit if build minutes exceed budget."
+        },
+        {
+          "id": "blk-092",
+          "type": "meeting_note",
+          "content": "Tooling review 2026-03-15: Sarah Kim to lead the GitHub Actions rollout; first repos migrated by April, full cutover targeted for Q3."
+        }
+      ]
+    }
+  ]
+}
