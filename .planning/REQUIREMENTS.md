@@ -60,7 +60,7 @@ Russell's calls at milestone start:
 
 ### Synthesis Activation Eval (SYN) — Feature #4
 
-- [ ] **SYN-01**: `synthesis-fidelity.eval.test.ts` (promptfoo + LLM-judge model) scores synthesis outputs across the expanded corpus from PRE-03 augmented with `expected_synthesis` ground-truth captions.
+- [x] **SYN-01**: `synthesis-fidelity.eval.test.ts` (promptfoo + LLM-judge model) scores synthesis outputs across the expanded corpus from PRE-03 augmented with `expected_synthesis` ground-truth captions.
 - [ ] **SYN-02**: LLM-judge faithfulness pass rate ≥ 90% on the eval corpus; zero hallucinated entities (PITFALLS SY-1 + SY-2 catastrophic gates).
 - [x] **SYN-03**: Citation density ≥ 1 `[memory_id]` marker per 80 chars of synthesis output; post-process drops any sentence without an inline citation (PITFALLS SY-2 grounding lock).
 - [ ] **SYN-04**: Synthesis output p50 ≤ 5s, p99 ≤ 8s when invoked via `recall(verbosity="synthesis")` or `recall(verbosity="both")` (PITFALLS SY-6 latency budget).

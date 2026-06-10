@@ -224,13 +224,13 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1** *(no dependencies — parallel)*
 
 - [x] 04-01-PLAN.md — Wave 0 infrastructure: JUDGE_MODEL constant + CF-CODE-ASSIST-USAGE.md scaffold + synthesis-postprocess.test.ts + synthesis-preflight.test.ts + Intl.Segmenter probe
-- [ ] 04-02-PLAN.md — Corpus caption augmentation: generate-synthesis-captions.mjs + 30 validate-split expected_synthesis captions + sync to vendored fixture (SYN-01)
+- [x] 04-02-PLAN.md — Corpus caption augmentation: generate-synthesis-captions.mjs + 30 validate-split expected_synthesis captions + sync to vendored fixture (SYN-01)
 
 **Wave 2** *(blocked on 04-01)*
 
