@@ -354,6 +354,30 @@ Plans:
 
 - [ ] TBD (promote with `/gsd:review-backlog` when ready)
 
+### Phase 999.2: D-09 all-uncited synthesis floor (BACKLOG)
+
+**Goal:** Fix the synthesis-availability bug surfaced by the Phase 4 eval gate (04-04). `dropUncitedSentences` (D-09) empties a synthesis entirely when the model produces a faithful-but-uncited summary (no "memory N" markers → no `[blk-id]` citations → every sentence dropped). Observed ~40% empty on the curated synthesis corpus. The faithfulness is fine (zero hallucinated entities); only availability suffers.
+
+**Proposed fix:** add an all-uncited floor — when `dropUncitedSentences` would drop *every* sentence, keep the synthesis (optionally apply the low-confidence hedge prefix) rather than returning empty. Compatible with existing 04-01 unit tests (they cover mixed cited/uncited, not all-uncited). Faithfulness-preserving.
+
+**Source:** [packages/mcp-server/src/tools.ts dropUncitedSentences](../packages/mcp-server/src/tools.ts), Phase 4 04-04-SUMMARY.md "Known behavior".
+
+Plans:
+
+- [ ] TBD (promote with `/gsd:review-backlog` when ready)
+
+### Phase 999.3: Synthesis faithfulness LLM-judge robustness (BACKLOG)
+
+**Goal:** Reduce LLM-judge noise so the SYN-02 faithfulness *rate* can be restored as a hard gate (currently advisory/logged per the 04-04 recalibration). The judge mis-scores claims that cite multiple memories collectively (observed false-negative where a claim present in `blk-052` was marked unsupported because it was attributed to `[blk-050]/[blk-051]/[blk-052]` together).
+
+**Proposed fix:** larger eval N (more curated cases) and/or a refined judge rubric for collective citations; then re-promote `passRate >= 0.90` to a hard `expect()`. The zero-hallucinated-entities hard gate already holds.
+
+**Source:** Phase 4 04-04-SUMMARY.md "Known behavior", `synthesis-fidelity.eval.test.ts`.
+
+Plans:
+
+- [ ] TBD (promote with `/gsd:review-backlog` when ready)
+
 ## Progress
 
 | Milestone | Phases | Status | Shipped |
