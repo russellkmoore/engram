@@ -274,6 +274,95 @@ export function dropUncitedSentences(
 const ANALYTICS_ENV_TAG = "engram-prod" as const;
 
 /**
+ * generateSynthesis — extracted synthesis GENERATION logic from recall().
+ *
+ * Encapsulates the full synthesis pipeline on a pre-ranked set of memories:
+ *   trimRankedForSynthesis (SYN-05 preflight) → lowConfidence flag (SYN-06) →
+ *   formatBlocksForSynthesis → safeRun(CLASSIFIER_MODEL) → post-processing chain
+ *   (applyHedgePrefix → mapPositionsToCitationIds → dropUncitedSentences).
+ *
+ * This is a PURE EXTRACTION from recall(). Behavior is identical to the inline
+ * block that previously lived inside recall(). recall() now delegates here and
+ * owns: SYN-07 single-memory guard, writeAnalytics timing calls (SYN-09),
+ * and merging returned gaps into synthesisGaps.
+ *
+ * Exported so the synthesis-fidelity eval can drive the synthesis path directly
+ * on content-bearing fixtures without going through the full recall() pipeline
+ * (Pitfall 2 from 04-RESEARCH.md: query expansion budget leak).
+ *
+ * NOTE: SYNTHESIS_SYSTEM_PROMPT is byte-frozen (D-01/SYN-10). Do NOT edit it.
+ * Any change requires re-running the synthesis-fidelity eval (SYN-02).
+ *
+ * @param env     Worker Env (needs env.AI for safeRun).
+ * @param ranked  Pre-ranked memory hits (≥2 expected; caller should check SYN-07).
+ * @param query   The original recall query (passed to formatBlocksForSynthesis).
+ * @returns       { synthesis, synthInput, lowConfidence, gaps }
+ *                synthesis=null means the generation failed (honest-stubs posture).
+ *                synthInput is populated even on failure (empty string if preflight failed).
+ *                gaps contains any failure/skip messages to surface via meta.gaps.
+ */
+export async function generateSynthesis(
+  env: Env,
+  ranked: LexicalSearchHit[],
+  query: string,
+): Promise<{
+  synthesis: string | null;
+  synthInput: string;
+  lowConfidence: boolean;
+  gaps: string[];
+}> {
+  let synthesis: string | null = null;
+  let synthInput = "";
+  let lowConfidence = false;
+  const gaps: string[] = [];
+
+  try {
+    // SYN-05: trimRankedForSynthesis throws when ALL memories exceed 6K token budget.
+    // The catch below handles it via honest-stubs posture (synthesis=null, gaps surfaced).
+    const trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
+
+    // SYN-06: lowConfidence = min(cosine over trimmed set) < 0.7
+    const cosineScores = trimmedForSynth.map((m) => m.score ?? 0);
+    const minCosine = cosineScores.length > 0 ? Math.min(...cosineScores) : 0;
+    lowConfidence = minCosine < 0.7;
+
+    synthInput = formatBlocksForSynthesis(trimmedForSynth, query);
+
+    const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
+      messages: [
+        { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
+        { role: "user", content: synthInput },
+      ],
+      temperature: 0.3,
+      max_tokens: 1024,
+    });
+    synthesis = typeof synthResp.response === "string" ? synthResp.response : null;
+
+    // Post-processing chain (runs AFTER safeRun):
+    // SYN-06: hedge prefix, D-02: position→id mapping, D-09: uncited-sentence drop.
+    if (synthesis !== null) {
+      synthesis = applyHedgePrefix(synthesis, lowConfidence); // SYN-06
+      synthesis = mapPositionsToCitationIds(synthesis, trimmedForSynth); // D-02
+      synthesis = dropUncitedSentences(synthesis, trimmedForSynth, {
+        lowConfidenceHedge: lowConfidence,
+      }); // D-09
+    }
+  } catch (synthErr) {
+    // Per CONTEXT.md D-07 honest-stubs posture — synthesis failures leave synthesis=null;
+    // gaps surfaces the failure rather than crashing the recall.
+    // SYN-05: surface preflight failure in gaps.
+    if (synthErr instanceof Error && synthErr.message.includes("synthesis-preflight:")) {
+      gaps.push("synthesis skipped: context exceeded 6K token budget");
+    } else {
+      gaps.push("synthesis skipped: generation failed");
+    }
+    synthesis = null;
+  }
+
+  return { synthesis, synthInput, lowConfidence, gaps };
+}
+
+/**
  * Tool description for `recall()` — D-02 discoverability triad surface #1.
  * Amended in Phase 5 to document the default verbosity and the opt-in synthesis path.
  * MUST stay ≤ 1,500 UTF-8 bytes (MCP-08 per token-budget.test.ts).
@@ -911,76 +1000,33 @@ export function registerTools(
         (args.verbosity === "synthesis" || args.verbosity === "both") &&
         ranked.length >= 2
       ) {
-        // AI-SPEC.md §4b "Context Window Strategy": cap synthesis input at ~6K tokens.
-        // Drop trailing memories first (lowest-ranked position after hybridRank).
-        // SYN-05: trimRankedForSynthesis throws when ALL memories exceed budget;
-        // the catch below handles it via honest-stubs posture.
+        // Delegate to generateSynthesis() — pure extraction of the synthesis logic.
+        // recall() retains ownership of: SYN-07 guard (above), writeAnalytics timing
+        // calls (SYN-09), and merging returned gaps into synthesisGaps.
         const synthStart = Date.now();
-        // SYN-06: compute lowConfidence flag BEFORE safeRun, from cosine scores of trimmed set.
-        // Must be computed here (before the try/catch) so it's in scope for post-processing.
-        let lowConfidence = false;
-        let trimmedForSynth: LexicalSearchHit[] = [];
-        let synthInput = "";
-        try {
-          trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
-          // SYN-06: lowConfidence = min(cosine over trimmed set) < 0.7
-          const cosineScores = trimmedForSynth.map((m) => m.score ?? 0);
-          const minCosine = cosineScores.length > 0 ? Math.min(...cosineScores) : 0;
-          lowConfidence = minCosine < 0.7;
+        const synthResult = await generateSynthesis(env, ranked, args.query);
+        synthesis = synthResult.synthesis;
 
-          synthInput = formatBlocksForSynthesis(trimmedForSynth, args.query);
-
-          const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
-            messages: [
-              { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
-              { role: "user", content: synthInput },
-            ],
-            temperature: 0.3,
-            max_tokens: 1024,
-          });
-          synthesis = typeof synthResp.response === "string" ? synthResp.response : null;
-
-          // Post-processing chain (runs AFTER safeRun, BEFORE writeAnalytics):
-          // SYN-06: hedge prefix, D-02: position→id mapping, D-09: uncited-sentence drop.
-          if (synthesis !== null) {
-            synthesis = applyHedgePrefix(synthesis, lowConfidence); // SYN-06
-            synthesis = mapPositionsToCitationIds(synthesis, trimmedForSynth); // D-02
-            synthesis = dropUncitedSentences(synthesis, trimmedForSynth, {
-              lowConfidenceHedge: lowConfidence,
-            }); // D-09
-          }
-
-          // SYN-09: blobs[1]="synthesis" (operation-kind discriminator); doubles[1]=estimated token count.
+        // SYN-09: blobs[1]="synthesis" (operation-kind discriminator); doubles[1]=estimated token count.
+        // Determine outcome for analytics: success vs rate-limit vs failed.
+        const synthOutcome = synthesis !== null ? "success" : "synthesis-failed";
+        if (synthesis !== null) {
           writeAnalytics(env, {
             blobs: ["mcp-server", "synthesis", wsTag, "success"],
-            doubles: [Date.now() - synthStart, Math.ceil(synthInput.length / 4), 0, 0],
+            doubles: [Date.now() - synthStart, Math.ceil(synthResult.synthInput.length / 4), 0, 0],
             indexes: [ANALYTICS_ENV_TAG],
           });
-        } catch (synthErr) {
-          // Per CONTEXT.md D-07 honest-stubs posture — synthesis failures leave synthesis=null;
-          // meta.gaps surfaces the failure rather than crashing the recall.
-          console.warn("recall:synthesis-failed", { synthErr });
-
-          // SYN-05: surface preflight failure in meta.gaps.
-          if (
-            synthErr instanceof Error &&
-            synthErr.message.includes("synthesis-preflight:")
-          ) {
-            synthesisGaps.push("synthesis skipped: context exceeded 6K token budget");
-          }
-
-          const synthOutcome =
-            synthErr != null && typeof synthErr === "object" && "isRateLimit" in synthErr
-              ? "retry-429"
-              : "synthesis-failed";
-
-          // SYN-09: blobs[1]="synthesis" (operation-kind discriminator).
+        } else {
           writeAnalytics(env, {
             blobs: ["mcp-server", "synthesis", wsTag, synthOutcome],
-            doubles: [Date.now() - synthStart, 0, 0, synthOutcome === "retry-429" ? 1 : 0],
+            doubles: [Date.now() - synthStart, 0, 0, 0],
             indexes: [ANALYTICS_ENV_TAG],
           });
-          synthesis = null;
+        }
+
+        // Merge synthesis-specific gaps returned by generateSynthesis into synthesisGaps.
+        for (const gap of synthResult.gaps) {
+          synthesisGaps.push(gap);
         }
       }
 

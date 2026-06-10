@@ -4,6 +4,7 @@
  *
  * PHASE-BLOCKING GATES (fail → BLOCKS phase, do NOT proceed to /gsd:verify-work)
  * -------------------------------------------------------------------------------
+ *   SYN-02: judgedTotal ≥ 25 (guards against silent NaN when synthesis broke for most cases)
  *   SYN-02: passRate = passCount / judgedTotal ≥ 0.90 (faithfulness ≥ 90%)
  *   SYN-02: totalHallucinatedEntities === 0 (zero hallucinated entities)
  *   SYN-04: p99 ≤ LOCAL_HANG_CEILING_MS=20_000 (local hang guard only)
@@ -11,31 +12,34 @@
  * NON-BLOCKING (logged for visibility)
  * -----------------------------------------------------------------------
  *   SYN-04: p50 logged vs P50_BUDGET_MS=5000, p99 logged vs P99_BUDGET_MS=8000
- *   SYN-01: per-entry completeness note vs expected_synthesis captions (logged only)
+ *   SYN-01: per-entry completeness note (logged only — captions not a hard gate per D-06/D-07)
  *
  * JUDGE DESIGN (D-04)
  * -------------------
  * The judge is JUDGE_MODEL (@cf/meta/llama-3.3-70b-instruct-fp8-fast) — a larger
  * model than SYNTHESIS_MODEL (Scout). Scout-judging-Scout is self-lenient. The judge
- * assesses faithfulness against SOURCE MEMORIES, not expected_synthesis captions.
- * Captions are a secondary completeness signal (logged, not gating).
+ * assesses faithfulness against SOURCE MEMORIES (the original_content fixtures),
+ * not expected_synthesis captions. Captions are a secondary completeness signal
+ * (logged, not gating).
+ *
+ * EVAL APPROACH: DIRECT generateSynthesis() PATH (GAP-FIX)
+ * ---------------------------------------------------------
+ * The previous approach drove recall() via captureCallback against the "eval-fixtures"
+ * workspace. That workspace has orphan Vectorize vectors but NO seeded SQLite block
+ * content — contentless hits → honest-stub synthesis=null → passRate 0/0 = NaN
+ * (RESEARCH.md Pitfall 2: call synthesis path directly without the full recall() handler).
+ *
+ * This rewrite drives generateSynthesis() DIRECTLY on content-bearing fixtures:
+ *   - reference-corpus.json (20 entries) + real-corpus.json (27 entries) = 47 total
+ *   - Each eval case builds a ranked set of 3 consecutive entries (score=0.8, ≥0.7
+ *     so lowConfidence hedge stays off for a clean faithfulness measurement)
+ *   - No Vectorize, no workspace seeding, no query expansion budget leak
  *
  * BUDGET MATH
  * -----------
- * 30 validate-split entries × 3 calls (embed + synthesis + judge) = 90 calls ≤ MAX_AI_CALLS=200.
+ * 30 eval cases × (1 synthesis + 1 judge) = 60 AI calls ≤ MAX_AI_CALLS=200.
  * MAX_AI_CALLS=200 is enforced automatically via eval-budget.setup.ts (setupFiles in
  * vitest.config.ts eval project) — do NOT reference that file directly.
- *
- * BUDGET LEAK MITIGATION (Pitfall 2 from RESEARCH.md)
- * ----------------------------------------------------
- * This eval calls recall(verbosity="synthesis") via captureCallback. If adaptive query
- * expansion fires (top1_cosine < ADAPTIVE_TOP1_THRESHOLD=0.65), each entry may consume
- * up to ~8 calls instead of ~3. Worst-case expansion for all 30: 30 × ~8 = 240 > 200.
- * Mitigation: the 0.85 variant-gate + 0.65 adaptive threshold typically results in
- * <20% of queries triggering fan-out (observe fan-out rate in logs). If budget is
- * exceeded, re-run with EVAL_SPLIT=train (expansion more likely quiet) or call the
- * synthesis helpers directly via the production formatBlocksForSynthesis path. Do NOT
- * change MAX_AI_CALLS.
  *
  * PROMPT FREEZE WARNING (D-01 / SYN-10)
  * --------------------------------------
@@ -46,25 +50,26 @@
  * @requirement SYN-01, SYN-02, SYN-04
  */
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { env } from "cloudflare:workers";
 import { JUDGE_MODEL, sanitizeJsonSchemaForWorkersAI } from "@engram/ai-config";
 import { z } from "zod";
 import { safeRun } from "../../ai-helper.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { registerTools } from "../../tools.js";
+import { generateSynthesis } from "../../tools.js";
+import type { LexicalSearchHit } from "@engram/workspace-do";
 
-// Build-time JSON import — workerd cannot fs.readFileSync host-filesystem paths.
-import corpusJson from "./fixtures/recall-corpus-v2.json" with { type: "json" };
+// Build-time JSON imports — workerd cannot fs.readFileSync host-filesystem paths.
+import referenceCorpusJson from "./fixtures/reference-corpus.json" with { type: "json" };
+import realCorpusJson from "./fixtures/real-corpus.json" with { type: "json" };
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 /**
- * Maximum validate-split entries to run through the judge in this eval session.
- * Budget: 30 × 3 calls (embed + synthesis + judge) = 90 calls (≤200 ceiling).
- * Cap at the full 30-entry validate split per D-08.
+ * Maximum eval cases to run through the judge in this eval session.
+ * Budget: 30 cases × 2 calls (synthesis + judge) = 60 calls (≤200 ceiling).
+ * Cap at 30, drawn from the merged reference+real corpus (47 total entries).
  */
 const SYNTHESIS_FIDELITY_QUERY_CAP = 30;
 
@@ -86,29 +91,40 @@ const P99_BUDGET_MS = 8000;
  */
 const LOCAL_HANG_CEILING_MS = 20_000;
 
-const EVAL_WORKSPACE_ID = "eval-fixtures";
-
 // ---------------------------------------------------------------------------
-// Types
+// Corpus entry types
 // ---------------------------------------------------------------------------
 
-interface CorpusEntry {
+interface ReferenceEntry {
   id: string;
-  bucket: "critical-path" | "known-failure" | "extraction" | "edge";
-  query: string;
-  expected_top_3_block_ids: [string, string, string];
-  split: "train" | "validate";
+  bucket: string;
+  memory_type: string;
+  original_content: string;
+  paraphrased_query: string;
+  intended_memory_id: string;
+  expected_classified_type: string;
   labeled_by: string;
-  labeled_at: string;
-  expected_synthesis: string | null;
+  labeled_at: number;
+  known_failure_pattern: string | null;
 }
 
-interface CorpusFile {
-  corpus_version: number;
-  embedding_model: string;
-  sources: { name: string; count: number; sourced_at: string }[];
-  buckets: string[];
-  entries: CorpusEntry[];
+interface RealEntry {
+  id: string;
+  bucket: string;
+  memory_type: string;
+  original_content: string;
+  paraphrased_query: string;
+  intended_memory_id: string;
+  expected_classified_type: string;
+  known_failure_pattern: string | null;
+}
+
+// Combined shape used internally
+interface FlatEntry {
+  id: string;
+  original_content: string;
+  paraphrased_query: string;
+  memory_type: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -193,55 +209,58 @@ function hasEvalCreds(): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// captureCallback — invoke recall() via the registered tool handler
-// (pattern from recall-f1.eval.test.ts lines 94–124)
+// Build flat corpus from reference + real fixtures
 // ---------------------------------------------------------------------------
 
-function captureCallback(
-  toolName: string,
-  workspace_id: string,
-): (args: unknown, extra: unknown) => Promise<unknown> {
-  const spy = vi.spyOn(McpServer.prototype, "registerTool");
-  try {
-    const server = new McpServer({ name: "engram-eval", version: "0.0.1" });
-    registerTools(
-      server,
-      () => ({ workspace_id, user_id: "u-eval" }),
-      env,
-      () =>
-        ({
-          waitUntil: (p: Promise<unknown>) => {
-            void p;
-          },
-        }) as unknown as DurableObjectState,
-    );
-    for (const rawCall of spy.mock.calls) {
-      const [callName, , callCb] = rawCall as unknown as [
-        string,
-        unknown,
-        (args: unknown, extra: unknown) => Promise<unknown>,
-      ];
-      if (callName === toolName) return callCb;
-    }
-    throw new Error(`registration for '${toolName}' not captured`);
-  } finally {
-    spy.mockRestore();
+const referenceEntries: FlatEntry[] = (referenceCorpusJson as unknown as ReferenceEntry[]).map(
+  (e) => ({
+    id: e.id,
+    original_content: e.original_content,
+    paraphrased_query: e.paraphrased_query,
+    memory_type: e.memory_type,
+  }),
+);
+
+const realEntries: FlatEntry[] = (realCorpusJson as unknown as RealEntry[]).map((e) => ({
+  id: e.id,
+  original_content: e.original_content,
+  paraphrased_query: e.paraphrased_query,
+  memory_type: e.memory_type,
+}));
+
+const allEntries: FlatEntry[] = [...referenceEntries, ...realEntries];
+
+// ---------------------------------------------------------------------------
+// Helper: build a LexicalSearchHit-shaped ranked set from 3 consecutive entries
+// ---------------------------------------------------------------------------
+
+function buildRankedSet(entries: FlatEntry[], startIdx: number, count = 3): LexicalSearchHit[] {
+  const result: LexicalSearchHit[] = [];
+  for (let i = 0; i < count; i++) {
+    const entry = entries[(startIdx + i) % entries.length];
+    if (entry === undefined) continue;
+    result.push({
+      // Memory fields
+      id: entry.id,
+      type: entry.memory_type,
+      content: entry.original_content,
+      summary: entry.original_content.slice(0, 200),
+      properties: null,
+      embedding_id: null,
+      scope: "personal",
+      project_id: null,
+      source: "eval-fixture",
+      confidence: null,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+      // LexicalSearchHit fields
+      snippet: null,
+      match_column: null,
+      // score >= 0.7 so lowConfidence hedge stays off — clean faithfulness measurement
+      score: 0.8,
+    });
   }
-}
-
-// ---------------------------------------------------------------------------
-// Cast corpus
-// ---------------------------------------------------------------------------
-
-const corpus = corpusJson as unknown as CorpusFile;
-
-// ---------------------------------------------------------------------------
-// Helper — parse the MCP tool response envelope
-// ---------------------------------------------------------------------------
-
-function parseEnvelope(result: unknown): Record<string, unknown> {
-  const r = result as { content: [{ type: "text"; text: string }] };
-  return JSON.parse(r.content[0].text) as Record<string, unknown>;
+  return result;
 }
 
 // ---------------------------------------------------------------------------
@@ -249,16 +268,31 @@ function parseEnvelope(result: unknown): Record<string, unknown> {
 // ---------------------------------------------------------------------------
 
 describe("SYN-01 corpus content check (no creds required)", () => {
-  it("validate-split entries ≥ 30 exist in the fixture", () => {
-    const validateEntries = corpus.entries.filter((e) => e.split === "validate");
-    expect(validateEntries.length).toBeGreaterThanOrEqual(SYNTHESIS_FIDELITY_QUERY_CAP);
+  it("combined reference + real corpus has ≥30 entries with non-empty original_content", () => {
+    const contentful = allEntries.filter((e) => e.original_content.length > 0);
+    expect(contentful.length).toBeGreaterThanOrEqual(SYNTHESIS_FIDELITY_QUERY_CAP);
   });
 
-  it("at least 1 validate-split entry has non-null expected_synthesis", () => {
-    const withCaption = corpus.entries.filter(
-      (e) => e.split === "validate" && e.expected_synthesis !== null,
-    );
-    expect(withCaption.length).toBeGreaterThanOrEqual(1);
+  it("combined corpus total is ≥30 entries", () => {
+    expect(allEntries.length).toBeGreaterThanOrEqual(SYNTHESIS_FIDELITY_QUERY_CAP);
+  });
+
+  it("reference-corpus has expected fields (id, original_content, paraphrased_query)", () => {
+    const first = referenceEntries[0];
+    if (first === undefined) throw new Error("reference corpus is empty");
+    expect(typeof first.id).toBe("string");
+    expect(typeof first.original_content).toBe("string");
+    expect(typeof first.paraphrased_query).toBe("string");
+    expect(first.original_content.length).toBeGreaterThan(0);
+  });
+
+  it("real-corpus has expected fields (id, original_content, paraphrased_query)", () => {
+    const first = realEntries[0];
+    if (first === undefined) throw new Error("real corpus is empty");
+    expect(typeof first.id).toBe("string");
+    expect(typeof first.original_content).toBe("string");
+    expect(typeof first.paraphrased_query).toBe("string");
+    expect(first.original_content.length).toBeGreaterThan(0);
   });
 });
 
@@ -297,7 +331,7 @@ describe("SYN-04 percentile helper sanity (no creds required)", () => {
 
 describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required", () => {
   it(
-    "judge pass rate ≥ 90%; zero hallucinated entities; p99 ≤ LOCAL_HANG_CEILING_MS",
+    "judge pass rate ≥ 90%; zero hallucinated entities; judgedTotal ≥ 25; p99 ≤ LOCAL_HANG_CEILING_MS",
     async () => {
       if (!hasEvalCreds()) {
         console.log(
@@ -307,18 +341,18 @@ describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required"
         return;
       }
 
-      const validateEntries = corpus.entries
-        .filter((e) => e.split === "validate")
-        .slice(0, SYNTHESIS_FIDELITY_QUERY_CAP);
+      // Cap at SYNTHESIS_FIDELITY_QUERY_CAP — each case is one eval entry from allEntries.
+      // Budget: 30 × (1 synthesis + 1 judge) = 60 AI calls ≤ MAX_AI_CALLS=200.
+      const evalCases = allEntries.slice(0, SYNTHESIS_FIDELITY_QUERY_CAP);
 
       console.log(
-        `[SYN-02] Running faithfulness eval on ${String(validateEntries.length)} validate-split entries ` +
+        `[SYN-02] Running faithfulness eval on ${String(evalCases.length)} cases ` +
           `(cap=${String(SYNTHESIS_FIDELITY_QUERY_CAP)}). ` +
-          `Budget: ~${String(validateEntries.length)} × 3 = ~${String(validateEntries.length * 3)} calls ` +
-          `(≤ MAX_AI_CALLS=200). Judge model: ${JUDGE_MODEL}.`,
+          `Budget: ~${String(evalCases.length)} × 2 = ~${String(evalCases.length * 2)} calls ` +
+          `(≤ MAX_AI_CALLS=200). Judge model: ${JUDGE_MODEL}. ` +
+          `Fixture source: reference-corpus (${String(referenceEntries.length)}) + ` +
+          `real-corpus (${String(realEntries.length)}) = ${String(allEntries.length)} total entries.`,
       );
-
-      const recallCb = captureCallback("recall", EVAL_WORKSPACE_ID);
 
       let passCount = 0;
       let judgedTotal = 0;
@@ -327,48 +361,41 @@ describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required"
       let totalHallucinatedEntities = 0;
       const latencyMs: number[] = [];
 
-      for (const entry of validateEntries) {
+      for (let i = 0; i < evalCases.length; i++) {
+        const entry = evalCases[i];
+        if (entry === undefined) continue;
+
+        // Build a ranked set of 3 consecutive entries (wrapping) for synthesis input.
+        // score=0.8 (≥0.7) keeps lowConfidence hedge off for a clean faithfulness measurement.
+        const rankedSet = buildRankedSet(allEntries, i, 3);
+
         const startMs = Date.now();
 
-        // Invoke recall(verbosity="synthesis") via the registered tool handler.
-        // The synthesis path calls SYNTHESIS_MODEL (Scout) on the ranked memories.
-        let recallResult: Record<string, unknown>;
-        try {
-          const raw = await recallCb({ query: entry.query, verbosity: "synthesis", limit: 5 }, {});
-          recallResult = parseEnvelope(raw);
-        } catch (recallErr) {
-          console.warn(
-            `[SYN-02] recall() error for entry ${entry.id}: ` +
-              String(recallErr instanceof Error ? recallErr.message : recallErr),
-          );
-          latencyMs.push(Date.now() - startMs);
-          continue;
-        }
-
+        // Drive generateSynthesis() DIRECTLY — no recall(), no Vectorize, no workspace.
+        // This avoids: orphan-vector contentless-hit problem + query expansion budget leak.
+        const synthResult = await generateSynthesis(env, rankedSet, entry.paraphrased_query);
         const durationMs = Date.now() - startMs;
         latencyMs.push(durationMs);
 
-        // Extract synthesis string from the envelope.
-        const resultPayload = recallResult.result as {
-          synthesis?: string | null;
-          memories?: { id: string; content?: string; summary?: string }[];
-        };
-        const synthesis = resultPayload.synthesis ?? null;
+        const { synthesis } = synthResult;
 
-        // If synthesis is null (honest-stubs fallback): skip judge call for this entry.
+        // If synthesis is null (honest-stubs fallback): skip judge call for this case.
         // Count as neither pass nor fail — synthesis failures are a separate concern.
-        if (synthesis === null) {
+        if (synthesis === null || synthesis.trim() === "") {
           synthesisNullCount++;
-          console.log(`[SYN-02] entry=${entry.id} synthesis=null (honest-stub) — skipping judge`);
+          console.log(
+            `[SYN-02] case=${entry.id} (i=${String(i)}) synthesis=null/empty — skipping judge. ` +
+              `gaps=${JSON.stringify(synthResult.gaps)}`,
+          );
           continue;
         }
 
-        // Build source-memory context for the judge from the recalled memories.
-        // The judge evaluates faithfulness against these actual returned memories,
-        // not the expected_synthesis captions (which would contaminate the signal).
-        const memories = resultPayload.memories ?? [];
-        const sourceMemoriesText = memories
-          .map((m, i) => `[${String(i + 1)}] ${m.summary ?? m.content ?? "(no content)"}`)
+        // Build source-memory context for the judge from the ranked set.
+        // The judge evaluates faithfulness against these actual content-bearing fixtures,
+        // not the expected_synthesis captions (which would contaminate the signal — Pitfall 5).
+        // Use synthInput from generateSynthesis (the formatted block text passed to the model).
+        const sourceMemoriesText = rankedSet
+          .map((m, idx) => `[${String(idx + 1)}] ${m.summary ?? m.content ?? "(no content)"}`)
           .join("\n");
 
         // Judge call: JUDGE_MODEL assesses faithfulness vs source memories.
@@ -395,7 +422,7 @@ describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required"
           // corrupt the metric (V5 ASVS security gate).
           judgeErrors++;
           console.warn(
-            `[SYN-02] judge call error for entry ${entry.id}: ` +
+            `[SYN-02] judge call error for case=${entry.id}: ` +
               String(judgeErr instanceof Error ? judgeErr.message : judgeErr),
           );
           continue;
@@ -406,7 +433,7 @@ describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required"
         const parsed = JudgeVerdict.safeParse(judgeResp.response);
         if (!parsed.success) {
           judgeErrors++;
-          console.warn(`[SYN-02] judge parse error for entry ${entry.id}: ` + parsed.error.message);
+          console.warn(`[SYN-02] judge parse error for case=${entry.id}: ` + parsed.error.message);
           continue;
         }
 
@@ -417,7 +444,7 @@ describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required"
           passCount++;
         } else {
           console.log(
-            `[SYN-02] FAIL entry=${entry.id}: ` +
+            `[SYN-02] FAIL case=${entry.id}: ` +
               `hallucinated_entities=${JSON.stringify(verdict.hallucinated_entities)}, ` +
               `unsupported_claims=${JSON.stringify(verdict.unsupported_claims)}`,
           );
@@ -425,18 +452,15 @@ describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required"
 
         totalHallucinatedEntities += verdict.hallucinated_entities.length;
 
-        // Completeness check (logged only, NOT gating): compare synthesis content
-        // against expected_synthesis caption as a secondary signal (SYN-01).
-        // Captions must NOT contaminate the faithfulness gate (RESEARCH.md Pitfall 5).
-        if (entry.expected_synthesis !== null && entry.expected_synthesis.length > 0) {
-          const overlapNote =
-            synthesis.length > 0
-              ? `synthesis.length=${String(synthesis.length)}, caption.length=${String(entry.expected_synthesis.length)}`
-              : "synthesis empty";
-          console.log(
-            `[SYN-01] completeness check (logged only) entry=${entry.id}: ${overlapNote}`,
-          );
-        }
+        // Completeness check (logged only, NOT gating):
+        // These fixtures don't have expected_synthesis captions, but log synthesis length
+        // for diagnostics (SYN-01 secondary signal intent).
+        console.log(
+          `[SYN-01] case=${entry.id} (i=${String(i)}): ` +
+            `faithful=${String(verdict.faithful)}, ` +
+            `synthesis.length=${String(synthesis.length)}, ` +
+            `hallucinatedEntities=${String(verdict.hallucinated_entities.length)}`,
+        );
       }
 
       // ---------------------------------------------------------------------------
@@ -472,6 +496,10 @@ describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required"
       // Hard gates (phase-blocking — BLOCKS /gsd:verify-work if these fail)
       // ---------------------------------------------------------------------------
 
+      // NEW gate: prevent silent NaN passing — synthesis must have worked for most cases.
+      // If judgedTotal < 25, the synthesis path is broken (not a faithfulness issue).
+      expect(judgedTotal).toBeGreaterThanOrEqual(25);
+
       // SYN-02: faithfulness ≥ 90%
       expect(passCount / judgedTotal).toBeGreaterThanOrEqual(0.9);
 
@@ -482,7 +510,7 @@ describe("SYN-02 faithfulness gate (≥90%) + SYN-04 latency — creds required"
       // (production SLA p50≤5s / p99≤8s is confirmed on deployed Worker, not here)
       expect(p99).toBeLessThanOrEqual(LOCAL_HANG_CEILING_MS);
     },
-    // 10-minute timeout — 30 queries × (synthesis + judge) calls over remote bindings
+    // 10-minute timeout — 30 cases × (synthesis + judge) calls over remote bindings
     10 * 60 * 1000,
   );
 });
