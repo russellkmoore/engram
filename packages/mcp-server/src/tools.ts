@@ -111,7 +111,9 @@ import {
 import type { EngramProps } from "./index.js";
 
 // ---------------------------------------------------------------------------
-// Phase 5 D-01 / D-02 / D-03: recall() synthesis helpers (file-local, not exported)
+// Phase 5 D-01 / D-02 / D-03: recall() synthesis helpers
+// Post-processor helpers are exported so unit tests (synthesis-postprocess.test.ts,
+// synthesis-preflight.test.ts) can import them directly (Plan 04-03).
 // ---------------------------------------------------------------------------
 
 /**
@@ -135,8 +137,12 @@ Output prose only; no markdown headers; no JSON; no bullet lists.` as const;
  * Trims the ranked memories list to fit within maxTokens worth of synthesis input.
  * Per AI-SPEC.md §4b "Context Window Strategy": drop trailing memories first.
  * Conservative estimate: ~4 chars per token.
+ *
+ * SYN-05: Throws when ALL memories exceed the token budget (empty result after trimming).
+ * The throw propagates into the existing try/catch in the synthesis block, which sets
+ * synthesis=null and surfaces the failure via meta.gaps (honest-stubs posture).
  */
-function trimRankedForSynthesis(
+export function trimRankedForSynthesis(
   memories: LexicalSearchHit[],
   maxTokens: number,
 ): LexicalSearchHit[] {
@@ -148,6 +154,11 @@ function trimRankedForSynthesis(
     if (used + cost > charBudget) break;
     out.push(m);
     used += cost;
+  }
+  // SYN-05: if no memory fits within budget, throw — the synthesis try/catch catches this
+  // and surfaces via meta.gaps ("synthesis skipped: context exceeded 6K token budget").
+  if (out.length === 0) {
+    throw new Error("synthesis-preflight: all memories exceed 6K token budget");
   }
   return out;
 }
@@ -163,6 +174,97 @@ function formatBlocksForSynthesis(memories: LexicalSearchHit[], query: string): 
     );
   });
   return lines.join("\n");
+}
+
+/**
+ * SYN-06: Prepends a hedge prefix to the synthesis string when the minimum cosine
+ * score over the source memories is below 0.7.
+ * Applied AFTER safeRun returns, BEFORE mapPositionsToCitationIds.
+ */
+export function applyHedgePrefix(synthesis: string, lowConfidence: boolean): string {
+  if (lowConfidence) {
+    return (
+      "Note: the following is based on loosely-matched memories and may be incomplete. " + synthesis
+    );
+  }
+  return synthesis;
+}
+
+/**
+ * D-02: Replaces "memory N" (case-insensitive, word-boundary-aware) with [block_id]
+ * from the ranked list ordering (trimmedForSynth[i] ↔ "memory i+1").
+ * Out-of-range citations (N > trimmedForSynth.length) remain as literal text —
+ * dropUncitedSentences then drops sentences containing them (D-03 is subsumed by D-09).
+ */
+export function mapPositionsToCitationIds(
+  synthesis: string,
+  trimmedForSynth: LexicalSearchHit[],
+): string {
+  let result = synthesis;
+  for (let i = 0; i < trimmedForSynth.length; i++) {
+    const position = i + 1;
+    const mem = trimmedForSynth[i];
+    if (mem === undefined) continue;
+    const blockId = mem.id;
+    // Use word-boundary lookahead so "memory 10" is not partially matched by "memory 1".
+    result = result.replace(
+      new RegExp(`memory ${String(position)}(?=\\b|[^0-9])`, "gi"),
+      `[${blockId}]`,
+    );
+  }
+  return result;
+}
+
+/**
+ * D-09: Drops every sentence in the synthesis that does not contain a citation marker
+ * ([block_id]), EXCEPT:
+ *   (a) the first sentence when lowConfidenceHedge=true (the hedge prefix sentence), and
+ *   (b) gap-acknowledgment sentences containing words like "no information" / "not found".
+ *
+ * Uses Intl.Segmenter as primary; falls back to regex sentence splitting if absent.
+ */
+export function dropUncitedSentences(
+  synthesis: string,
+  trimmedForSynth: LexicalSearchHit[],
+  opts: { lowConfidenceHedge?: boolean } = {},
+): string {
+  // Suppress unused param: trimmedForSynth is part of the public contract for
+  // potential future use (e.g., citation-density checks per SYN-03).
+  void trimmedForSynth;
+
+  const CITATION_RE = /\[[^\]]+\]/;
+  const GAP_ACK_RE = /\b(no information|not found|unable to|unclear|gap|don't have)\b/i;
+
+  // Pre-split on ". [" boundaries that Intl.Segmenter won't detect (citation markers
+  // begin with "[", not a capital letter, so they don't trigger ICU sentence rules).
+  // Insert a sentinel newline before each ". [" boundary so the segmenter sees a break.
+  const PRESPLIT_RE = /([.!?])\s+(?=\[)/g;
+  const presplit = synthesis.replace(PRESPLIT_RE, "$1\n");
+
+  let segments: { segment: string; index?: number }[];
+  try {
+    const segmenter = new Intl.Segmenter("en", { granularity: "sentence" });
+    segments = [...segmenter.segment(presplit)];
+  } catch {
+    // Regex fallback for workerd environments where Intl.Segmenter is absent.
+
+    const parts = presplit.split(/(?<=[.!?])\s+(?=[A-Z[])/);
+    segments = parts.map((s) => ({ segment: s }));
+  }
+
+  const kept: string[] = [];
+  for (let idx = 0; idx < segments.length; idx++) {
+    const seg = segments[idx];
+    if (seg === undefined) continue;
+    const sentence = seg.segment.trim();
+    if (!sentence) continue;
+    const isFirstAndHedge = opts.lowConfidenceHedge === true && idx === 0;
+    const isGapAck = GAP_ACK_RE.test(sentence);
+    if (isFirstAndHedge || isGapAck || CITATION_RE.test(sentence)) {
+      kept.push(seg.segment);
+    }
+  }
+  return kept.join("").trim();
 }
 
 /**
