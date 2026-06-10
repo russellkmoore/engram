@@ -58,7 +58,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the recruiter from the fintech meetup keeps reaching out about backend work. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-003",
@@ -71,7 +71,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Berlin-based edge compute company has the strong engineering reputation. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-004",
@@ -127,7 +127,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the staff engineer at Adyen on the ledger team. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-008",
@@ -140,7 +140,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the that fintech role I applied for at the start of the year. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-009",
@@ -189,7 +189,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the VP Engineering reference from cloudflare dev day. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-013",
@@ -291,7 +291,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Vectorize 429 forced retry path test fixture. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-021",
@@ -301,7 +301,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Solution Architecture director role at the DevOps platform. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-022",
@@ -327,7 +327,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the retail company's platform engineering director role in Pleasanton. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-024",
@@ -340,7 +340,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Airflow data orchestration EM role at the payments platform. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-025",
@@ -366,7 +366,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null,
+      "expected_synthesis": "Based on the retrieved memories, the threat detection engineering manager role at the observability vendor. Memory 1 and memory 2 provide the primary supporting context for this query.",
       "original_top_3_block_ids": ["ef-027", "ef-028", "ef-013"],
       "relabeled_at": "2026-06-08T06:42:59.803Z",
       "relabeled_reason": "qwen3_unreachable_original_id",
@@ -413,7 +413,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the design tools company's enterprise AI product director role. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-030",
@@ -510,7 +510,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the VP of Product role at the developer tools Series C startup. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-038",
@@ -562,7 +562,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the decision to use Bun for internal tooling scripts. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-042",
@@ -611,7 +611,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null,
+      "expected_synthesis": "Based on the retrieved memories, the media company's director of engineering streaming infrastructure role in LA. Memory 1 and memory 2 provide the primary supporting context for this query.",
       "original_top_3_block_ids": ["ef-055", "ef-083", "ef-076"],
       "relabeled_at": "2026-06-08T06:42:59.803Z",
       "relabeled_reason": "qwen3_unreachable_original_id",
@@ -625,7 +625,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null,
+      "expected_synthesis": "Based on the retrieved memories, research on WebAssembly for edge-native data processing in Workers. Memory 1 and memory 2 provide the primary supporting context for this query.",
       "original_top_3_block_ids": ["ef-056", "ef-097", "ef-099"],
       "relabeled_at": "2026-06-08T06:42:59.803Z",
       "relabeled_reason": "qwen3_unreachable_original_id",
@@ -662,7 +662,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the engineering manager role at the fintech payment routing company in NY or SF. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-050",
@@ -675,7 +675,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, vector database comparison research Pinecone versus Cloudflare Vectorize. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-051",
@@ -688,7 +688,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the OAuth proxy server side project using Hono. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-052",
@@ -728,7 +728,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, Workers AI inference latency benchmarks for qwen3 embedding model. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-056",
@@ -748,7 +748,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Engram CLI side project for local development. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-058",
@@ -761,7 +761,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the decision to use Zod v4 as the primary schema validation library. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-059",
@@ -781,7 +781,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, research on TypeScript decorators versus schema-as-data for memory types. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-061",
@@ -801,7 +801,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the decision on Engram's progressive enrichment phases. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-063",
@@ -862,7 +862,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the did I talk to about backend engineering roles last quarter. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-068",
@@ -903,7 +903,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the decisions have I made about Engram's architecture. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-071",
@@ -1013,7 +1013,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the meeting notes do I have from this week. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-080",
@@ -1023,7 +1023,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the side projects are currently active. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-081",
@@ -1091,7 +1091,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null,
+      "expected_synthesis": "Based on the retrieved memories, key decisions I've made in the past month. Memory 1 and memory 2 provide the primary supporting context for this query.",
       "original_top_3_block_ids": ["ef-038", "ef-005", "ef-081"],
       "relabeled_at": "2026-06-08T06:42:59.803Z",
       "relabeled_reason": "qwen3_unreachable_original_id",
@@ -1167,7 +1167,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the engineer I spoke to at that conference. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-093",
@@ -1207,7 +1207,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null,
+      "expected_synthesis": "Based on the retrieved memories, tell me everything. Memory 1 and memory 2 provide the primary supporting context for this query.",
       "original_top_3_block_ids": ["ef-004", "ef-014", "ef-042"],
       "relabeled_at": "2026-06-08T06:42:59.803Z",
       "relabeled_reason": "qwen3_unreachable_original_id",
