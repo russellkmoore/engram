@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: planning
-last_updated: "2026-06-10T01:40:38.407Z"
-last_activity: 2026-06-10 -- Phase 04 planning complete
+status: executing
+last_updated: "2026-06-10T03:52:04.313Z"
+last_activity: 2026-06-10 -- Phase 04 execution started
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 24
-  completed_plans: 20
+  completed_plans: 21
   percent: 60
 ---
 
@@ -40,10 +40,10 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-06-10 -- Phase 04 planning complete
+Phase: 04 (synthesis-activation-eval) — EXECUTING
+Plan: 2 of 4
+Status: Executing Phase 04
+Last activity: 2026-06-10 -- Phase 04 execution started
 
 ## Phase Status
 
@@ -86,6 +86,7 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 | Phase 03-query-expansion-reranker P03-03 | ~45min | 2 tasks | 5 files | 2026-06-08 |
 | Phase 03 P03-04 | ~20min | 2 tasks | 2 files |
 | Phase 03 P05 | 18m | 2 tasks | 3 files |
+| Phase 04 P01 | 25 minutes | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -180,3 +181,6 @@ _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
 - [Phase 03]: EXP-10 (03-03): expansionUnavailable flag set in catch; META_GAPS.queryExpansionUnavailable appended AFTER buildRecallResponse so it survives trimToBudget; byte-frozen per D-10
 - [Phase 03]: PITFALL-6 (03-03): blockTextMap pre-computes content/summary; empty-content candidates excluded from contexts[]; excluded candidates keep raw cosine via ?? m.score default in rerankedMatches
 - [Phase ?]: Eval-only constant for A/B challenger model
+- [Phase ?]: JUDGE_MODEL = @cf/meta/llama-3.3-70b-instruct-fp8-fast eval-only constant (D-04/SYN-02): larger than Scout for faithful judge eval; llama-3.1-70b deprecated 2026-05-30
+- [Phase ?]: PendingToolsExports interface cast: TDD RED-state imports for not-yet-exported tools.ts helpers; avoids ESLint no-unsafe-call (Plan 04-01)
+- [Phase ?]: Intl.Segmenter AVAILABLE in current workerd build (confirmed 2026-06-10); regex fallback defined as contingency
