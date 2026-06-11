@@ -264,6 +264,23 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
+**Plans:** 5 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Phase 5 routing tracker (05-CF-CODE-ASSIST-USAGE.md) + D-01 matrix audit documentation (6 GENUINE-GAP rows confirmed, Notes updated)
+
+**Wave 2** *(parallel — no file conflicts)*
+
+- [ ] 05-02-PLAN.md — v02-kitchen-sink.test.ts: INT-01 worst-case envelope + all 6 matrix row describe blocks (RNK×CON, RNK×EXP, EXP×SYN, CON×SYN, kitchen-sink, adaptive-routing×cosine-edge)
+- [ ] 05-03-PLAN.md — envelope.test.ts: INT-02 context.conflicts discipline assertion + cross-workspace-pentest.test.ts: INT-03 3 Prong-A cases + 3 Prong-C skips
+- [ ] 05-04-PLAN.md — conflict-pipeline-isolation.test.ts (new): INT-03 D-10 triage-worker workspace routing isolation proof
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 05-05-PLAN.md — INT-04 matrix flip (all 6 rows pending→tested) + INT-05a automated smoke + INT-05b staging ritual checklist + human verification checkpoint
+
 #### v0.2 Build-Order Graph
 
 ```text
