@@ -73,7 +73,7 @@ Russell's calls at milestone start:
 
 ### Integration / Kitchen Sink (INT) — Wave 4
 
-- [ ] **INT-01**: `v02-kitchen-sink.test.ts` integration suite asserts the worst-case envelope (`recall(verbosity="synthesis")` against a fixture with 10 conflicts + 50 entities) serializes ≤ 8K tokens (PITFALLS INT-6).
+- [x] **INT-01**: `v02-kitchen-sink.test.ts` integration suite asserts the worst-case envelope (`recall(verbosity="synthesis")` against a fixture with 10 conflicts + 50 entities) serializes ≤ 8K tokens (PITFALLS INT-6).
 - [ ] **INT-02**: Existing `envelope.test.ts` still passes against the v0.2 envelope shape (new `context.conflicts[]` content, optional `result.synthesis` string) — no breaking changes to the v0.1 contract (PITFALLS INT-4).
 - [ ] **INT-03**: Cross-workspace pentest from v0.1 (TOL-07) is extended to cover the new code paths: expanded-query Vectorize calls, reranker calls, synthesis calls, conflict-pipeline writes — all reject foreign-workspace JWTs.
 - [x] **INT-04**: Integration matrix from PRE-04 resolves to zero untested cross-feature combinations by milestone close.

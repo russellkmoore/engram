@@ -264,7 +264,7 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 **Wave 1**
@@ -273,7 +273,7 @@ Plans:
 
 **Wave 2** *(parallel — no file conflicts)*
 
-- [ ] 05-02-PLAN.md — v02-kitchen-sink.test.ts: INT-01 worst-case envelope + all 6 matrix row describe blocks (RNK×CON, RNK×EXP, EXP×SYN, CON×SYN, kitchen-sink, adaptive-routing×cosine-edge)
+- [x] 05-02-PLAN.md — v02-kitchen-sink.test.ts: INT-01 worst-case envelope + all 6 matrix row describe blocks (RNK×CON, RNK×EXP, EXP×SYN, CON×SYN, kitchen-sink, adaptive-routing×cosine-edge)
 - [ ] 05-03-PLAN.md — envelope.test.ts: INT-02 context.conflicts discipline assertion + cross-workspace-pentest.test.ts: INT-03 3 Prong-A cases + 3 Prong-C skips
 - [ ] 05-04-PLAN.md — conflict-pipeline-isolation.test.ts (new): INT-03 D-10 triage-worker workspace routing isolation proof
 
