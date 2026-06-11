@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
 status: executing
-last_updated: "2026-06-11T02:59:58.195Z"
-last_activity: 2026-06-11 -- Phase 05 execution started
+last_updated: "2026-06-11T03:07:28.893Z"
+last_activity: "2026-06-11 -- Plan 05-02 complete: v02-kitchen-sink.test.ts (INT-01 worst-case + 6 matrix rows, all GREEN)"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 26
+  completed_plans: 27
   percent: 80
 ---
 
@@ -41,7 +41,7 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 ## Current Position
 
 Phase: 05 (integration-kitchen-sink) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Executing Phase 05
 Last activity: 2026-06-11 -- Plan 05-02 complete: v02-kitchen-sink.test.ts (INT-01 worst-case + 6 matrix rows, all GREEN)
 
@@ -90,6 +90,7 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 | Phase 04 P02 | 15min | 2 tasks | 6 files |
 | Phase 05-integration-kitchen-sink P01 | 8 minutes | 2 tasks | 2 files |
 | Phase 05-integration-kitchen-sink P02 | 25 minutes | 1 tasks | 2 files |
+| Phase 05-integration-kitchen-sink P03 | ~10 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -189,3 +190,5 @@ _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
 - [Phase ?]: JUDGE_MODEL = @cf/meta/llama-3.3-70b-instruct-fp8-fast eval-only constant (D-04/SYN-02): larger than Scout for faithful judge eval; llama-3.1-70b deprecated 2026-05-30
 - [Phase ?]: PendingToolsExports interface cast: TDD RED-state imports for not-yet-exported tools.ts helpers; avoids ESLint no-unsafe-call (Plan 04-01)
 - [Phase ?]: Intl.Segmenter AVAILABLE in current workerd build (confirmed 2026-06-10); regex fallback defined as contingency
+- [Phase ?]: 05-03: EXP fan-out D-11 isolation proven via natural empty-namespace routing
+- [Phase ?]: 05-03: All 3 Prong-A v0.2 cases (EXP/RNK/SYN) GREEN with positive-controls; 3 Prong-C stubs added per D-08
