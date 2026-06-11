@@ -47,7 +47,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 - [x] **Phase 2: Recall Quality Baseline** — Hybrid-rank weight tuning + conflict-detection wiring (parallel-trackable: different workers, no shared files) (completed 2026-06-08)
 - [x] **Phase 3: Query Expansion + Reranker** — Multi-query + RRF + bge-reranker integration in `recall()` with adaptive routing (completed 2026-06-08)
 - [x] **Phase 4: Synthesis Activation Eval** — Promote scaffolded `verbosity=synthesis|both` path with LLM-judge faithfulness gate; default stays `chunks` (completed 2026-06-10)
-- [ ] **Phase 5: Integration Kitchen Sink** — Cross-feature integration tests + envelope budget audit + extended cross-workspace pentest
+- [x] **Phase 5: Integration Kitchen Sink** — Cross-feature integration tests + envelope budget audit + extended cross-workspace pentest (completed 2026-06-11)
 
 #### Phase 1: Foundation (Wave 0)
 
@@ -264,7 +264,7 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -279,7 +279,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 05-05-PLAN.md — INT-04 matrix flip (all 6 rows pending→tested) + INT-05a automated smoke + INT-05b staging ritual checklist + human verification checkpoint
+- [x] 05-05-PLAN.md — INT-04 matrix flip (all 6 rows pending→tested) + INT-05a automated smoke + INT-05b staging ritual checklist + human verification checkpoint
 
 #### v0.2 Build-Order Graph
 
