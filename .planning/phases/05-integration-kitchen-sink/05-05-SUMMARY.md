@@ -37,13 +37,14 @@ metrics:
 |------|------|--------|-------|
 | 1 | Flip all 6 matrix rows from pending to tested — INT-04 gate | 366b296 | .planning/research/v0.2-INTEGRATION-MATRIX.md |
 | 2 | INT-05a smoke-kitchen-sink.sh companion script | 7b20a7c | scripts/smoke-kitchen-sink.sh |
+| 3 | Milestone-close checkpoint — human-verified (APPROVED) | — | STATE.md, ROADMAP.md |
 
 ---
 
-## Task 3 (Blocking Checkpoint) — Gate Results
+## Task 3 — Milestone-Close Gate: APPROVED
 
-Task 3 is a `checkpoint:human-verify` with `gate="blocking"`. The following automated
-gates were run before stopping. Results presented for Russell's approval.
+Task 3 was a `checkpoint:human-verify` with `gate="blocking"`. Russell approved 2026-06-11.
+All automated gates passed prior to checkpoint; approval confirms v0.2 milestone close.
 
 ### Gate Results
 
