@@ -668,17 +668,19 @@ The validation architecture for a verification phase differs from a feature phas
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should RNK×EXP, EXP×SYN, CON×SYN, and adaptive-routing tests be separate files or folded into `v02-kitchen-sink.test.ts`?**
    - What we know: CONTEXT.md (Claude's Discretion) defaults to `src/__tests__/integration/` and the `v02-kitchen-sink.test.ts` name.
    - What's unclear: Whether a single large file vs 4 separate focused files better satisfies the matrix's "each tested row has a named file" requirement.
    - Recommendation: Create `v02-kitchen-sink.test.ts` as the kitchen-sink test (INT-01 + kitchen-sink row), and use the same file for CON×SYN and EXP×SYN since they are sub-cases of the full kitchen-sink. RNK×CON and RNK×EXP can be separate `describe` blocks in the same file or separate files. Planner's call.
+   - **RESOLVED:** Plan 05-02 folds all 6 matrix rows into `v02-kitchen-sink.test.ts` as `describe` blocks; Plan 05-01 Task 2 points every matrix Covering Plan cell at `05-02 (kitchen-sink)`.
 
 2. **Does the `captureCallback` pattern in kitchen-sink need to mock `safeRun` for synthesis, or does the AI mock already handle it?**
    - What we know: `recall-conflicts.test.ts` patches `env.AI` in `beforeAll` to return a mock vector. The `tools-integration.test.ts` at line 102 uses `return { data: [MOCK_VECTOR], shape: [1, EMBEDDING_DIMS] }` for embed calls AND `return { response: "Mock synthesis." }` for synthesis calls — a single mock handles both because `safeRun` dispatch is on the model name.
    - What's unclear: Whether the kitchen-sink test can reuse the same single-mock approach and still get a non-null synthesis string.
    - Recommendation: Mirror the `tools-integration.test.ts` approach — mock `env.AI.run` to return `{ response: "Mock synthesis." }` for synthesis calls (by distinguishing embed responses via the `data` key vs `response` key).
+   - **RESOLVED:** Plan 05-02's `interfaces` block adopts the `tools-integration.test.ts` dispatch — embed calls return `{ data, shape }`, synthesis calls return `{ response }` — keyed on the model name, yielding a non-null synthesis string for the content-preservation assertion.
 
 ---
 
