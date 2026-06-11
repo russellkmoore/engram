@@ -264,12 +264,12 @@ Plans:
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — Phase 5 routing tracker (05-CF-CODE-ASSIST-USAGE.md) + D-01 matrix audit documentation (6 GENUINE-GAP rows confirmed, Notes updated)
+- [x] 05-01-PLAN.md — Phase 5 routing tracker (05-CF-CODE-ASSIST-USAGE.md) + D-01 matrix audit documentation (6 GENUINE-GAP rows confirmed, Notes updated)
 
 **Wave 2** *(parallel — no file conflicts)*
 
