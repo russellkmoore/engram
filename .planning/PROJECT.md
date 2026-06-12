@@ -56,9 +56,24 @@ _v0.2: Intelligence Layer (shipped 2026-06-12 — see [milestones/v0.2-ROADMAP.m
 - ✓ **bge-reranker** — integrated but **disabled by ablation** (worse than raw cosine); constant landed at weight 0.0, rationale in changelog — v0.2 (Phase 3)
 - ✓ **Eval discipline** — corpus 27→100 labeled pairs, tiered vitest + `MAX_AI_CALLS=200`, CI re-embed migration audit, kitchen-sink envelope ≤7.5K-token guard — v0.2 (Phases 1, 5)
 
-### Active (next milestone — unscoped)
+## Current Milestone: v0.3 Identity + Surface
 
-**No milestone currently in flight.** v0.2 shipped + archived 2026-06-12 (audit `tech_debt`, no blockers). Scope the next milestone with `/gsd:new-milestone` — the slot is contested between **v0.3 Workspaces + Memory Types** (original arc) and the backlogged **v0.3 Identity + Surface** (consent UI + inbox UI; ROADMAP Phase 999.1). Carry-forward at deploy: EXP-11 latency SLA + INT-05 staging E2E (deploy-gated); SYN-02 passRate restoration (backlog 999.2 + 999.3).
+**Goal:** Give Engram a human-facing surface — a browser sign-in flow (CF Email Routing magic links) so a second user connects via Claude Desktop without ever touching a terminal, plus UI surfaces for the data the MCP layer already produces (inbox, memory browser, admin). This is Engram's first frontend; the MCP surface is now validated (v0.1 + v0.2 shipped), so the human convenience layer is consistent with the MCP-first constraint.
+
+**Target features (Wide scope):**
+
+- **Consent / sign-in flow** — browser-based, CF Email Routing magic links, replaces the 8-step `kv:bootstrap` terminal dance (honors the `oauth.ts:223` promise that slipped from v0.2)
+- **Inbox UI** — human-readable surface for the v0.2 conflict suggestions sitting in the `inbox` table with no view
+- **Memory browser** — view/search stored memories in a UI
+- **Minimal admin** — identity/workspace management + eval-budget dashboard (folds in `scripts/eval-budget-summary.mjs` as a Workers AI neuron-spend view)
+
+**Arc shift:** This inserts as the new **v0.3**, pushing the original _Workspaces + Memory Types_ → **v0.4** and _Connectors + Alerts_ → **v0.5**. v1.0 target stays 2026-09-01. SEED-001 (cross-layer recall) moves with Workspaces to v0.4.
+
+**Carry-forward from v0.2 (independent of this milestone):** EXP-11 latency SLA + INT-05 staging E2E run at first production deploy; SYN-02 passRate restoration tracked by backlog 999.2 + 999.3.
+
+### Active (v0.3 — being scoped)
+
+Requirements scoped via this `/gsd:new-milestone` run — see `.planning/REQUIREMENTS.md` once it lands.
 
 ### Out of Scope (v0.1)
 
@@ -201,4 +216,4 @@ This document evolves at phase transitions and milestone boundaries.
 6. **Linear**: post milestone summary comment on the Linear milestone
 
 ---
-_Last updated: 2026-06-12 — milestone v0.2 (Intelligence Layer) shipped + archived via `/gsd:complete-milestone`. All 4 net-new features validated (conflict wiring, query expansion + RRF, synthesis activation, hybrid-rank tuning); bge-reranker disabled by ablation. Audit `tech_debt` (no blockers); all 5 phases Nyquist-compliant. Deferred at close: EXP-11 + INT-05 (deploy-gated), SYN-02 (advisory override), SEED-001/002 (→ v0.4). Next: `/gsd:new-milestone` to scope v0.3._
+_Last updated: 2026-06-12 — milestone v0.3 (Identity + Surface) scoped via `/gsd:new-milestone`. Wide scope (consent UI + inbox UI + memory browser + minimal admin w/ eval-budget dashboard); CF Email Routing magic links for upstream identity. Inserted as the new v0.3 — original Workspaces+Types → v0.4, Connectors+Alerts → v0.5; v1.0 stays 2026-09-01. First frontend in the project. Carry-forward from v0.2: EXP-11 + INT-05 (deploy-gated), SYN-02 (backlog 999.2/999.3)._

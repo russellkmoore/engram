@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.2
-milestone_name: Intelligence Layer
-status: Awaiting next milestone
-last_updated: "2026-06-12T06:59:38.278Z"
-last_activity: 2026-06-12 — Milestone v0.2 completed and archived
+milestone: v0.3
+milestone_name: Identity + Surface
+status: planning
+last_updated: "2026-06-12T07:19:36.195Z"
+last_activity: 2026-06-12
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 29
-  completed_plans: 29
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Engram
@@ -37,10 +37,10 @@ progress:
 
 ## Current Position
 
-Phase: Milestone v0.2 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-12 — Milestone v0.2 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-12 — Milestone v0.3 started
 
 ## Phase Status
 
