@@ -47,24 +47,18 @@ _Phase 2-7: v0.1 MCP Foundation (2026-05-30):_
 - ✓ Wrangler deploy succeeds; MCP server reachable from Claude Desktop config via `mcp-remote` bridge — v0.1 (Phase 7)
 - ✓ Russell's job-search agent can `remember()` a job posting and `recall()` it later via Claude in a new conversation — v0.1 verified via DEP-03 (Phase 7), substrate proven; Job Scout agent rewire deferred to that repo's own backlog (DEP-04 dropped from v0.1 scope)
 
-### Active (v0.2 — Intelligence Layer, target 2026-06-21)
+_v0.2: Intelligence Layer (shipped 2026-06-12 — see [milestones/v0.2-ROADMAP.md](milestones/v0.2-ROADMAP.md)):_
 
-Scoped 2026-06-02 via `/gsd:new-milestone v0.2`. All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — this milestone is genuinely net-new intelligence-layer work, not cleanup. Full detail in [REQUIREMENTS.md](REQUIREMENTS.md) + [ROADMAP.md](ROADMAP.md). Source-of-truth synthesis: [research/v0.2-SUMMARY.md](research/v0.2-SUMMARY.md).
+- ✓ **Conflict-detection wiring** — `detectConflict()` live in triage via `conflict-pipeline.ts` (cosine prefilter → bounded-parallel → inbox), surfaced read-only in `recall()` via `context.conflicts[]`. Pull-based only — v0.2 (Phase 2)
+- ✓ **Query expansion + RRF** — `expandQuery()` 2 paraphrases (cosine-gated, anti-HyDE), adaptive fan-out at `top1_cosine < 0.65`, RRF `k=60`, 429 fallback — v0.2 (Phase 3)
+- ✓ **Synthesis path activation** — `recall(verbosity=synthesis|both)` with citation-density + cosine-hedging + single-memory rejection; zero-hallucinated-entities gate GREEN; default stays `chunks` — v0.2 (Phase 4)
+- ✓ **Hybrid-rank weight tuning** — 625-config sweep, Pareto + overfit + sensitivity gates; winner beats cosine-only by +0.1095 F1; weights frozen in `shared/ai-config` — v0.2 (Phase 2)
+- ✓ **bge-reranker** — integrated but **disabled by ablation** (worse than raw cosine); constant landed at weight 0.0, rationale in changelog — v0.2 (Phase 3)
+- ✓ **Eval discipline** — corpus 27→100 labeled pairs, tiered vitest + `MAX_AI_CALLS=200`, CI re-embed migration audit, kitchen-sink envelope ≤7.5K-token guard — v0.2 (Phases 1, 5)
 
-**Four net-new features:**
+### Active (next milestone — unscoped)
 
-- [ ] **Conflict-detection wiring** — ship ENG-16's `detectConflict()` scaffold into the live triage flow as low-confidence inbox suggestions. Surfaces via `EngramResponse.context.conflicts[]` in `recall()` (no new MCP tool, no inbox UI — v0.4 work).
-- [ ] **Query expansion** — CF AI rewrites query into 2 paraphrases (3 variants total including original) before Vectorize. RRF merge with `k=60`. Adaptive routing fires only when `top1_cosine < 0.65`. No HyDE.
-- [ ] **Synthesis path activation** — `recall(verbosity=synthesis|both)` activates the scaffolded path with LLM-judge faithfulness gate + citation density floor. Default verbosity stays `"chunks"` (the flip to `"both"` is v0.3 work).
-- [ ] **Hybrid-rank weight tuning** — coarse grid search over `{rerank, recency, type_match, scope_match}` against the expanded labeled corpus. Adds bge-reranker (`@cf/baai/bge-reranker-base`) as drop-in replacement for raw cosine in the rank formula; ablation arm validates contribution.
-
-**Phase structure (5 phases — see [ROADMAP.md](ROADMAP.md) for full detail):**
-
-1. Phase 1 — Foundation (re-embed audit, tiered tests, corpus 27 → 100+, integration matrix)
-2. Phase 2 — Recall Quality Baseline (hybrid-rank tuning + conflict wiring, parallel-trackable)
-3. Phase 3 — Query Expansion + Reranker
-4. Phase 4 — Synthesis Activation Eval
-5. Phase 5 — Integration Kitchen Sink
+**No milestone currently in flight.** v0.2 shipped + archived 2026-06-12 (audit `tech_debt`, no blockers). Scope the next milestone with `/gsd:new-milestone` — the slot is contested between **v0.3 Workspaces + Memory Types** (original arc) and the backlogged **v0.3 Identity + Surface** (consent UI + inbox UI; ROADMAP Phase 999.1). Carry-forward at deploy: EXP-11 latency SLA + INT-05 staging E2E (deploy-gated); SYN-02 passRate restoration (backlog 999.2 + 999.3).
 
 ### Out of Scope (v0.1)
 
@@ -79,12 +73,13 @@ Scoped 2026-06-02 via `/gsd:new-milestone v0.2`. All v0.1 follow-up issues (ENG-
 
 ## Current State
 
+**v0.2 Intelligence Layer shipped + archived 2026-06-12.** The intelligence layer is live on top of v0.1's substrate: hybrid-rank weights tuned against a 100-entry labeled corpus, conflict detection wired into the live triage flow and surfaced read-only in `recall()`, query expansion + RRF with adaptive routing (reranker disabled by its own ablation), and the synthesis path activated with citation/hedging grounding locks (default verbosity stays `chunks`). Milestone audit `tech_debt` — no blockers, all 5 phases Nyquist-compliant. Not yet redeployed: the two deploy-gated confirmations (EXP-11 latency SLA, INT-05 staging E2E) run at the next production deploy. 29 plans, +38.5K LOC across 5 phases (2026-06-03 → 2026-06-11).
+
 **v0.1 MCP Foundation shipped 2026-05-30.** Both Workers (`engram-mcp-server` + `engram-triage-worker`) live on Russell's Cloudflare account. Claude Desktop connected via `mcp-remote` bridge + OAuth + KV-backed identity. Binding acceptance test (DEP-03) PASSED twice: remember in conv A → recall in fresh conv B 9+ hours later returns full structured fields. Triage Worker auto-enrichment demonstrably extracts salary/location/visa/fit-signals from job postings in production.
 
 - **Repo:** [github.com/russellkmoore/engram](https://github.com/russellkmoore/engram) (Apache-2.0)
-- **Deployed URLs:** `https://engram-mcp-server.russellkmoore.workers.dev`, `https://engram-triage-worker.russellkmoore.workers.dev`
+- **Deployed URLs:** `https://engram-mcp-server.russellkmoore.workers.dev`, `https://engram-triage-worker.russellkmoore.workers.dev` (v0.1 build live; v0.2 code merged, redeploy pending)
 - **Single user:** Russell, workspace_id `russell-personal`
-- **14 deferred items** tracked as Linear issues ENG-7..20 for v0.2 triage
 
 ## Context
 
@@ -175,10 +170,12 @@ This is the full v0.1 → v1.0 arc carried over from CLAUDE.md. Only **v0.1** is
 | Project DOs fully isolated, not partitions of TeamDO | Clean project lifecycle, zero cross-project data leakage | — Pending v0.3 |
 | Schema-as-data memory types (not TS classes) | User and community extensibility without redeploy | — Pending v0.1 seeding |
 | MemoryEvent as universal intake primitive | One pipeline serves MCP, connectors, and webhooks | — Pending v0.1 |
-| CF AI for all grunt work | Token budget is a hard design constraint; Claude must not embed or extract | — Pending v0.2 |
+| CF AI for all grunt work | Token budget is a hard design constraint; Claude must not embed or extract | ✓ Good — v0.2: embeddings, query expansion, synthesis, conflict detection, memorability all on Workers AI; Claude only reasons |
 | MCP tool surface capped at 9 tools | Cognitive overhead — too many tools dilute Claude's tool selection | — Pending v1.0 |
-| Inbox triage layer for low-confidence captures | Avoid auto-storing noise; preserve human-in-the-loop for ambiguity | — Pending v0.2 |
-| Progressive enrichment (phase 1 immediate, phase 2/3 via Queue) | Claude never waits on the full pipeline | — Pending v0.2 |
+| Inbox triage layer for low-confidence captures | Avoid auto-storing noise; preserve human-in-the-loop for ambiguity | ✓ Good — v0.2: conflict contradictions written to `inbox` (`proposed_type="conflict"`), surfaced read-only; no inbox UI yet (v0.4) |
+| Progressive enrichment (phase 1 immediate, phase 2/3 via Queue) | Claude never waits on the full pipeline | ✓ Good — v0.2: conflict scan runs via `ctx.waitUntil`, never blocks ingest; `remember()` still returns ~430ms p50 |
+| Hybrid recall ranking + reranker-or-cosine | Vector-only ranking loses recency/type/scope signal; reranker validated by ablation, not assumed | ✓ Good — v0.2: sweep-tuned weights frozen; bge-reranker ablation said "worse than cosine" → shipped disabled (the ablation earned its keep) |
+| Eval-cost budget guard (`MAX_AI_CALLS=200`) | 4 features × eval suites compound into CI bill-shock without a hard ceiling | ✓ Good — v0.2: budget guard forced disciplined serialization (RNK vs CON, EXP-07 vs EXP-08 separate sessions) |
 | Open core (self-hosted free, managed $5–20/mo) | Aligns OSS legitimacy with business viability | — Pending v1.0 |
 | Keep CLAUDE.md milestones, don't reshape around the v0.4 demo | Russell explicitly chose depth over speed: shipping flawed foundations damages thought-leadership goal more than a delayed wow-moment | ✓ Locked 2026-05-24 |
 | Linear sync = Phase = Issue, auto-sync, milestones already exist | One issue per phase keeps board readable for solo + Devon, milestones pre-seeded match CLAUDE.md dates | ✓ Locked 2026-05-24 |
@@ -204,4 +201,4 @@ This document evolves at phase transitions and milestone boundaries.
 6. **Linear**: post milestone summary comment on the Linear milestone
 
 ---
-_Last updated: 2026-06-02 — milestone v0.2 (Intelligence Layer) started via `/gsd:new-milestone`. 4 net-new features scoped (conflict-detection wiring, query expansion, synthesis activation, hybrid-rank tuning). 5-phase roadmap landed; requirements split across PRE/RNK/CON/EXP/SYN/INT categories. v0.1 archived under `milestones/v0.1-phases/`. Next: `/gsd:plan-phase 1`._
+_Last updated: 2026-06-12 — milestone v0.2 (Intelligence Layer) shipped + archived via `/gsd:complete-milestone`. All 4 net-new features validated (conflict wiring, query expansion + RRF, synthesis activation, hybrid-rank tuning); bge-reranker disabled by ablation. Audit `tech_debt` (no blockers); all 5 phases Nyquist-compliant. Deferred at close: EXP-11 + INT-05 (deploy-gated), SYN-02 (advisory override), SEED-001/002 (→ v0.4). Next: `/gsd:new-milestone` to scope v0.3._

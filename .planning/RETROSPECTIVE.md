@@ -73,6 +73,62 @@ The binding acceptance test (`remember` in conv A → `recall` in fresh conv B 1
 
 ---
 
+## Milestone: v0.2 — Intelligence Layer
+
+**Shipped:** 2026-06-12
+**Phases:** 5 | **Plans:** 29 | **Tasks:** 40 | **Span:** 2026-06-03 → 2026-06-11 (8 days)
+
+### What Was Built
+
+The intelligence layer on top of v0.1's substrate: (1) hybrid-rank weight tuning via a 625-config sweep with Pareto/overfit/sensitivity gates; (2) conflict detection wired into the live triage flow (`conflict-pipeline.ts`, `ctx.waitUntil`, inbox writes, read-only `recall()` surfacing); (3) query expansion with cosine-gated paraphrases, adaptive fan-out, RRF, and a 429 fallback; (4) synthesis activation (`recall(verbosity=synthesis)`) with citation-density, cosine-hedging, and a zero-hallucinated-entities judge gate. Foundation work expanded the eval corpus 27→100 and stood up tiered vitest with a `MAX_AI_CALLS=200` budget guard.
+
+### What Worked
+
+- **The eval-corpus-first sequencing (Phase 1) paid off.** Every downstream quality gate (RNK sweep, EXP ablation, SYN judge) rested on the 100-entry labeled corpus; landing it before feature work made the gates statistically meaningful instead of decorative.
+- **Letting an ablation kill a feature.** bge-reranker was integrated, measured, found worse than raw cosine, and shipped disabled at weight 0.0. The discipline to ship a negative result (rather than force the feature) is the system working as designed.
+- **Accepted overrides instead of fudged gates.** SYN-02's passRate gate was recalibrated to advisory with the robust zero-hallucinated half kept hard — recorded honestly as an override with backlog follow-ups, not silently lowered.
+- **The `MAX_AI_CALLS=200` budget guard.** Forced serialization of eval sessions (RNK vs CON, EXP-07 vs EXP-08) and prevented CI bill-shock across 4 feature eval suites.
+
+### What Was Inefficient
+
+- **VALIDATION.md tracking lag.** All 5 phases left their per-task validation maps in `draft`/`⬜-pending` state even though the tests existed and passed — requiring a full `/gsd:validate-phase 1..5` reconciliation pass at milestone close. The tests were written; the tracking docs just never got flipped to green during execution.
+- **SUMMARY `requirements-completed` frontmatter mostly left empty**, so the milestone audit's 3-source cross-reference leaned almost entirely on VERIFICATION tables + the REQUIREMENTS registry.
+- **cf-code-assist routing stayed low** despite v0.2 being projected as a content-generation (40–60% route) phase — the contract-integration character (byte-frozen prompts, cross-file envelope invariants) dominated more than projected.
+
+### Patterns Established
+
+- **Eval-tier creds-gating** (`hasEvalCreds` + `ENGRAM_RUN_EVAL=1`) cleanly separates cheap no-creds unit tests from billable Workers AI eval runs.
+- **Deploy-gated metrics as a first-class deferral category** — latency SLAs (EXP-11) and staging E2E (INT-05) that genuinely cannot be confirmed pre-deploy are tracked as "verify at deploy," not faked locally.
+- **Reranker-or-cosine fallback behind a live boolean flag** (`RERANKER_ENABLED`) so a disabled feature is dormant config, not deleted code.
+
+### Key Lessons
+
+- **Flip the VALIDATION.md status during execution, not at close.** The reconciliation was cheap only because the tests genuinely passed; if they hadn't, the lag would have hidden real gaps until milestone close. Treat `nyquist_compliant` as a per-phase exit gate, not a milestone-close chore.
+- **A negative eval result is a deliverable.** Budget for the ablation arm to potentially disable the feature — and write the changelog rationale either way.
+
+### Cost Observations
+
+- Model mix: Opus-heavy orchestration (contract integration, eval design, override decisions); cf-code-assist routes lower than the content-generation projection.
+- Notable: the 100-entry corpus labeling (Russell's manual time) was the critical path for the whole milestone, exactly as Phase 1 risk notes predicted.
+
+### What v0.3 Should Inherit From v0.2
+
+- Eval-corpus-first sequencing; the `MAX_AI_CALLS` budget guard; the accepted-override discipline; deploy-gated deferral category.
+
+### What v0.3 Should Do Differently
+
+- Reconcile VALIDATION.md to green at each phase exit (not at milestone close). Populate SUMMARY `requirements-completed` frontmatter during execution so the audit's 3-source check is real. Re-confirm the deploy-gated v0.2 items (EXP-11, INT-05) at first v0.3 deploy.
+
+---
+
 ## Cross-Milestone Trends
 
-_Will populate as v0.2+ ship. First trend datapoint: v0.1._
+| Milestone | Phases | Plans | Tasks | Span | Audit verdict |
+|-----------|--------|-------|-------|------|---------------|
+| v0.1 MCP Foundation | 7 | 44 | 93 | 2026-05-24 → 05-30 | shipped |
+| v0.2 Intelligence Layer | 5 | 29 | 40 | 2026-06-03 → 06-11 | tech_debt (no blockers) |
+
+**Emerging patterns:**
+
+- **Tracking-doc lag at close** surfaced in v0.2 (VALIDATION.md drafts; sparse SUMMARY frontmatter). Watch whether v0.3 repeats it — if so, it's process, not a one-off.
+- **Plans-per-phase tightening** (v0.1 ~6.3 → v0.2 ~5.8) as the eval-gated workflow front-loads discipline into fewer, denser plans.
