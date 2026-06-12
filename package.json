@@ -25,7 +25,7 @@
     "test": "npm run test --workspaces --if-present",
     "test:unit": "npm run --workspaces --if-present test -- --project=unit",
     "test:integration": "npm run --workspaces --if-present test -- --project=integration",
-    "test:eval": "ENGRAM_RUN_EVAL=1 npm run --workspaces --if-present test -- --project=eval",
+    "test:eval": "ENGRAM_RUN_EVAL=1 npm run --workspace=packages/mcp-server --workspace=packages/triage-worker --workspace=packages/workspace-do test -- --project=eval",
     "dev:mcp": "npm run dev --workspace @engram/mcp-server",
     "dev:triage": "npm run dev --workspace @engram/triage-worker",
     "setup:queue": "bash scripts/setup-queue.sh",
