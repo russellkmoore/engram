@@ -18,6 +18,8 @@
 
 ## v1 Requirements (v0.3 scope)
 
+> **Open-core seam discipline (locked 2026-06-12).** `engram-web` is built as the **product surface only** (Apache-2.0) — no marketing, signup funnel, or billing. The commercial layer ships at v1.0 in a separate **private `engram-cloud` repo** that consumes `engram-web`. v0.3 plants the seams so that's an add, not a rewrite: workspace provisioning is a single modular function the auth path calls (v1.0's billing-gated path wraps it), and a `DEPLOYMENT_MODE` (`self-hosted` | `cloud`) notion sits alongside `REGISTRATION_MODE` (AUTH-08) as the gate for future cloud-only concerns. `engram-web` must never depend on commercial code.
+
 ### WEB — Frontend Foundation (cross-cutting)
 
 - [ ] **WEB-01**: A new isolated `engram-web` Worker package serves the UI via Workers Static Assets, deployed independently of `engram-mcp-server` (hot-path isolation preserved).
@@ -29,11 +31,14 @@
 
 - [ ] **AUTH-01**: Adding the Engram connector in Claude Desktop triggers an in-browser OAuth consent/sign-in screen (replacing the v0.1 auto-approve stub in `mcp-server`'s `defaultHandler`) — no terminal, no manual `kv:bootstrap`.
 - [ ] **AUTH-02**: A user proves identity via a magic link: enter email → emailed link → **POST-gate confirmation page** → verified. Tokens are single-use, ≤15-min TTL, stored in `ENGRAM_MAGIC_TOKENS` KV; the flow resists email enumeration, open-redirect, and mail-scanner pre-fetch consumption.
-- [ ] **AUTH-03**: First successful sign-in auto-provisions the workspace (replaces manual `kv:bootstrap`), including a workspace-name picker so the workspace gets a human name rather than an email-derived slug.
+- [ ] **AUTH-03**: First successful sign-in **for an authorized email (owner or invited — see AUTH-08/09)** auto-provisions the workspace (replaces manual `kv:bootstrap`), including a workspace-name picker so the workspace gets a human name rather than an email-derived slug.
 - [ ] **AUTH-04**: The web magic-link session and the Claude Desktop MCP OAuth `sub` converge on **one** `ENGRAM_IDENTITIES` record (identity-convergence invariant); the design is locked in a written decision document before any auth Worker code is written.
 - [ ] **AUTH-05**: A returning user (existing identity record) verifies their link, skips bootstrap, and lands on the dashboard.
 - [ ] **AUTH-06**: After connecting, the user sees a success surface with the exact `claude_desktop_config.json` snippet and a **one-click copy** control (prevents the v0.1 config-wipe).
 - [ ] **AUTH-07**: Magic-link email is sent via the Cloudflare Email Service `send_email` binding (Resend fallback), from a verified CF-DNS sender domain, with SPF/DKIM/DMARC aligned for deliverability.
+- [ ] **AUTH-08**: Registration is **invite-only by default**, controlled by a `REGISTRATION_MODE` config (`"invite"` | `"open"`, default `"invite"`). In invite mode, a magic-link sign-in succeeds only for the owner (AUTH-09) or an email with a pending invite (ADMIN-02); unknown emails are declined without provisioning. `"open"` mode (self-service for the future managed tier / self-hosters) is config-gated and off by default.
+- [ ] **AUTH-09**: An `ENGRAM_OWNER_EMAIL` config var implicitly authorizes the operator. The owner's first magic-link sign-in provisions the owner workspace and marks them owner — **fully replacing `kv:bootstrap`** with zero terminal steps after deploy. Solves the fresh-deploy chicken-and-egg without an invite.
+- [ ] **AUTH-10**: The login-email endpoint is rate-limited (per-email + per-IP) to bound outbound-email cost and abuse, regardless of registration mode.
 
 ### INBOX — Review Surface
 
@@ -106,16 +111,18 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| WEB-01..04 | TBD | Pending |
-| AUTH-01..07 | TBD | Pending |
-| INBOX-01..08 | TBD | Pending |
-| BROWSE-01..06 | TBD | Pending |
-| ADMIN-01..06 | TBD | Pending |
+| WEB-01..04 | Phase 1 (Auth + Session Foundation) | Pending |
+| AUTH-01..10 | Phase 1 (Auth + Session Foundation) | Pending |
+| INBOX-01..08 | Phase 3 (Inbox UI) | Pending |
+| BROWSE-01..06 | Phase 4 (Memory Browser) | Pending |
+| ADMIN-01..06 | Phase 5 (Admin + Eval-Budget) | Pending |
+
+> **Phase 2 (WorkspaceDO RPC Layer)** has no standalone UI requirements — it builds the data methods (`listInbox`, `acceptInboxItem`, `rejectInboxItem`, `listBlocks`, `getBlock`, `listMembers`, neuron-spend proxy) that Phases 3–5 consume. Its coverage is traced through the surfaces that depend on it.
 
 **Coverage:**
-- v0.3 requirements: 31 total (WEB 4, AUTH 7, INBOX 8, BROWSE 6, ADMIN 6)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 31 ⚠️ (resolved at roadmap)
+- v0.3 requirements: 34 total (WEB 4, AUTH 10, INBOX 8, BROWSE 6, ADMIN 6)
+- Mapped to phases: 34 ✓ (Phase 1: 14 · Phase 3: 8 · Phase 4: 6 · Phase 5: 6; Phase 2 = supporting data layer)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-12 via `/gsd:new-milestone`*

@@ -44,15 +44,17 @@ Last activity: 2026-06-12 — Milestone v0.3 started
 
 ## Phase Status
 
-v0.2 phase numbering resets to Phase 1. v0.1's phases 1-7 are archived under `milestones/v0.1-phases/`.
+v0.3 phase numbering resets to Phase 1 (per-milestone convention). v0.1's phases 1-7 archived under `milestones/v0.1-phases/`; v0.2's phases 1-5 under `milestones/v0.2-phases/`.
 
-| Phase | Name                       | Requirements             | Plans | Status               |
-| ----- | -------------------------- | ------------------------ | ----- | -------------------- |
-| 1     | Foundation (Wave 0)        | PRE-01..05               | 5     | Done (2026-06-04)    |
-| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | 10    | Planned (2026-06-07) |
-| 3     | Query Expansion + Reranker | EXP-01..12               | TBD   | Pending Phase 2      |
-| 4     | Synthesis Activation Eval  | SYN-01..10               | TBD   | Pending Phase 3      |
-| 5     | Integration Kitchen Sink   | INT-01..05               | TBD   | Pending Phases 2-4   |
+| Phase | Name                          | Requirements             | Plans | Status          |
+| ----- | ----------------------------- | ------------------------ | ----- | --------------- |
+| 1     | Auth + Session Foundation     | WEB-01..04 + AUTH-01..10 | TBD   | Not started     |
+| 2     | WorkspaceDO RPC Layer         | (data layer for P3-5)    | TBD   | Pending Phase 1 |
+| 3     | Inbox UI                      | INBOX-01..08             | TBD   | Pending P1, P2  |
+| 4     | Memory Browser                | BROWSE-01..06            | TBD   | Pending P1, P2  |
+| 5     | Admin + Eval-Budget Dashboard | ADMIN-01..06             | TBD   | Pending P1, P2  |
+
+**Prerequisites gating Phase 1:** PRE-A CF Email Service beta (or Resend) · PRE-B CF-DNS sender domain · PRE-C `@cloudflare/vite-plugin` ≥1.6.0 (CVE-2025-59427) · PRE-D verify Claude Desktop OAuth-on-add surface.
 
 See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 

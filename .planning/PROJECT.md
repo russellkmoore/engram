@@ -194,6 +194,7 @@ This is the full v0.1 → v1.0 arc carried over from CLAUDE.md. Only **v0.1** is
 | Open core (self-hosted free, managed $5–20/mo) | Aligns OSS legitimacy with business viability | — Pending v1.0 |
 | Keep CLAUDE.md milestones, don't reshape around the v0.4 demo | Russell explicitly chose depth over speed: shipping flawed foundations damages thought-leadership goal more than a delayed wow-moment | ✓ Locked 2026-05-24 |
 | Linear sync = Phase = Issue, auto-sync, milestones already exist | One issue per phase keeps board readable for solo + Devon, milestones pre-seeded match CLAUDE.md dates | ✓ Locked 2026-05-24 |
+| Open-core repo boundary: `engram-web` (Apache-2.0) is the product surface only; commercial layer (marketing, public signup, Stripe billing, multi-tenant control plane) lives in a separate **private `engram-cloud` repo** at v1.0 that consumes `engram-web` as a dependency | Keeps the license/IP boundary clean (GitLab/Sentry-style open core); `engram-web` must never depend on commercial code. v0.3 plants the seams (`REGISTRATION_MODE` invite/open, a `DEPLOYMENT_MODE` self-hosted/cloud notion, modular workspace-provisioning the billing path can wrap) so v1.0 is an add, not a rewrite | ✓ Locked 2026-06-12 (build seams in v0.3; commercial layer deferred to v1.0) |
 
 ## Evolution
 
