@@ -9,12 +9,12 @@
 
 ## Prerequisites (gate Phase 1 — resolve before auth code)
 
-| # | Prerequisite | Why it gates | Fallback |
-|---|--------------|--------------|----------|
-| PRE-A | CF Email Service beta access confirmed on Russell's account | Outbound magic-link email | Resend (stable, free tier) |
-| PRE-B | A custom domain registered in CF DNS usable as the magic-link `from` sender | `*.workers.dev` may not qualify as a sender domain | Register/verify a domain |
-| PRE-C | `@cloudflare/vite-plugin` pinned ≥ 1.6.0 | CVE-2025-59427 leaks `.dev.vars`/`.env` to the dev network | Pin/upgrade before first UI build |
-| PRE-D | Claude Desktop's exact OAuth-on-connector-add surface verified empirically | Confirms the Linear-pattern flow lands; informs the consent-screen contract | If it doesn't surface cleanly, fall back to a web-initiated "connect" flow (QR/polling) |
+| # | Prerequisite | Status | Why it gates / Fallback |
+|---|--------------|--------|-------------------------|
+| PRE-A | CF Email Service beta access | ✓ RESOLVED — access confirmed, multiple email setups in place | Outbound magic-link email · fallback Resend (stable, free tier) |
+| PRE-B | CF-DNS sender domain for magic-link `from` | ✓ RESOLVED — **`engram.russellkmoore.me`** | `*.workers.dev` may not qualify as a sender domain |
+| PRE-C | `@cloudflare/vite-plugin` ≥ 1.6.0 | Handled in-phase — no frontend exists yet; pin when `engram-web` is scaffolded in P1 | CVE-2025-59427 leaks `.dev.vars`/`.env` to the dev network |
+| PRE-D | Verify Claude Desktop OAuth-on-connector-add surface | Handled in-phase — empirical check with the P1 auth implementation | Confirms the Linear-pattern flow; fallback = web-initiated connect (QR/polling) |
 
 ## v1 Requirements (v0.3 scope)
 

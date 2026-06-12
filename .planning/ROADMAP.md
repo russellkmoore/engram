@@ -54,12 +54,12 @@ Full details: [milestones/v0.2-ROADMAP.md](milestones/v0.2-ROADMAP.md)
 
 **Prerequisites (gate Phase 1 — must be resolved before auth code):**
 
-| # | Prerequisite | Fallback |
-| --- | --- | --- |
-| PRE-A | CF Email Service beta access confirmed on Russell's account | Resend with `RESEND_API_KEY` Worker secret |
-| PRE-B | Custom domain in CF DNS usable as magic-link `from` sender | Register/verify a domain |
-| PRE-C | `@cloudflare/vite-plugin` pinned ≥ 1.6.0 (CVE-2025-59427) | Pin/upgrade before first UI build |
-| PRE-D | Claude Desktop OAuth-on-add surface verified empirically | Fall back to QR/polling link-mcp flow |
+| # | Prerequisite | Status (2026-06-12) | Fallback |
+| --- | --- | --- | --- |
+| PRE-A | CF Email Service beta access confirmed on Russell's account | ✓ RESOLVED — access confirmed, multiple email setups in place | Resend with `RESEND_API_KEY` Worker secret |
+| PRE-B | Custom domain in CF DNS usable as magic-link `from` sender | ✓ RESOLVED — `engram.russellkmoore.me` | Register/verify a domain |
+| PRE-C | `@cloudflare/vite-plugin` pinned ≥ 1.6.0 (CVE-2025-59427) | Handled in-phase — no frontend exists yet; pin at `engram-web` scaffold | Pin/upgrade before first UI build |
+| PRE-D | Claude Desktop OAuth-on-add surface verified empirically | Handled in-phase — verify with the auth implementation in P1 | Fall back to QR/polling link-mcp flow |
 
 - [ ] **Phase 1: Auth + Session Foundation** — `engram-web` Worker scaffold, magic-link flow, session cookies, identity convergence, link-mcp step
 - [ ] **Phase 2: WorkspaceDO RPC Layer** — `listInbox`, `acceptInboxItem`, `rejectInboxItem`, `listBlocks`, `listMembers` with migration v3

@@ -153,15 +153,18 @@ These do not conflict, but the prioritization matters when scope cuts come up: s
 | `/gsd:complete-milestone` runs | Verify all milestone issues are `Done`; post a Linear comment with milestone summary |
 | New GSD milestone scoped | Existing Linear milestone already present (v0.1 → v1.0 are pre-created); ensure phases attach to the correct one by name |
 
-**Existing Linear milestones (all 0% — sync target):**
+**Linear milestones (reshuffled 2026-06-12 when v0.3 Identity + Surface was inserted):**
 
-| Linear Milestone | Target | Maps to GSD milestone |
+| Linear Milestone | Target | Status |
 |---|---|---|
-| v0.1 — MCP Foundation | 2026-06-07 | Current (this PROJECT.md) |
-| v0.2 — Intelligence Layer | 2026-06-21 | Future |
-| v0.3 — Workspaces + Memory Types | 2026-07-12 | Future |
-| v0.4 — Connectors + Alerts | 2026-08-02 | Future |
+| v0.1 — MCP Foundation | 2026-06-07 | Shipped (100%) |
+| v0.2 — Intelligence Layer | 2026-06-21 | Shipped (100%) |
+| v0.3 — Identity + Surface | 2026-07-12 | **Active** (this milestone) — first frontend |
+| v0.4 — Workspaces + Memory Types | 2026-08-09 | Future (was v0.3; renamed/renumbered) |
+| v0.5 — Connectors + Alerts | 2026-08-30 | Future (was v0.4; renamed/renumbered) |
 | v1.0 — Public Launch | 2026-09-01 | Future |
+
+> Reshuffle note: the new `v0.3 — Identity + Surface` milestone was created with a default `sortOrder` (above v1.0), so it sorts at the bottom of the Linear milestone list until manually dragged into position between v0.2 and v0.4. The `save_milestone` API does not expose sort order.
 
 A duplicate of this rule lives in [CLAUDE.md](../CLAUDE.md) so any future Claude session — including ones that bypass `/gsd:` — honors it.
 
