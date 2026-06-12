@@ -271,10 +271,12 @@ function buildKitchenSinkMemories(count: number) {
     type: "research_note",
     content: "x".repeat(4_000), // 4KB content — adversarial size
     summary: "y".repeat(1_000), // 1KB summary
-    // 50-entity requirement satisfied by including rich properties JSON per memory
-    properties: JSON.stringify({
+    // 50-entity requirement satisfied by including rich properties per memory.
+    // Per D-03: JSON columns arrive parsed — properties is Record<string, unknown>,
+    // NOT a JSON string. Pass the object directly to satisfy LexicalSearchHit.
+    properties: {
       entities: Array.from({ length: 2 }, (__, j) => `entity-${String(i)}-${String(j)}`),
-    }),
+    },
     embedding_id: null,
     scope: "personal" as const,
     project_id: null,
