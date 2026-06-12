@@ -1,5 +1,30 @@
 # Milestones
 
+## v0.2 Intelligence Layer (Shipped: 2026-06-12)
+
+**Phases completed:** 5 phases, 29 plans, 40 tasks
+
+**Delivered:** Activated the intelligence layer on top of v0.1's foundation — hybrid-rank tuning, live conflict detection, query expansion, and cited synthesis — every gate measured against a 100-entry labeled corpus under a hard eval-cost budget.
+
+### Key accomplishments
+
+1. **Hybrid-rank weight tuning (RNK).** 625-config grid sweep over `{rerank, recency, type_match, scope_match}` against the labeled corpus, with a Pareto re-score (F1/MRR/top-1), a <10pp train→validate overfit gate, and a <30% sensitivity flip-rate stability gate. Winner beats cosine-only baseline by +0.1095 F1; weights frozen in `shared/ai-config` with an audit comment + `docs/hybrid-rank-changelog.md`.
+2. **Conflict-detection wiring (CON).** ENG-16's `detectConflict()` shipped into the live triage flow via `conflict-pipeline.ts` — cosine prefilter → bounded-parallel (≤3) detection → inbox writes for contradictions only, invoked through `ctx.waitUntil` so it never blocks the ingest path. Surfaced read-only in `recall()` via `EngramResponse.context.conflicts[]` (no new tool, strictly pull-based — no proactive notifications).
+3. **Query expansion + RRF + reranker (EXP).** `expandQuery()` produces 2 paraphrases (cosine-gated ≥0.85, anti-HyDE), adaptive fan-out only when `top1_cosine < 0.65`, reciprocal-rank fusion (`k=60`), and a 429→single-query fallback. bge-reranker integrated but **disabled by its own ablation gate** (F1 worse than raw cosine) — the constant landed, the weight is 0.0, the rationale is in the changelog.
+4. **Synthesis activation (SYN).** `recall(verbosity="synthesis"|"both")` produces a cited narrative with ≥1 citation/80 chars (uncited sentences dropped), cosine-aware hedging, single-memory rejection, and a 6K-token pre-flight guard. Faithfulness gated by an LLM-judge with a zero-hallucinated-entities hard gate (GREEN); default verbosity stays `"chunks"`.
+5. **Foundation + integration hardening (PRE/INT).** Eval corpus expanded 27→100 labeled pairs (70/30 stratified split), tiered vitest (`unit`/`integration`/`eval`) with a `MAX_AI_CALLS=200` budget guard, a catastrophic re-embed migration audit wired into CI, and a kitchen-sink integration suite proving the worst-case envelope stays ≤7,500 tokens with the cross-workspace pentest extended to every new code path.
+
+**Audit:** `tech_debt` (no blockers) — see [milestones/v0.2-MILESTONE-AUDIT.md](milestones/v0.2-MILESTONE-AUDIT.md). All 5 phases Nyquist-compliant.
+
+**Accepted at close (deferred, non-blocking):**
+
+- EXP-11 production latency SLA (p50≤1.8s/p99≤3s) — deploy-gated; verify via Analytics Engine on first deploy.
+- INT-05 deployed-staging E2E ritual — no staging env configured; run at first deploy.
+- SYN-02 passRate≥90% gate — recalibrated to advisory (zero-hallucinated hard gate passed); restoration tracked by backlog 999.2 + 999.3.
+- Dormant seeds SEED-001 (cross-layer recall fan-out) + SEED-002 (connector cost model) carried to v0.4 (see STATE.md Deferred Items).
+
+---
+
 ## v0.1 MCP Foundation (Shipped: 2026-05-30)
 
 **Phases completed:** 7 phases, 44 plans, 93 tasks

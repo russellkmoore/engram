@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: "Phase 5 shipped — PR #9 (v0.2 Intelligence Layer milestone close)"
-last_updated: "2026-06-12T03:24:07.437Z"
-last_activity: 2026-06-11
+status: Awaiting next milestone
+last_updated: "2026-06-12T06:59:38.278Z"
+last_activity: 2026-06-12 — Milestone v0.2 completed and archived
 progress:
   total_phases: 5
   completed_phases: 5
@@ -29,21 +29,18 @@ progress:
 
 ## Current Focus
 
-**v0.2 — Intelligence Layer.** Activate the intelligence layer on top of v0.1's foundation. Four net-new capabilities:
+**v0.2 Intelligence Layer shipped + archived 2026-06-12** (audit `tech_debt`, no blockers; all 5 phases Nyquist-compliant). The intelligence layer is live: hybrid-rank tuned, conflict detection wired into triage and surfaced read-only in `recall()`, query expansion + RRF shipped (reranker disabled by ablation), synthesis path activated with grounding locks (default stays `chunks`).
 
-1. **Conflict-detection wiring** — ship ENG-16's `detectConflict()` scaffold into the live triage flow as low-confidence inbox suggestions (never auto-alerted).
-2. **Query expansion** — CF AI rewrites each query into 3-4 semantic variants before Vectorize, then merges + deduplicates results.
-3. **Synthesis path activation** — `recall(verbosity=synthesis|both)` produces a coherent narrative summary of retrieved memories.
-4. **Hybrid-rank weight tuning** — Task 5.1 A/B work per AI-SPEC §4, against the diversified real-corpus from ENG-25.
+**Next:** scope the next milestone via `/gsd:new-milestone`. Two candidates compete for the slot — **v0.3 Workspaces + Memory Types** (the original arc) vs the backlogged **v0.3 Identity + Surface** (consent UI + inbox UI, ROADMAP Phase 999.1) which would push Workspaces to v0.4. Resolve at `/gsd:new-milestone` time.
 
-All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — this milestone is genuinely net-new intelligence-layer work, not cleanup.
+**Carry into next milestone:** the 2 deploy-gated confirmations (EXP-11 latency SLA, INT-05 staging E2E) run at first production deploy; SYN-02 passRate restoration is tracked by backlog 999.2 + 999.3.
 
 ## Current Position
 
-Phase: 05 (integration-kitchen-sink) — EXECUTING
-Plan: 5 of 5
-Status: Phase 5 shipped — PR #9 (v0.2 Intelligence Layer milestone close)
-Last activity: 2026-06-11
+Phase: Milestone v0.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-12 — Milestone v0.2 completed and archived
 
 ## Phase Status
 
@@ -58,6 +55,18 @@ v0.2 phase numbering resets to Phase 1. v0.1's phases 1-7 are archived under `mi
 | 5     | Integration Kitchen Sink   | INT-01..05               | TBD   | Pending Phases 2-4   |
 
 See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
+
+## Deferred Items
+
+Items acknowledged and deferred at v0.2 milestone close on 2026-06-12:
+
+| Category | Item | Status | Target |
+|----------|------|--------|--------|
+| seed | SEED-001 cross-layer recall fan-out (UserDO + TeamDO + ProjectDO merge + re-rank) | dormant | v0.4 (needs multi-workspace from v0.3) |
+| seed | SEED-002 connector load + cost + throughput model | dormant | before v0.4 connectors ship |
+| deploy-gated | EXP-11 recall latency SLA (p50≤1.8s / p99≤3s) — verify via Analytics Engine | pending deploy | first production deploy |
+| deploy-gated | INT-05 deployed-staging E2E ritual (remember → recall(synthesis) → conflict-surfacing) | pending deploy | first production deploy |
+| override | SYN-02 passRate≥90% gate recalibrated to advisory (zero-hallucinated hard gate passed) | tracked | backlog 999.2 + 999.3 |
 
 ## Performance Metrics
 
@@ -158,11 +167,7 @@ _State updated: 2026-06-03 by /gsd:execute-phase 01-01_
 
 ## Operator Next Steps
 
-- Russell: add WORKSPACE_NAMESPACE_ID GitHub Actions secret (see 01-01-PLAN.md user_setup for exact commands)
-- Russell: set ENGRAM_ADMIN_AUDIT_TOKEN Worker secret: `wrangler secret put ENGRAM_ADMIN_AUDIT_TOKEN` + `gh secret set ENGRAM_ADMIN_AUDIT_TOKEN --body "<same value>"`
-- Run Plan 01-04 (next plan in Phase 1)
-
-_State updated: 2026-06-04 by /gsd:execute-phase 01-03_
+- Start the next milestone with /gsd-new-milestone
 
 ### Blockers
 
