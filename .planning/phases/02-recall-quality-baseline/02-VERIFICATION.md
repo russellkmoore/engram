@@ -1,12 +1,19 @@
 ---
 phase: 02-recall-quality-baseline
 verified: 2026-06-08T00:00:00Z
-status: gaps_found
-score: 14/15 must-haves verified
+status: resolved
+score: 15/15 must-haves verified
 overrides_applied: 0
+gap_resolution: >
+  Resolved 2026-06-12 at v0.2 milestone close. The single gap was a documentation
+  tracking lag: RNK-06 is now marked [x] in REQUIREMENTS.md with the full D-34
+  recalibration note and the D-15 budget-skip deferral. Implementation was always
+  complete (sweep winner F1=0.4476 beats cosine-only baseline 0.3381 by +0.1095,
+  exceeding the ≥0.02 gate). No code change required — REQUIREMENTS.md was updated
+  after this report's original 2026-06-08 run.
 gaps:
   - truth: "F1 against the labeled corpus is ≥ v0.1 baseline (0.83 on the 27-entry corpus)"
-    status: partial
+    status: resolved
     reason: >
       D-34 recalibrated the sweep gate from absolute 0.8254 to "beat cosine-only baseline
       by ≥0.02 absolute F1" — a defensible substitute given the architectural incompatibility
@@ -35,7 +42,7 @@ human_verification: []
 
 **Phase Goal:** Stabilize hybrid-rank weights against the 100-entry labeled corpus AND wire `detectConflict()` into the live triage flow. Two workstreams: (A) Hybrid-rank tuning and (B) Conflict-detection wiring.
 **Verified:** 2026-06-08
-**Status:** gaps_found — one documentation gap (RNK-06 checkbox not updated in REQUIREMENTS.md after D-34 recalibration)
+**Status:** resolved (2026-06-12) — the one documentation gap (RNK-06 checkbox) is now closed in REQUIREMENTS.md with the D-34 recalibration note. Original 2026-06-08 run found `gaps_found`; see `gap_resolution` in frontmatter.
 **Re-verification:** No — initial verification
 
 ---
