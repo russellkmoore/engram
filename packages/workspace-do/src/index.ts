@@ -67,7 +67,7 @@ import { DurableObject } from "cloudflare:workers";
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { EMBEDDING_MODEL } from "@engram/ai-config";
 
-import type { Memory, Conflict } from "@engram/types";
+import type { Memory, Conflict, InboxConflictProperties } from "@engram/types";
 
 import { runMigrations } from "./migrations.js";
 import { seedSystemTypes } from "./seeding.js";
@@ -79,6 +79,8 @@ import {
   listMemoryTypes as listMemoryTypesQuery,
   createInboxEntry as createInboxEntryQuery,
   listConflicts as listConflictsQuery,
+  insertConflictAsInbox as insertConflictAsInboxQuery,
+  listInboxConflictsForMemoryIds as listInboxConflictsForMemoryIdsQuery,
   stampEmbedding as stampEmbeddingQuery,
   getBlocksByIds as getBlocksByIdsQuery,
   updateBlockEnrichment as updateBlockEnrichmentQuery,
@@ -88,7 +90,7 @@ import {
   countStaleEmbeddings as countStaleEmbeddingsQuery,
   deleteStaleEmbeddings as deleteStaleEmbeddingsQuery,
 } from "./queries.js";
-import type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
+import type { MemoryType, InboxEntry, LexicalSearchHit, InboxConflictRow } from "./types.js";
 
 // Plan 02-05 lands the typed query helpers (./queries.js + ./types.js +
 // ./errors.js) and exposes them as instance methods on WorkspaceDO. The
@@ -97,7 +99,7 @@ import type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
 // type MemoryType, type InboxEntry, type LexicalSearchHit } from
 // "@engram/workspace-do"`.
 export { NotFoundError } from "./errors.js";
-export type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
+export type { MemoryType, InboxEntry, LexicalSearchHit, InboxConflictRow } from "./types.js";
 
 export class WorkspaceDO extends DurableObject<unknown> {
   constructor(ctx: DurableObjectState, env: unknown) {
@@ -212,6 +214,49 @@ export class WorkspaceDO extends DurableObject<unknown> {
     if (args.resolved !== undefined) opts.resolved = args.resolved;
     if (args.limit !== undefined) opts.limit = args.limit;
     return listConflictsQuery(this.ctx.storage.sql, opts);
+  }
+
+  /**
+   * CON-04 writer: writes a conflict-pipeline contradiction into the `inbox`
+   * table as a `proposed_type="conflict"` row. Called by the triage-worker's
+   * conflict-pipeline after verifying the verdict is `contradiction`.
+   *
+   * STO-07: `assertOwnsWorkspace` is the first executable line.
+   * The `workspace_id` field is stripped before passing to the helper so the
+   * helper stays pure-data (no workspace_id knowledge needed inside queries.ts).
+   *
+   * @requirement CON-04
+   */
+  insertConflictAsInbox(args: { workspace_id: string } & InboxConflictProperties): void {
+    this.assertOwnsWorkspace(args.workspace_id);
+    insertConflictAsInboxQuery(this.ctx.storage.sql, {
+      memory_a_id: args.memory_a_id,
+      memory_b_id: args.memory_b_id,
+      category: args.category,
+      ai_confidence: args.ai_confidence,
+      description: args.description,
+    });
+  }
+
+  /**
+   * CON-05 read helper: returns inbox rows tagged as `proposed_type="conflict"`
+   * whose `proposed_properties.memory_a_id` OR `.memory_b_id` matches one of
+   * the provided `ids`. Called by the mcp-server's `recall()` handler to
+   * populate `EngramResponse.context.conflicts[]`.
+   *
+   * Returns raw `InboxConflictRow[]` — the mapping to `Conflict` envelope
+   * happens in the recall handler (Plan 02-08), not here.
+   *
+   * STO-07: `assertOwnsWorkspace` is the first executable line.
+   *
+   * @requirement CON-05 (read-side)
+   */
+  listInboxConflictsForMemoryIds(args: {
+    workspace_id: string;
+    ids: string[];
+  }): InboxConflictRow[] {
+    this.assertOwnsWorkspace(args.workspace_id);
+    return listInboxConflictsForMemoryIdsQuery(this.ctx.storage.sql, { ids: args.ids });
   }
 
   // -------------------------------------------------------------------------

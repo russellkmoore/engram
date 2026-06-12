@@ -44,10 +44,10 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 > v0.2 adds 4 net-new capabilities on top of v0.1's foundation. Phases are dependency-ordered: Foundation (Wave 0 prerequisites) → Recall Quality Baseline (hybrid-rank + conflict-wiring, parallel-trackable) → Query Expansion + Reranker → Synthesis Activation Eval → Integration Kitchen Sink.
 
 - [x] **Phase 1: Foundation (Wave 0)** — Re-embed audit, tiered test strategy, eval-corpus expansion (27 → 100+), integration-matrix doc, CF-code-assist routing scaffolding (completed 2026-06-04)
-- [ ] **Phase 2: Recall Quality Baseline** — Hybrid-rank weight tuning + conflict-detection wiring (parallel-trackable: different workers, no shared files)
-- [ ] **Phase 3: Query Expansion + Reranker** — Multi-query + RRF + bge-reranker integration in `recall()` with adaptive routing
-- [ ] **Phase 4: Synthesis Activation Eval** — Promote scaffolded `verbosity=synthesis|both` path with LLM-judge faithfulness gate; default stays `chunks`
-- [ ] **Phase 5: Integration Kitchen Sink** — Cross-feature integration tests + envelope budget audit + extended cross-workspace pentest
+- [x] **Phase 2: Recall Quality Baseline** — Hybrid-rank weight tuning + conflict-detection wiring (parallel-trackable: different workers, no shared files) (completed 2026-06-08)
+- [x] **Phase 3: Query Expansion + Reranker** — Multi-query + RRF + bge-reranker integration in `recall()` with adaptive routing (completed 2026-06-08)
+- [x] **Phase 4: Synthesis Activation Eval** — Promote scaffolded `verbosity=synthesis|both` path with LLM-judge faithfulness gate; default stays `chunks` (completed 2026-06-10)
+- [x] **Phase 5: Integration Kitchen Sink** — Cross-feature integration tests + envelope budget audit + extended cross-workspace pentest (completed 2026-06-11)
 
 #### Phase 1: Foundation (Wave 0)
 
@@ -104,6 +104,45 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer" — one ENG issue per phase; sub-issues for the RNK and CON plans if scope warrants.
 
+**Plans:** 10/10 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 02-01-PLAN.md — RNK Wave 0: shared/vectorize-utils package + sync-eval-corpus.mjs + vendored corpus fixture + cf-routing tracker scaffold
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 02-02-PLAN.md — RNK refactor: move HYBRID_WEIGHTS to @engram/ai-config with D-05 rename + D-06 audit-comment placeholder; parameterize hybridRank on weights; tools.ts import swap (D-09)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 02-03-PLAN.md — RNK sweep: 625-config recall-ranking eval + Pareto + sensitivity + D-15 dual-corpus gate; commit tuned weights + complete D-06 audit comment + seed hybrid-rank-changelog.md
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 02-04-PLAN.md — CON-01 prerequisite gate: unskip conflict-precision eval + assert P≥0.85, R≥0.90; D-18 STOP procedure on failure
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [x] 02-05-PLAN.md — CON workspace-do queries: insertConflictAsInbox + listInboxConflictsForMemoryIds + RPC methods + InboxConflictProperties contract type
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [x] 02-06-PLAN.md — CON conflict-pipeline orchestrator: prefilter → dupe-skip → parallel detect → inbox write → analytics + CON-08 architectural lock
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [x] 02-07-PLAN.md — CON triage-worker wiring: ctx.waitUntil(conflictPipeline(...)) in store-normal branch after updateBlockEnrichment; embedding reuse
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [x] 02-08-PLAN.md — CON recall envelope: context.conflicts[] SQL-join wiring with severity bucketing + lint-node grep gate for notification primitives
+
+**Wave 9** *(blocked on Wave 8 completion)*
+
+- [x] 02-09-PLAN.md — CON observability: eval-budget-summary.mjs --conflict-pipeline-p99 mode for CON-07 4s p99 budget verification
+
 #### Phase 3: Query Expansion + Reranker
 
 **Goal:** Activate the multi-query expansion + RRF merge + bge-reranker rerank path in `recall()`. The largest single user-facing latency change in v0.2.
@@ -120,7 +159,7 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 4. `packages/mcp-server/src/rrf.ts` exports `reciprocalRankFusion(lists, k=60)` — pure transform, unit-tested against reference vectors from Elasticsearch / AI21 docs (EXP-04).
 5. `shared/ai-config/src/index.ts` gains `RERANKER_MODEL = "@cf/baai/bge-reranker-base"`; `HYBRID_WEIGHTS.cosine` is renamed `HYBRID_WEIGHTS.rerank` (EXP-05).
 6. bge-reranker is invoked between RRF merge and `hybridRank`; reranker-score replaces raw cosine in the rank formula; reranker failure falls back to raw cosine via the v0.1 `safeRun` discipline (EXP-06).
-7. Plan-internal weight sweep validates reranker contribution against the expanded corpus; if the reranker doesn't beat raw cosine by ≥ 3% precision@5, ship with `HYBRID_WEIGHTS.rerank = 0.0` and document in `docs/hybrid-rank-changelog.md` (EXP-07).
+7. Plan-internal weight sweep validates reranker contribution against the expanded corpus; if the reranker doesn't beat raw cosine by ≥ 3% precision@3/F1@3 (D-EXP07 — corpus labels top-3, gate reuses the precision@3/F1@3 harness, not precision@5), ship with `HYBRID_WEIGHTS.rerank = 0.0` and document in `docs/hybrid-rank-changelog.md` (EXP-07).
 8. `QUERY_EXPANSION_MODEL` stays aliased to Scout; `query-expansion-recall.eval.test.ts` A/B tests `@cf/meta/llama-3.2-3b-instruct` vs Scout. Promotion to 3.2-3b is a follow-on PR if recall@5 stays within 5pp of Scout (EXP-08).
 9. HyDE is explicitly NOT implemented; the variant prompt forbids hypothetical-doc generation; eval includes an anti-HyDE assertion (EXP-09).
 10. 429 retry envelope wraps the rewriter call; persistent failure falls back to v0.1 single-query path with `meta.gaps` note "query expansion unavailable" (EXP-10).
@@ -136,6 +175,23 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 - **Reranker corpus-size risk.** STACK ↔ FEATURES disagreement on bge-reranker resolves via the weight ablation (EXP-07). Either it earns its 3pp on the corpus or its weight is zeroed — the constant lands in `ai-config` regardless.
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
+
+**Plans:** 5/5 plans complete
+
+Plans:
+**Wave 1** *(no dependencies — parallel)*
+
+- [x] 03-01-PLAN.md — rrf.ts reciprocalRankFusion pure transform (EXP-04) + RERANKER_MODEL constant in ai-config (EXP-05)
+- [x] 03-02-PLAN.md — query-expansion.ts: expandQuery zod-gate + anchor (EXP-01) + keepVariantsAboveGate 0.85 similarity gate (EXP-02) + anti-HyDE prompt (EXP-09)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 03-03-PLAN.md — recall() integration: adaptive routing + RRF fan-out (EXP-03/10) + bge-reranker index-align/sigmoid/fallback (EXP-06) + hybrid-rank doc edit
+
+**Wave 3** *(blocked on Wave 2 — EXP-07 and EXP-08 evals run in SEPARATE vitest sessions per MAX_AI_CALLS=200)*
+
+- [x] 03-04-PLAN.md — reranker-ablation eval (EXP-07, D-EXP07 precision@3/F1@3 gate) + HYBRID_WEIGHTS.rerank decision + changelog row
+- [x] 03-05-PLAN.md — query-expansion-recall A/B (EXP-08) + anti-HyDE eval (EXP-09) + entity-preservation (EXP-12) + recall-latency p50/p99 (EXP-11)
 
 #### Phase 4: Synthesis Activation Eval
 
@@ -168,6 +224,22 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
 
+**Plans:** 4/4 plans complete
+
+Plans:
+**Wave 1** *(no dependencies — parallel)*
+
+- [x] 04-01-PLAN.md — Wave 0 infrastructure: JUDGE_MODEL constant + CF-CODE-ASSIST-USAGE.md scaffold + synthesis-postprocess.test.ts + synthesis-preflight.test.ts + Intl.Segmenter probe
+- [x] 04-02-PLAN.md — Corpus caption augmentation: generate-synthesis-captions.mjs + 30 validate-split expected_synthesis captions + sync to vendored fixture (SYN-01)
+
+**Wave 2** *(blocked on 04-01)*
+
+- [x] 04-03-PLAN.md — tools.ts synthesis block hardening: SYN-05 preflight throw + SYN-07 single-memory guard + SYN-06 hedge + D-02 position→id mapping + D-09 uncited-sentence drop + SYN-09 analytics + export post-processor helpers
+
+**Wave 3** *(blocked on 04-02 + 04-03)*
+
+- [x] 04-04-PLAN.md — Eval gate: synthesis-fidelity.eval.test.ts with LLM-judge faithfulness ≥90% + zero hallucinated entities + latency gate (SYN-01, SYN-02, SYN-04)
+
 #### Phase 5: Integration Kitchen Sink
 
 **Goal:** Verify all 4 v0.2 features compose cleanly under the v0.1 envelope contract. Last gate before milestone close.
@@ -191,6 +263,23 @@ Full details: [milestones/v0.1-ROADMAP.md](milestones/v0.1-ROADMAP.md)
 - **Cross-workspace pentest debt.** v0.1's TOL-07 covered the v0.1 surface; every new code path in v0.2 needs the same treatment or v0.4 multi-tenant rollout will surface the gap dangerously late.
 
 **Linear:** Maps to milestone "v0.2 — Intelligence Layer".
+
+**Plans:** 5/5 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 05-01-PLAN.md — Phase 5 routing tracker (05-CF-CODE-ASSIST-USAGE.md) + D-01 matrix audit documentation (6 GENUINE-GAP rows confirmed, Notes updated)
+
+**Wave 2** *(parallel — no file conflicts)*
+
+- [x] 05-02-PLAN.md — v02-kitchen-sink.test.ts: INT-01 worst-case envelope + all 6 matrix row describe blocks (RNK×CON, RNK×EXP, EXP×SYN, CON×SYN, kitchen-sink, adaptive-routing×cosine-edge)
+- [x] 05-03-PLAN.md — envelope.test.ts: INT-02 context.conflicts discipline assertion + cross-workspace-pentest.test.ts: INT-03 3 Prong-A cases + 3 Prong-C skips
+- [x] 05-04-PLAN.md — conflict-pipeline-isolation.test.ts (new): INT-03 D-10 triage-worker workspace routing isolation proof
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 05-05-PLAN.md — INT-04 matrix flip (all 6 rows pending→tested) + INT-05a automated smoke + INT-05b staging ritual checklist + human verification checkpoint
 
 #### v0.2 Build-Order Graph
 
@@ -251,6 +340,60 @@ Target ship: 2026-08-02. Anticipated focus:
 ### 📋 v1.0 Public Launch (Planned)
 
 Target ship: 2026-09-01. Managed hosting, Stripe billing, OAuth, admin UI, connector registry, OSS launch. `engram-conflicts` Queue if multi-tenant volume justifies separating async stages.
+
+## Backlog
+
+> Unsequenced ideas captured for future planning. Promote with `/gsd:review-backlog` when ready to slot into a milestone.
+
+### Phase 999.1: v0.3 Identity + Surface milestone — consent UI + inbox UI + minimal admin (BACKLOG)
+
+**Goal:** Replace the terminal-side `kv:bootstrap` dance with a real browser-based sign-in flow so a second user can connect Engram via Claude Desktop Custom Connectors without ever cloning the repo. Consolidates UI work currently scattered across milestones (consent UI undefined; inbox UI is a v0.4 one-line item that's already late since v0.2 conflict suggestions land in the inbox table with no human-readable surface; memory browser absent; admin is a v1.0 wave-hand mention).
+
+**Requirements:** TBD — open scope decisions to resolve at `/gsd:new-milestone` time:
+
+1. Tight scope (auth + inbox only, ~3 weeks) vs wide scope (auth + inbox + memory browser + minimal admin, ~5 weeks).
+2. Upstream auth provider — Cloudflare Email Routing magic links / GitHub OAuth upstream / Google OAuth.
+3. Whether the admin surface includes the eval-budget dashboard (would consolidate `scripts/eval-budget-summary.mjs`) or stays workspace+identity-only.
+
+**Plans:** 0 plans
+
+**Predecessors already shipped (v0.1):**
+
+- `@cloudflare/workers-oauth-provider` OAuth Resource Server pattern ([packages/mcp-server/src/index.ts:121-128](../packages/mcp-server/src/index.ts#L121-L128))
+- KV-backed identity records ([packages/mcp-server/src/oauth.ts:197-284](../packages/mcp-server/src/oauth.ts#L197-L284))
+- `kv:bootstrap-interactive` terminal helper (`scripts/kv-bootstrap-interactive.mjs`)
+
+**Promise in code:** [packages/mcp-server/src/oauth.ts:223-228](../packages/mcp-server/src/oauth.ts#L223-L228) reads "v0.2 will replace this with a real consent UI" — that promise slipped when v0.2 scope became the Intelligence Layer. Original deferral rationale + post-v0.1 reversal: [RETROSPECTIVE.md:28](RETROSPECTIVE.md#L28), [.planning/proposals/ENG-11-first-run-auth-flow-DESIGN.md](proposals/ENG-11-first-run-auth-flow-DESIGN.md).
+
+**Proposed milestone slot:** insert between current v0.2 and current v0.3, pushing Workspaces+Memory Types → v0.4, Connectors+Alerts → v0.5. v1.0 target stays 2026-09-01.
+
+Plans:
+
+- [ ] TBD (promote with `/gsd:review-backlog` when ready)
+
+### Phase 999.2: D-09 all-uncited synthesis floor (BACKLOG)
+
+**Goal:** Fix the synthesis-availability bug surfaced by the Phase 4 eval gate (04-04). `dropUncitedSentences` (D-09) empties a synthesis entirely when the model produces a faithful-but-uncited summary (no "memory N" markers → no `[blk-id]` citations → every sentence dropped). Observed ~40% empty on the curated synthesis corpus. The faithfulness is fine (zero hallucinated entities); only availability suffers.
+
+**Proposed fix:** add an all-uncited floor — when `dropUncitedSentences` would drop *every* sentence, keep the synthesis (optionally apply the low-confidence hedge prefix) rather than returning empty. Compatible with existing 04-01 unit tests (they cover mixed cited/uncited, not all-uncited). Faithfulness-preserving.
+
+**Source:** [packages/mcp-server/src/tools.ts dropUncitedSentences](../packages/mcp-server/src/tools.ts), Phase 4 04-04-SUMMARY.md "Known behavior".
+
+Plans:
+
+- [ ] TBD (promote with `/gsd:review-backlog` when ready)
+
+### Phase 999.3: Synthesis faithfulness LLM-judge robustness (BACKLOG)
+
+**Goal:** Reduce LLM-judge noise so the SYN-02 faithfulness *rate* can be restored as a hard gate (currently advisory/logged per the 04-04 recalibration). The judge mis-scores claims that cite multiple memories collectively (observed false-negative where a claim present in `blk-052` was marked unsupported because it was attributed to `[blk-050]/[blk-051]/[blk-052]` together).
+
+**Proposed fix:** larger eval N (more curated cases) and/or a refined judge rubric for collective citations; then re-promote `passRate >= 0.90` to a hard `expect()`. The zero-hallucinated-entities hard gate already holds.
+
+**Source:** Phase 4 04-04-SUMMARY.md "Known behavior", `synthesis-fidelity.eval.test.ts`.
+
+Plans:
+
+- [ ] TBD (promote with `/gsd:review-backlog` when ready)
 
 ## Progress
 

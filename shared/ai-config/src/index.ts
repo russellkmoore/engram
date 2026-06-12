@@ -62,6 +62,67 @@ export const INGESTION_CLASSIFIER_MODEL = "@cf/meta/llama-4-scout-17b-16e-instru
 export const EMBEDDING_MODEL = "@cf/qwen/qwen3-embedding-0.6b" as const;
 
 /**
+ * Cross-encoder reranking model consumed via `safeRun` in Phase 3 EXP-06.
+ * Replaces raw Vectorize cosine as the `rerank` input to `hybridRank()`;
+ * invoked between RRF merge and `hybridRank` in the `recall()` handler.
+ *
+ * Called through `safeRun(env, RERANKER_MODEL, body)` to sidestep workerd#5998
+ * (generated `Ai_Cf_Baai_Bge_Reranker_Base_Input` type omits `query`).
+ * Raw logit scores are sigmoid-normalized → [0,1] before entering the
+ * tuned `HYBRID_WEIGHTS.rerank` weight (Phase 2 D-05 rename, EXP-06).
+ */
+export const RERANKER_MODEL = "@cf/baai/bge-reranker-base" as const;
+
+/**
+ * Whether the bge-reranker is invoked in `recall()`. **Shipped `false`** per the
+ * EXP-07 weight ablation (Plan 03-04, live run 2026-06-08): on the labeled corpus
+ * the reranker was decisively WORSE than raw cosine — F1@3 0.2611 vs 0.4556,
+ * MRR 0.4824 vs 0.8437, top1 0.3500 vs 0.7667 (gate_passed=false, delta −0.1944,
+ * threshold +0.03). D-EXP07's literal "set HYBRID_WEIGHTS.rerank=0.0" was a
+ * misformulation: `rerank` weights the PRIMARY relevance signal (reranker score
+ * when active, raw cosine on fallback), so zeroing it would delete the cosine
+ * signal too and rank by recency/filters only. The correct realization of the
+ * ablation outcome is to disable the reranker INVOCATION and let raw cosine fill
+ * the `rerank` slot at its tuned 0.6 weight (== the ablation's "off" arm, F1@3
+ * 0.4556). Skipping the call also removes one Workers AI round-trip per recall
+ * (EXP-11 latency). Flip back to `true` only if a future re-tune on a larger
+ * corpus shows the reranker earns its keep. The EXP-06 wiring is preserved behind
+ * this flag for that re-enable.
+ */
+// `as boolean` (not `false` / `false as const`) so it reads as a runtime feature
+// flag: a literal `false` type makes `if (RERANKER_ENABLED && …)` lint as dead code
+// (no-unnecessary-condition) and blocks the future re-enable. The cast also survives
+// the eslint `no-inferrable-types` autofix that strips a bare `: boolean` annotation.
+// Flip to `true` to reactivate the EXP-06 wiring.
+export const RERANKER_ENABLED = false as boolean;
+
+/**
+ * A/B challenger model for EXP-08 query-expansion recall comparison.
+ *
+ * EVAL-ONLY CONSTANT — do NOT use in production code. Scout (`QUERY_EXPANSION_MODEL`)
+ * stays the default for query expansion. This constant is imported only by
+ * `query-expansion-recall.eval.test.ts` to A/B test whether the smaller/faster
+ * llama-3.2-3b model can match Scout's recall@5 within 5pp (the promotion gate).
+ *
+ * Promotion decision (if 3.2-3b recall@5 ≥ Scout − 0.05): follow-on PR, NOT this phase.
+ * Verified on CF catalog: @cf/meta/llama-3.2-3b-instruct (2026-06-08).
+ */
+export const EXPANSION_CHALLENGER_MODEL = "@cf/meta/llama-3.2-3b-instruct" as const;
+
+/**
+ * LLM judge model for `synthesis-fidelity.eval.test.ts` faithfulness gate (SYN-02).
+ *
+ * EVAL-ONLY CONSTANT — do NOT call in the production recall() path. The judge
+ * is invoked exclusively inside the eval harness to assess synthesis faithfulness
+ * against source memories. Using a larger model than SYNTHESIS_MODEL (Scout)
+ * is required — Scout-judging-Scout is self-lenient (D-04).
+ *
+ * Model confirmed active on CF catalog 2026-06-09. Do not substitute
+ * `@cf/meta/llama-3.1-70b-instruct` — deprecated 2026-05-30.
+ */
+export const JUDGE_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast" as const;
+
+/**
  * Vector dimensions produced by `EMBEDDING_MODEL`. The Vectorize index named
  * `VECTORIZE_INDEX_NAME` was created with these dimensions — swapping the
  * embedding model requires re-creating the index.
@@ -110,7 +171,14 @@ export const VECTORIZE_INDEX_NAME = "engram-memories" as const;
  * If you swap the embedding model, you MUST retune this — different models
  * have different distance distributions.
  */
-export const MIN_COSINE_THRESHOLD = 0.6;
+// D-34 (2026-06-08): tuned from 0.6 → 0.45 via 2500-config sweep (Plan 02-03).
+// The D-34 sweep added MIN_COSINE_THRESHOLD as a 4th swept dimension [0.45,0.50,0.55,0.60].
+// Winner config selected threshold=0.45: F1=0.4476 vs cosine-only baseline F1=0.3381
+// (improvement_delta=0.1095, gate ≥0.02). Threshold ships to production recall() alongside
+// HYBRID_WEIGHTS — they tuned together and must move together.
+// If you swap the embedding model, you MUST retune this — different models
+// have different distance distributions.
+export const MIN_COSINE_THRESHOLD = 0.45;
 
 /**
  * Over-fetch multiplier for `recall()` Vectorize queries. We fetch
@@ -119,6 +187,47 @@ export const MIN_COSINE_THRESHOLD = 0.6;
  * something to filter from when the most-relevant matches don't fill topK.
  */
 export const VECTORIZE_OVERFETCH_FACTOR = 2;
+
+/**
+ * Hybrid-rank component weights — single source of truth for both Workers.
+ *
+ * // v0.2 Phase 2: `rerank` weight values tuned against RAW COSINE (`match.score` from Vectorize).
+ * // bge-reranker invocation lands in Phase 3 (EXP-06). Until then, `HYBRID_WEIGHTS.rerank * match.score`
+ * // means "raw-cosine weighted by the tuned rerank weight." Do NOT read `HYBRID_WEIGHTS.rerank` as
+ * // "reranker active" in v0.2.
+ * // Corpus: .planning/evals/recall-corpus.json (100 entries, qwen3-embedding-0.6b, sweep date 2026-06-08)
+ * // Scores: F1=0.45, MRR=0.85, top1=0.77
+ * // Sensitivity (top1_flip_rate over +/-0.05 perturbations of 4 axes x all train queries): 2.7% (RNK-04 gate < 30%)
+ * // D-34 recalibration: RNK-06 gate recalibrated from absolute 0.8254 to "beat cosine-only baseline by >=0.02".
+ * // Cosine-only baseline F1=0.3381; winner F1=0.4476; improvement_delta=0.1095 (gate passed).
+ * // MIN_COSINE_THRESHOLD swept as 4th dimension [0.45,0.50,0.55,0.60]; winner threshold=0.45 (see below).
+ * // D-15 dual-corpus: skipped (budget 200 calls exhausted by main 100-entry sweep; same as prior run).
+ * // Re-tune at v0.3 when corpus grows.
+ *
+ * Weights live in `@engram/ai-config` (single source of truth per ENG-25).
+ * v0.2 Phase 2 renamed `cosine` → `rerank` per D-05; bge-reranker invocation
+ * lands Phase 3 (EXP-06). Plan 02-03 commits tuned values here (D-34 revised
+ * sweep: 2500 configs = 625 weight configs × 4 MIN_COSINE_THRESHOLD values).
+ */
+export const HYBRID_WEIGHTS = {
+  rerank: 0.6, // D-05 rename from `cosine`; tuned 2026-06-08 via 2500-config D-34 sweep (Plan 02-03)
+  recency: 0.05,
+  type_match: 0.1,
+  scope_match: 0.05,
+} as const;
+
+/**
+ * Type for `HYBRID_WEIGHTS` — used by `hybridRank()` optional `weights` parameter.
+ * Defined as a structural shape (not `typeof HYBRID_WEIGHTS`) so the Plan 02-03
+ * 625-config sweep can pass arbitrary `number` weights without the readonly literal
+ * types narrowing the parameter to the exact placeholder values.
+ */
+export interface HybridWeights {
+  rerank: number;
+  recency: number;
+  type_match: number;
+  scope_match: number;
+}
 
 // ---------------------------------------------------------------------------
 // Role-named aliases (v0.2 / v0.4 will specialize these; today they all

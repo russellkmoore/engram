@@ -14,6 +14,7 @@
     "@engram/ai-config": "*",
     "@engram/schema": "*",
     "@engram/types": "*",
+    "@engram/vectorize-utils": "*",
     "zod": "^4.4.3"
   },
   "devDependencies": {

@@ -1,6 +1,9 @@
 /**
- * `vectorizeQuery` / `vectorizeUpsert` / `vectorizeDelete` —
- * mandatory-workspace-id wrappers around `env.VECTORIZE` (AI-02 defense-in-depth).
+ * `vectorizeUpsert` / `vectorizeDelete` —
+ * mandatory-workspace-id write wrappers around `env.VECTORIZE` (AI-02 defense-in-depth).
+ *
+ * `vectorizeQuery` moved to `@engram/vectorize-utils` in Phase 2 D-09; this
+ * module retains the upsert/delete writers.
  *
  * Cross-phase contract:
  * - **Phase 5 AI-02:** the `workspaceId` arg is non-optional positional on every
@@ -20,10 +23,6 @@
  * - Direct `env.VECTORIZE.{query|upsert|deleteByIds}` outside this file is
  *   banned by a CI grep check (T-05-02-CWVL mitigation). Plan 05-03 ships
  *   the grep gate.
- * - Default topK = 25 (Phase 4 D-10 cap; guards against Pitfall 7 default of 5).
- * - `returnMetadata: "all"` is the default for vectorizeQuery so hybrid ranking
- *   receives full metadata. Pitfall 8 note: returnMetadata="all" caps topK at 50;
- *   D-10's max(25) keeps us under this limit.
  * - No default export — matches the repo-wide convention.
  *
  * Threat model:
@@ -40,9 +39,6 @@
 /** Maximum namespace byte length enforced by Vectorize. */
 const NAMESPACE_MAX_BYTES = 64;
 
-/** Default topK per Phase 4 D-10 (overrides Vectorize's implicit default of 5). */
-const VECTORIZE_TOPK_DEFAULT = 25;
-
 /**
  * Validates that `workspaceId` is non-empty and fits within the 64-byte
  * Vectorize namespace limit. Throws synchronously before any binding call.
@@ -57,45 +53,6 @@ function assertNamespace(workspaceId: string): void {
       `Vectorize helper: namespace '${workspaceId}' exceeds 64-byte namespace cap (${String(byteLength)} bytes) — Pitfall 9 guard`,
     );
   }
-}
-
-/**
- * Query the Vectorize index within a specific workspace namespace.
- *
- * Enforces:
- * - `workspaceId` is non-optional positional arg (AI-02 compile-time defense).
- * - 64-byte namespace length guard (Pitfall 9).
- * - Default topK = 25 (Pitfall 7 defense; Phase 4 D-10 cap).
- * - Default returnMetadata = "all" so hybrid ranking receives full metadata.
- *   Note: returnMetadata="all" caps topK at 50 per Cloudflare docs (Pitfall 8);
- *   D-10's max(25) keeps us under this limit.
- *
- * @param env - Structural env binding; only VECTORIZE is required for partial mocks.
- * @param workspaceId - The workspace namespace for tenant isolation (AI-02).
- * @param vector - The query embedding (size = EMBEDDING_DIMS from @engram/ai-config).
- * @param opts - Query options. topK defaults to 25; returnMetadata defaults to "all".
- */
-export function vectorizeQuery(
-  env: { VECTORIZE: VectorizeIndex },
-  workspaceId: string,
-  vector: number[],
-  opts: {
-    topK?: number;
-    filter?: Record<string, unknown>;
-    returnMetadata?: "none" | "indexed" | "all";
-  },
-): Promise<VectorizeMatches> {
-  // assertNamespace throws SYNCHRONOUSLY before any async work begins.
-  // This makes the namespace guard catchable by expect(() => fn()).toThrow()
-  // in tests, and also prevents a rejected-promise from propagating silently.
-  assertNamespace(workspaceId);
-  const topK = opts.topK ?? VECTORIZE_TOPK_DEFAULT;
-  const returnMetadata = opts.returnMetadata ?? "all";
-  const queryOpts: Record<string, unknown> = { namespace: workspaceId, topK, returnMetadata };
-  if (opts.filter !== undefined) {
-    queryOpts.filter = opts.filter;
-  }
-  return env.VECTORIZE.query(vector, queryOpts);
 }
 
 /**

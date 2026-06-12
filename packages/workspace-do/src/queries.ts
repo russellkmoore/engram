@@ -91,10 +91,10 @@
  */
 import type { SqlStorage, SqlStorageValue } from "@cloudflare/workers-types";
 
-import type { Memory, Conflict } from "@engram/types";
+import type { Memory, Conflict, InboxConflictProperties } from "@engram/types";
 
 import { NotFoundError } from "./errors.js";
-import type { MemoryType, InboxEntry, LexicalSearchHit } from "./types.js";
+import type { MemoryType, InboxEntry, LexicalSearchHit, InboxConflictRow } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // Narrowing helpers (private — Pitfall 6 mitigation)
@@ -279,6 +279,60 @@ function narrowConflictRow(row: Record<string, SqlStorageValue | undefined>): Co
     severity,
     detected_at,
     resolved_at,
+  };
+}
+
+/**
+ * Narrows a raw `inbox` row to a fully-typed `InboxConflictRow`. Runtime-checks
+ * each column. `proposed_properties` is left as a raw `string` per the
+ * `InboxConflictRow` contract (the caller parses it with the full
+ * `InboxConflictProperties` type in Plan 02-08).
+ *
+ * Only called by `listInboxConflictsForMemoryIds` (helper #14) — not exported.
+ */
+function narrowInboxConflictRow(
+  row: Record<string, SqlStorageValue | undefined>,
+): InboxConflictRow {
+  const id = row.id;
+  const content = row.content;
+  const proposed_type = row.proposed_type;
+  const proposed_properties = row.proposed_properties;
+  const memorability_score = row.memorability_score;
+  const source = row.source;
+  const created_at = row.created_at;
+
+  if (typeof id !== "string") {
+    throw new Error("invariant violation: inbox.id is not a string");
+  }
+  if (typeof content !== "string") {
+    throw new Error("invariant violation: inbox.content is not a string");
+  }
+  if (proposed_type !== "conflict") {
+    throw new Error(
+      `invariant violation: inbox.proposed_type is not "conflict" (got ${JSON.stringify(proposed_type)})`,
+    );
+  }
+  if (typeof proposed_properties !== "string") {
+    throw new Error("invariant violation: inbox.proposed_properties is not a string");
+  }
+  if (typeof memorability_score !== "number") {
+    throw new Error("invariant violation: inbox.memorability_score is not a number");
+  }
+  if (typeof source !== "string") {
+    throw new Error("invariant violation: inbox.source is not a string");
+  }
+  if (typeof created_at !== "number") {
+    throw new Error("invariant violation: inbox.created_at is not a number");
+  }
+
+  return {
+    id,
+    content,
+    proposed_type: "conflict",
+    proposed_properties,
+    memorability_score,
+    source,
+    created_at,
   };
 }
 
@@ -530,7 +584,123 @@ export function listConflicts(
 }
 
 // ---------------------------------------------------------------------------
-// 8. stampEmbedding — record embedding_model + embedding_version on a block (AI-03)
+// 8. insertConflictAsInbox — write a contradiction as an inbox conflict row (CON-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * Writes a conflict-pipeline contradiction into the `inbox` table with
+ * `proposed_type = "conflict"`.
+ *
+ * CON-04 contract (must_haves truth 1):
+ * - `id` is `conflict-<crypto.randomUUID()>` — mirrors the `inbox-`/`block-`
+ *   ID prefix convention in `moveToInbox`. UUID uniqueness prevents PK
+ *   collisions when concurrent triage-worker instances detect the same pair.
+ * - `content` equals `args.description` (CON-04 + RESEARCH §"insertConflictAsInbox helper").
+ * - `proposed_type` is the SQL literal `"conflict"`.
+ * - `proposed_properties` is `JSON.stringify({memory_a_id, memory_b_id, category,
+ *   ai_confidence, description})` — exact 5-field shape from `InboxConflictProperties`.
+ * - `memorability_score` is repurposed for `ai_confidence` (RESEARCH lines 985).
+ * - `source` is `"triage:conflict-pipeline"`.
+ * - `INSERT OR IGNORE` for at-least-once Queue delivery safety (mirrors
+ *   `createInboxEntry` at helper #6). Note: each call generates a NEW UUID,
+ *   so duplicate Queue messages for the same memory pair each get their own row.
+ *   The OR IGNORE guard is for the pathological case of a literal same UUID
+ *   collision (astronomically unlikely but defended against per D-02).
+ *
+ * Only `contradiction` verdicts should reach this helper. The caller (CON-04
+ * in `conflict-pipeline.ts`) MUST filter out `benign_update` and `unrelated`
+ * before calling — `InboxConflictProperties.category` is `"contradiction"`.
+ *
+ * @requirement CON-04
+ */
+export function insertConflictAsInbox(sql: SqlStorage, args: InboxConflictProperties): void {
+  const id = `conflict-${crypto.randomUUID()}`;
+  const proposed_properties = JSON.stringify({
+    memory_a_id: args.memory_a_id,
+    memory_b_id: args.memory_b_id,
+    category: args.category,
+    ai_confidence: args.ai_confidence,
+    description: args.description,
+  });
+  sql.exec(
+    `INSERT OR IGNORE INTO inbox
+       (id, content, proposed_type, proposed_properties, memorability_score, source, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    id,
+    args.description,
+    "conflict",
+    proposed_properties,
+    args.ai_confidence,
+    "triage:conflict-pipeline",
+    Date.now(),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 9. listInboxConflictsForMemoryIds — read conflict-inbox rows for recall (CON-05)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns inbox rows tagged as `proposed_type = "conflict"` whose
+ * `proposed_properties.memory_a_id` OR `.memory_b_id` matches one of the
+ * provided `args.ids`.
+ *
+ * Implementation per RESEARCH §Pattern 6 Option A (TS-side filter): a bounded
+ * SELECT fetches all conflict rows in the 60-day window, then a TS-side filter
+ * applies the id match. This avoids `json_extract(...)` in SQL whose
+ * availability in the current workerd SQLite build is uncertain (RESEARCH §A3).
+ * The scan ceiling (60-day window + LIMIT 100) keeps the cost bounded.
+ *
+ * CON-05 contract (must_haves truth 2):
+ * - Empty `args.ids` returns `[]` immediately (no SQL round-trip).
+ * - `created_at` must be within the last 60 days.
+ * - Results are ordered `created_at DESC` (newest first).
+ * - LIMIT 100 as defense-in-depth bound (T-02-05-04 mitigation).
+ * - JSON.parse failures are caught + logged; the offending row is silently
+ *   skipped so recall still returns successfully (T-02-05-05 mitigation).
+ * - Returns raw `InboxConflictRow[]` — NOT `Conflict[]`. The mapping from
+ *   row shape to `Conflict` envelope happens in the recall handler (Plan 02-08).
+ *
+ * @requirement CON-05 (read-side)
+ */
+export function listInboxConflictsForMemoryIds(
+  sql: SqlStorage,
+  args: { ids: string[] },
+): InboxConflictRow[] {
+  if (args.ids.length === 0) return [];
+  const since = Date.now() - 60 * 24 * 3600 * 1000;
+  const rows = sql
+    .exec(
+      `SELECT id, content, proposed_type, proposed_properties, memorability_score, source, created_at
+       FROM inbox
+       WHERE proposed_type = 'conflict' AND created_at > ?
+       ORDER BY created_at DESC
+       LIMIT 100`,
+      since,
+    )
+    .toArray();
+  const idSet = new Set(args.ids);
+  const narrowed: InboxConflictRow[] = [];
+  for (const row of rows) {
+    const narrowRow = narrowInboxConflictRow(row);
+    try {
+      const parsed = JSON.parse(narrowRow.proposed_properties) as InboxConflictProperties;
+      if (idSet.has(parsed.memory_a_id) || idSet.has(parsed.memory_b_id)) {
+        narrowed.push(narrowRow);
+      }
+    } catch (err) {
+      console.warn("listInboxConflictsForMemoryIds:parse-failed", {
+        id: narrowRow.id,
+        err: err instanceof Error ? err.message : String(err),
+      });
+      // Silently skip rows with malformed JSON (T-02-05-05 mitigation)
+    }
+  }
+  return narrowed;
+}
+
+// ---------------------------------------------------------------------------
+// 10. (renumbered — was 8) stampEmbedding — record embedding_model + embedding_version on a block (AI-03)
 // ---------------------------------------------------------------------------
 
 /**
@@ -562,7 +732,7 @@ export function stampEmbedding(
 }
 
 // ---------------------------------------------------------------------------
-// 9. getBlocksByIds — batch read; excludes cold-storage rows by default (AI-04)
+// 11. (renumbered — was 9) getBlocksByIds — batch read; excludes cold-storage rows by default (AI-04)
 // ---------------------------------------------------------------------------
 
 /**
@@ -590,7 +760,7 @@ export function getBlocksByIds(sql: SqlStorage, ids: string[]): Memory[] {
 }
 
 // ---------------------------------------------------------------------------
-// 10. updateBlockEnrichment — write AI-enriched properties/summary/confidence (AI-05)
+// 12. (renumbered — was 10) updateBlockEnrichment — write AI-enriched properties/summary/confidence (AI-05)
 // ---------------------------------------------------------------------------
 
 /**
@@ -651,7 +821,7 @@ export function updateBlockEnrichment(
 }
 
 // ---------------------------------------------------------------------------
-// 11. moveToInbox — stage a low-confidence capture for human review (AI-06)
+// 13. (renumbered — was 11) moveToInbox — stage a low-confidence capture for human review (AI-06)
 // ---------------------------------------------------------------------------
 
 /**
@@ -702,7 +872,7 @@ export function moveToInbox(
 }
 
 // ---------------------------------------------------------------------------
-// 12. moveToColdStorage — route low-memorability block to cold-storage (D-07)
+// 14. (renumbered — was 12) moveToColdStorage — route low-memorability block to cold-storage (D-07)
 // ---------------------------------------------------------------------------
 
 /**
@@ -750,7 +920,7 @@ export function moveToColdStorage(
 }
 
 // ---------------------------------------------------------------------------
-// 13. markIngestFailed — permanent enrichment failure (PIP-05 / D-03)
+// 15. (renumbered — was 13) markIngestFailed — permanent enrichment failure (PIP-05 / D-03)
 // ---------------------------------------------------------------------------
 
 /**

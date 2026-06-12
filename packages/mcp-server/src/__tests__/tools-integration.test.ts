@@ -566,8 +566,13 @@ describe("AI-04: recall envelope shape (D-03 verbosity parameterization)", () =>
     const ws = "ws-shape-synthesis";
     const rememberCb = captureCallback("remember", ws);
     const recallCb = captureCallback("recall", ws);
+    // SYN-07: synthesis requires ranked.length >= 2 — store two memories so the guard passes.
     await rememberCb(
       { content: "shape test memory for synthesis verbosity — concrete fact about Cloudflare" },
+      {},
+    );
+    await rememberCb(
+      { content: "shape test second memory — additional context for multi-source synthesis" },
       {},
     );
 

@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: ready_to_plan
-last_updated: 2026-06-05T07:35:41.442Z
-last_activity: 2026-06-03 -- Phase 01 execution started
+status: "Phase 5 shipped — PR #9 (v0.2 Intelligence Layer milestone close)"
+last_updated: "2026-06-12T03:24:07.437Z"
+last_activity: 2026-06-11
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
-  percent: 20
-stopped_at: Phase 01 complete (5/5) — ready to discuss Phase 2
+  completed_phases: 5
+  total_plans: 29
+  completed_plans: 29
+  percent: 100
 ---
 
 # Project State: Engram
@@ -41,10 +40,10 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-06-05
+Phase: 05 (integration-kitchen-sink) — EXECUTING
+Plan: 5 of 5
+Status: Phase 5 shipped — PR #9 (v0.2 Intelligence Layer milestone close)
+Last activity: 2026-06-11
 
 ## Phase Status
 
@@ -52,8 +51,8 @@ v0.2 phase numbering resets to Phase 1. v0.1's phases 1-7 are archived under `mi
 
 | Phase | Name                       | Requirements             | Plans | Status               |
 | ----- | -------------------------- | ------------------------ | ----- | -------------------- |
-| 1     | Foundation (Wave 0)        | PRE-01..05               | TBD   | Ready to plan        |
-| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | TBD   | Pending Phase 1      |
+| 1     | Foundation (Wave 0)        | PRE-01..05               | 5     | Done (2026-06-04)    |
+| 2     | Recall Quality Baseline    | RNK-01..07 + CON-01..08  | 10    | Planned (2026-06-07) |
 | 3     | Query Expansion + Reranker | EXP-01..12               | TBD   | Pending Phase 2      |
 | 4     | Synthesis Activation Eval  | SYN-01..10               | TBD   | Pending Phase 3      |
 | 5     | Integration Kitchen Sink   | INT-01..05               | TBD   | Pending Phases 2-4   |
@@ -74,6 +73,26 @@ See [ROADMAP.md](ROADMAP.md) for full phase detail and the build-order graph.
 | 01-02 PRE-02 Testing Harness (vitest tiers + eval-budget) | ~45 min | 6 | 6 | 2026-06-03 |
 | 01-03 PRE-04 Integration Matrix (v0.2-INTEGRATION-MATRIX.md) | ~5 min | 1 | 1 | 2026-06-04 |
 | Phase 01 P04 | 2 minutes | 1 tasks | 1 files |
+| Phase 02 P02-02 | ~10min | 3 tasks | 7 files |
+| Phase 02-recall-quality-baseline P03a | 7h30m | 3 tasks | 8 files |
+| Phase 02 P03 | ~4 hours | 2 tasks | 4 files |
+| Phase 02-recall-quality-baseline P04 | ~50min | 2 tasks | 2 files |
+| Phase 02-recall-quality-baseline P05 | 7 minutes | 2 tasks | 6 files |
+| Phase 02-recall-quality-baseline P06 | ~25min | 2 tasks | 3 files | 2026-06-08 |
+| Phase 02-recall-quality-baseline P07 | ~20min | 1 tasks | 3 files | 2026-06-08 |
+| Phase 02-recall-quality-baseline P08 | ~11min | 3 tasks | 6 files |
+| Phase 03 P03-01 | 5min | 2 tasks | 7 files |
+| Phase 03-query-expansion-reranker P03-02 | 5min | 2 tasks | 2 files |
+| Phase 03-query-expansion-reranker P03-03 | ~45min | 2 tasks | 5 files | 2026-06-08 |
+| Phase 03 P03-04 | ~20min | 2 tasks | 2 files |
+| Phase 03 P05 | 18m | 2 tasks | 3 files |
+| Phase 04 P01 | 25 minutes | 2 tasks | 4 files |
+| Phase 04 P02 | 15min | 2 tasks | 6 files |
+| Phase 05-integration-kitchen-sink P01 | 8 minutes | 2 tasks | 2 files |
+| Phase 05-integration-kitchen-sink P02 | 25 minutes | 1 tasks | 2 files |
+| Phase 05-integration-kitchen-sink P03 | ~10 min | 2 tasks | 2 files |
+| Phase 05 P04 | 5 minutes | 1 tasks | 2 files |
+| Phase 05 P05-05 | ~15 minutes | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -144,3 +163,36 @@ _State updated: 2026-06-03 by /gsd:execute-phase 01-01_
 - Run Plan 01-04 (next plan in Phase 1)
 
 _State updated: 2026-06-04 by /gsd:execute-phase 01-03_
+
+### Blockers
+
+- **[RESOLVED 2026-06-07 via `/gsd:plan-phase 2 --replan-section sweep-recovery`]** The sweep blocker below is addressed by the eval-design-fix split. Plan 02-03 was split into **02-03a** (eval-design fix — deterministic seed-prep injects exp-decay `created_at` (0–90d) + `{personal,project}` scope variance into Vectorize metadata per D-22..D-25/D-28/D-29; labels `expected_args` on 40–60 of 100 corpus queries per D-26/D-27; qwen3-relabels the 34 unreachable `expected_top_3` entries + 27-entry real-corpus pre-check with audit trail per D-30..D-33; wave 3, deps [02-02]) and **02-03** (re-run the 625-config sweep on the fixed eval; threads `expected_args` + reads metadata-backed `created_at`/`scope`; adds an anti-reward-hack tunability gate (F1 spread > 1 / flip_rate > 0) that re-opens the blocker on a flatline; retains all original gates D-01/03/04/06/15/21 + RNK-04; wave 4, deps [02-03a]). Downstream 02-04..02-09 wave-bumped +1 (deps unchanged). Both plans passed gsd-plan-checker (all dimensions, zero blockers). Linear: transition the ENG RNK sub-issue from Blocked → Todo. **Ready to execute (`/gsd:execute-phase 2`).** Original blocker record retained below for the audit trail.
+
+- Phase 2 Plan 02-03 PAUSED at sweep-design checkpoint (2026-06-05). The 625-config recall-ranking sweep collapses to pure cosine because (1) all 120 eval fixtures were seeded with identical created_at timestamps → recency component is constant, (2) corpus queries pass args={} → type_match and scope_match are constant, and (3) coverage ceiling is ~0.87 because 34/300 expected blocks rank outside Vectorize top-50 in qwen3-embedding-0.6b space (gate is ≥0.8254). All 625 weight configs produce identical F1=0.3619 with flip_rate=0.0000 — the sweep cannot tune what isn't varied. Two prior unblock attempts (unredact REDACTED tokens, lower EVAL_COSINE_THRESHOLD to 0.45, remove .slice(0,25) cap) did not address the structural issue. Decision: pause + replan via /gsd:discuss-phase 2. Eval-design fix is bigger than Plan 02-03 scope — likely split into 02-03a (fix-eval-design: diversify created_at across 0-90 days, add type/scope variance to corpus queries, possibly relabel expected_top_3_block_ids to qwen3-reachable blocks) + 02-03b (run-sweep on fixed eval). Committed work preserved (5849608 sweep test, 223fabb prettier-ignore, 86c5d6b seed test + workerd fix, e3fba54 unredact). Experimental working-tree changes (threshold drop, slice removal, content enrichment, corpus relabel attempt) reverted. HYBRID_WEIGHTS still hold Plan 02-02 placeholders; docs/hybrid-rank-changelog.md not yet seeded. Linear: ENG RNK sub-issue to be transitioned to Blocked.
+
+## Decisions
+
+- [Phase 05]: 05-02-T1 AI mock dispatch by body key (messages=chat/synthesis/expansion, text=embed) — all SYNTHESIS_MODEL, QUERY_EXPANSION_MODEL, INGESTION_CLASSIFIER_MODEL alias to the same string in @engram/ai-config, so model-string dispatch cannot distinguish them; body shape is the only reliable discriminator in tests.
+- [Phase 05]: 05-02-T1 routing: claude route taken despite N/Y/Y checklist (should suggest cf-code-assist) — runtime-GREEN iteration required; relative import path fix cycle (`../envelope.js` → `../../envelope.js`) needed; cf-code-assist cannot observe runtime failures.
+- [Phase 02]: D-34 (02-03 sweep gate calibration, 2026-06-08): The 625-config sweep proved tunable (HR-2 closed: 7 distinct F1 values, recency/scope/type variance confirmed) but capped at F1=0.3429, far below the RNK-06 0.8254 gate. Root cause: 0.8254 came from recall-f1.eval.test.ts (full production remember→recall pipeline where ingested IDs ARE expected IDs), which is NOT apples-to-apples with the pure-rerank sweep over static ef-* fixtures. The true binding constraint is MIN_COSINE_THRESHOLD=0.6 filtering expected blocks at cosine 0.55-0.60 out BEFORE reranking (no weight config can recover them). Per STATE decision #4, MIN_COSINE_THRESHOLD was always slated for v0.2 tuning. DECISION (Russell deferred to Claude, 'whatever is most reliable'): (1) Add MIN_COSINE_THRESHOLD as a swept dimension [0.45/0.50/0.55/0.60] — zero extra AI calls since candidates are already pre-fetched at topK=50; (2) Keep recall-f1.eval.test.ts UNCHANGED as the absolute 0.8254 production-pipeline regression guard; (3) Recalibrate the SWEEP's gate to the defensible claim: tuned (threshold,weights) must beat the cosine-only baseline by a real margin (not an arbitrary number borrowed from a different architecture); (4) Safety: F1 penalizes noise so winner self-selects threshold; (5) Stop condition: if nothing beats cosine-only baseline, the corpus/embedding is the real problem → replan, do NOT force a pick. The chosen threshold ships to production recall() alongside tuned HYBRID_WEIGHTS.
+- [Phase 02]: D-34-RESULT (02-03 D-34 sweep executed, 2026-06-08): 2500-config sweep (625 weight configs × 4 thresholds [0.45/0.50/0.55/0.60]) passed all gates. Winner: rerank=0.6, recency=0.05, type_match=0.1, scope_match=0.05, threshold=0.45. F1_train=0.4476, cosine-only baseline=0.3381, improvement_delta=0.1095 (gate ≥0.02 PASSED). Tunability confirmed: distinct F1=84 across 2500 configs. D-04 gap=0.0143 (<10pp). RNK-04 top1_flip_rate=0.0268 (2.68%, <30%). HYBRID_WEIGHTS and MIN_COSINE_THRESHOLD committed to shared/ai-config/src/index.ts; docs/hybrid-rank-changelog.md seeded. RNK-01..04, RNK-07 requirements closed.
+- [Phase 02]: 02-06 (conflictPipeline internal embed, 2026-06-08): Path A selected — extract.ts queue path calls only CLASSIFIER_MODEL; no EMBEDDING_MODEL call exists upstream. Embedding computed once inside conflict-pipeline.ts as first try{} step. CON-08 grep test uses Vite ?raw import instead of node:fs readFileSync (workerd does not implement node:fs).
+- [Phase ?]: CON-05 backward-compat: buildRecallResponse undefined conflicts→[] (D-08); empty→omit (T-02-08-05)
+- [Phase ?]: CON-08 grep gate: no-proactive-notifications.test.ts enforces pull-only architectural invariant in lint-node CI
+- [Phase ?]: EXP-04: reciprocalRankFusion(lists, k=60) pure transform — O(1) Map + insertion-order tiebreak
+- [Phase ?]: EXP-05: RERANKER_MODEL = '@cf/baai/bge-reranker-base' constant in @engram/ai-config; HYBRID_WEIGHTS unchanged (D-05 rename already done in Phase 2)
+- [Phase 03]: EXP-01 (03-02): expandQuery re-throws errors (incl. RateLimitError) to recall()'s catch for EXP-10 single-query fallback — zod gate failure degrades to [originalQuery] silently
+- [Phase 03]: EXP-02 (03-02): keepVariantsAboveGate accepts pre-computed queryVector; original (variants[0]) is never re-embedded or dropped; 0.85 default gate as named parameter for eval override
+- [Phase 03]: EXP-09 (03-02): EXPANSION_SYSTEM_PROMPT encodes anti-HyDE rule + named-entity preservation in the prompt string; behavioral eval assertion in plan 03-05
+- [Phase 03]: EXP-03 (03-03): ADAPTIVE_TOP1_THRESHOLD=0.65 — single-query Vectorize pass first; fan-out fires only when top1_cosine < 0.65 to avoid expansion cost on high-confidence queries
+- [Phase 03]: EXP-06 (03-03): safeRun(env, RERANKER_MODEL, {query, contexts}) bypasses workerd#5998; r.id is INTEGER INDEX into contexts[] (not a block id); sigmoid(x)=1/(1+e^-x) normalizes logit to [0,1] before hybridRank
+- [Phase 03]: EXP-10 (03-03): expansionUnavailable flag set in catch; META_GAPS.queryExpansionUnavailable appended AFTER buildRecallResponse so it survives trimToBudget; byte-frozen per D-10
+- [Phase 03]: PITFALL-6 (03-03): blockTextMap pre-computes content/summary; empty-content candidates excluded from contexts[]; excluded candidates keep raw cosine via ?? m.score default in rerankedMatches
+- [Phase ?]: Eval-only constant for A/B challenger model
+- [Phase ?]: JUDGE_MODEL = @cf/meta/llama-3.3-70b-instruct-fp8-fast eval-only constant (D-04/SYN-02): larger than Scout for faithful judge eval; llama-3.1-70b deprecated 2026-05-30
+- [Phase ?]: PendingToolsExports interface cast: TDD RED-state imports for not-yet-exported tools.ts helpers; avoids ESLint no-unsafe-call (Plan 04-01)
+- [Phase ?]: Intl.Segmenter AVAILABLE in current workerd build (confirmed 2026-06-10); regex fallback defined as contingency
+- [Phase ?]: 05-03: EXP fan-out D-11 isolation proven via natural empty-namespace routing
+- [Phase ?]: 05-03: All 3 Prong-A v0.2 cases (EXP/RNK/SYN) GREEN with positive-controls; 3 Prong-C stubs added per D-08
+- [Phase ?]: D-10 isolation test spy pattern
+- [Phase ?]: 05-05-T3: Russell approved v0.2 milestone-close gate 2026-06-11 — all 6 matrix rows tested, smoke script green, INT-04/INT-05a requirements satisfied

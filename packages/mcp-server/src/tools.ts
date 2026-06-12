@@ -86,12 +86,20 @@ import {
   EMBEDDING_DIMS,
   CLASSIFIER_MODEL,
 } from "./ai-helper.js";
-import { MIN_COSINE_THRESHOLD, VECTORIZE_OVERFETCH_FACTOR } from "@engram/ai-config";
-import { vectorizeUpsert, vectorizeDelete, vectorizeQuery } from "./vectorize-helper.js";
+import {
+  MIN_COSINE_THRESHOLD,
+  VECTORIZE_OVERFETCH_FACTOR,
+  RERANKER_MODEL,
+  RERANKER_ENABLED,
+} from "@engram/ai-config";
+import { vectorizeQuery } from "@engram/vectorize-utils";
+import { expandQuery, keepVariantsAboveGate } from "./query-expansion.js";
+import { reciprocalRankFusion } from "./rrf.js";
+import { vectorizeUpsert, vectorizeDelete } from "./vectorize-helper.js";
 import { writeAnalytics, workspaceTag } from "./analytics.js";
 import { hybridRank } from "./hybrid-rank.js";
-import type { Memory, MemoryEvent } from "@engram/types";
-import type { WorkspaceDO, LexicalSearchHit } from "@engram/workspace-do";
+import type { Memory, MemoryEvent, Conflict, InboxConflictProperties } from "@engram/types";
+import type { WorkspaceDO, LexicalSearchHit, InboxConflictRow } from "@engram/workspace-do";
 
 import {
   RememberInputSchema,
@@ -103,7 +111,9 @@ import {
 import type { EngramProps } from "./index.js";
 
 // ---------------------------------------------------------------------------
-// Phase 5 D-01 / D-02 / D-03: recall() synthesis helpers (file-local, not exported)
+// Phase 5 D-01 / D-02 / D-03: recall() synthesis helpers
+// Post-processor helpers are exported so unit tests (synthesis-postprocess.test.ts,
+// synthesis-preflight.test.ts) can import them directly (Plan 04-03).
 // ---------------------------------------------------------------------------
 
 /**
@@ -127,8 +137,12 @@ Output prose only; no markdown headers; no JSON; no bullet lists.` as const;
  * Trims the ranked memories list to fit within maxTokens worth of synthesis input.
  * Per AI-SPEC.md §4b "Context Window Strategy": drop trailing memories first.
  * Conservative estimate: ~4 chars per token.
+ *
+ * SYN-05: Throws when ALL memories exceed the token budget (empty result after trimming).
+ * The throw propagates into the existing try/catch in the synthesis block, which sets
+ * synthesis=null and surfaces the failure via meta.gaps (honest-stubs posture).
  */
-function trimRankedForSynthesis(
+export function trimRankedForSynthesis(
   memories: LexicalSearchHit[],
   maxTokens: number,
 ): LexicalSearchHit[] {
@@ -140,6 +154,11 @@ function trimRankedForSynthesis(
     if (used + cost > charBudget) break;
     out.push(m);
     used += cost;
+  }
+  // SYN-05: if no memory fits within budget, throw — the synthesis try/catch catches this
+  // and surfaces via meta.gaps ("synthesis skipped: context exceeded 6K token budget").
+  if (out.length === 0) {
+    throw new Error("synthesis-preflight: all memories exceed 6K token budget");
   }
   return out;
 }
@@ -158,10 +177,190 @@ function formatBlocksForSynthesis(memories: LexicalSearchHit[], query: string): 
 }
 
 /**
+ * SYN-06: Prepends a hedge prefix to the synthesis string when the minimum cosine
+ * score over the source memories is below 0.7.
+ * Applied AFTER safeRun returns, BEFORE mapPositionsToCitationIds.
+ */
+export function applyHedgePrefix(synthesis: string, lowConfidence: boolean): string {
+  if (lowConfidence) {
+    return (
+      "Note: the following is based on loosely-matched memories and may be incomplete. " + synthesis
+    );
+  }
+  return synthesis;
+}
+
+/**
+ * D-02: Replaces "memory N" (case-insensitive, word-boundary-aware) with [block_id]
+ * from the ranked list ordering (trimmedForSynth[i] ↔ "memory i+1").
+ * Out-of-range citations (N > trimmedForSynth.length) remain as literal text —
+ * dropUncitedSentences then drops sentences containing them (D-03 is subsumed by D-09).
+ */
+export function mapPositionsToCitationIds(
+  synthesis: string,
+  trimmedForSynth: LexicalSearchHit[],
+): string {
+  let result = synthesis;
+  for (let i = 0; i < trimmedForSynth.length; i++) {
+    const position = i + 1;
+    const mem = trimmedForSynth[i];
+    if (mem === undefined) continue;
+    const blockId = mem.id;
+    // Use word-boundary lookahead so "memory 10" is not partially matched by "memory 1".
+    result = result.replace(
+      new RegExp(`memory ${String(position)}(?=\\b|[^0-9])`, "gi"),
+      `[${blockId}]`,
+    );
+  }
+  return result;
+}
+
+/**
+ * D-09: Drops every sentence in the synthesis that does not contain a citation marker
+ * ([block_id]), EXCEPT:
+ *   (a) the first sentence when lowConfidenceHedge=true (the hedge prefix sentence), and
+ *   (b) gap-acknowledgment sentences containing words like "no information" / "not found".
+ *
+ * Uses Intl.Segmenter as primary; falls back to regex sentence splitting if absent.
+ */
+export function dropUncitedSentences(
+  synthesis: string,
+  trimmedForSynth: LexicalSearchHit[],
+  opts: { lowConfidenceHedge?: boolean } = {},
+): string {
+  // Suppress unused param: trimmedForSynth is part of the public contract for
+  // potential future use (e.g., citation-density checks per SYN-03).
+  void trimmedForSynth;
+
+  const CITATION_RE = /\[[^\]]+\]/;
+  const GAP_ACK_RE = /\b(no information|not found|unable to|unclear|gap|don't have)\b/i;
+
+  // Pre-split on ". [" boundaries that Intl.Segmenter won't detect (citation markers
+  // begin with "[", not a capital letter, so they don't trigger ICU sentence rules).
+  // Insert a sentinel newline before each ". [" boundary so the segmenter sees a break.
+  const PRESPLIT_RE = /([.!?])\s+(?=\[)/g;
+  const presplit = synthesis.replace(PRESPLIT_RE, "$1\n");
+
+  let segments: { segment: string; index?: number }[];
+  try {
+    const segmenter = new Intl.Segmenter("en", { granularity: "sentence" });
+    segments = [...segmenter.segment(presplit)];
+  } catch {
+    // Regex fallback for workerd environments where Intl.Segmenter is absent.
+
+    const parts = presplit.split(/(?<=[.!?])\s+(?=[A-Z[])/);
+    segments = parts.map((s) => ({ segment: s }));
+  }
+
+  const kept: string[] = [];
+  for (let idx = 0; idx < segments.length; idx++) {
+    const seg = segments[idx];
+    if (seg === undefined) continue;
+    const sentence = seg.segment.trim();
+    if (!sentence) continue;
+    const isFirstAndHedge = opts.lowConfidenceHedge === true && idx === 0;
+    const isGapAck = GAP_ACK_RE.test(sentence);
+    if (isFirstAndHedge || isGapAck || CITATION_RE.test(sentence)) {
+      kept.push(seg.segment);
+    }
+  }
+  return kept.join("").trim();
+}
+
+/**
  * Analytics Engine environment tag (AI-SPEC.md §7 indexes[0]).
  * TODO: derive from env.ENVIRONMENT if Phase 7 adds staging/dev split.
  */
 const ANALYTICS_ENV_TAG = "engram-prod" as const;
+
+/**
+ * generateSynthesis — extracted synthesis GENERATION logic from recall().
+ *
+ * Encapsulates the full synthesis pipeline on a pre-ranked set of memories:
+ *   trimRankedForSynthesis (SYN-05 preflight) → lowConfidence flag (SYN-06) →
+ *   formatBlocksForSynthesis → safeRun(CLASSIFIER_MODEL) → post-processing chain
+ *   (applyHedgePrefix → mapPositionsToCitationIds → dropUncitedSentences).
+ *
+ * This is a PURE EXTRACTION from recall(). Behavior is identical to the inline
+ * block that previously lived inside recall(). recall() now delegates here and
+ * owns: SYN-07 single-memory guard, writeAnalytics timing calls (SYN-09),
+ * and merging returned gaps into synthesisGaps.
+ *
+ * Exported so the synthesis-fidelity eval can drive the synthesis path directly
+ * on content-bearing fixtures without going through the full recall() pipeline
+ * (Pitfall 2 from 04-RESEARCH.md: query expansion budget leak).
+ *
+ * NOTE: SYNTHESIS_SYSTEM_PROMPT is byte-frozen (D-01/SYN-10). Do NOT edit it.
+ * Any change requires re-running the synthesis-fidelity eval (SYN-02).
+ *
+ * @param env     Worker Env (needs env.AI for safeRun).
+ * @param ranked  Pre-ranked memory hits (≥2 expected; caller should check SYN-07).
+ * @param query   The original recall query (passed to formatBlocksForSynthesis).
+ * @returns       { synthesis, synthInput, lowConfidence, gaps }
+ *                synthesis=null means the generation failed (honest-stubs posture).
+ *                synthInput is populated even on failure (empty string if preflight failed).
+ *                gaps contains any failure/skip messages to surface via meta.gaps.
+ */
+export async function generateSynthesis(
+  env: Env,
+  ranked: LexicalSearchHit[],
+  query: string,
+): Promise<{
+  synthesis: string | null;
+  synthInput: string;
+  lowConfidence: boolean;
+  gaps: string[];
+}> {
+  let synthesis: string | null = null;
+  let synthInput = "";
+  let lowConfidence = false;
+  const gaps: string[] = [];
+
+  try {
+    // SYN-05: trimRankedForSynthesis throws when ALL memories exceed 6K token budget.
+    // The catch below handles it via honest-stubs posture (synthesis=null, gaps surfaced).
+    const trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
+
+    // SYN-06: lowConfidence = min(cosine over trimmed set) < 0.7
+    const cosineScores = trimmedForSynth.map((m) => m.score ?? 0);
+    const minCosine = cosineScores.length > 0 ? Math.min(...cosineScores) : 0;
+    lowConfidence = minCosine < 0.7;
+
+    synthInput = formatBlocksForSynthesis(trimmedForSynth, query);
+
+    const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
+      messages: [
+        { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
+        { role: "user", content: synthInput },
+      ],
+      temperature: 0.3,
+      max_tokens: 1024,
+    });
+    synthesis = typeof synthResp.response === "string" ? synthResp.response : null;
+
+    // Post-processing chain (runs AFTER safeRun):
+    // SYN-06: hedge prefix, D-02: position→id mapping, D-09: uncited-sentence drop.
+    if (synthesis !== null) {
+      synthesis = applyHedgePrefix(synthesis, lowConfidence); // SYN-06
+      synthesis = mapPositionsToCitationIds(synthesis, trimmedForSynth); // D-02
+      synthesis = dropUncitedSentences(synthesis, trimmedForSynth, {
+        lowConfidenceHedge: lowConfidence,
+      }); // D-09
+    }
+  } catch (synthErr) {
+    // Per CONTEXT.md D-07 honest-stubs posture — synthesis failures leave synthesis=null;
+    // gaps surfaces the failure rather than crashing the recall.
+    // SYN-05: surface preflight failure in gaps.
+    if (synthErr instanceof Error && synthErr.message.includes("synthesis-preflight:")) {
+      gaps.push("synthesis skipped: context exceeded 6K token budget");
+    } else {
+      gaps.push("synthesis skipped: generation failed");
+    }
+    synthesis = null;
+  }
+
+  return { synthesis, synthInput, lowConfidence, gaps };
+}
 
 /**
  * Tool description for `recall()` — D-02 discoverability triad surface #1.
@@ -502,6 +701,12 @@ export function registerTools(
       );
     }
     try {
+      // EXP-11: end-to-end recall latency clock — captures the FULL handler
+      // (embed → adaptive route → fan-out/RRF → hydrate → hybridRank → conflict
+      // hydrate → envelope build). Written as a single 'recall' op blob before the
+      // return so the production p50/p99 SLA is a one-row Analytics Engine query
+      // instead of summing per-op latencies.
+      const recallStart = Date.now();
       const stub = workspaceNs.get(workspaceNs.idFromName(props.workspace_id));
 
       // T-05-05-TRUNC backfill (Plan 05-06 Task 5): recall-side query-length truncation warn.
@@ -559,11 +764,56 @@ export function registerTools(
       // ENG-22: with exactOptionalPropertyTypes, passing `filter: undefined` is
       // rejected — must conditionally include the key via spread when args.types
       // is set, omit entirely when empty/absent.
+      // CR-01: capture the type filter ONCE so the EXP-03 fan-out path applies the
+      // SAME metadata filter as the single-query pass. Without this, a type-filtered
+      // recall() that trips the adaptive gate would leak off-type memories (the
+      // type_match boost in hybridRank only re-orders, it does not exclude).
+      const typeFilter = args.types?.length ? { filter: { type: { $in: args.types } } } : {};
       const result = await vectorizeQuery(env, props.workspace_id, queryVector, {
         topK: fetchSize,
-        ...(args.types?.length ? { filter: { type: { $in: args.types } } } : {}),
+        ...typeFilter,
         returnMetadata: "all",
       });
+
+      // === EXP-03: Adaptive routing gate — single-query pass first, fan-out only when top1 < 0.65 ===
+      // QE-5 latency lever: to fan out LESS often (cut EXP-11 latency), LOWER this to 0.60.
+      // Fan-out fires when top1 < threshold, so RAISING it widens the gate and adds latency.
+      const ADAPTIVE_TOP1_THRESHOLD = 0.65;
+      const top1 = result.matches[0]?.score ?? 0;
+
+      let mergedMatches = result.matches;
+      let expansionUnavailable = false;
+      let fanOutFired = false; // EXP-11 telemetry: did the multi-query expansion path run?
+      if (top1 < ADAPTIVE_TOP1_THRESHOLD) {
+        try {
+          // [4] expandQuery — [original, p1, p2] (EXP-01). Re-throws on 429/error for EXP-10 catch.
+          const variants = await expandQuery(env, queryForEmbed);
+          // [5] keepVariantsAboveGate — cosine ≥ 0.85 (EXP-02). Reuses already-computed queryVector.
+          const kept = await keepVariantsAboveGate(env, queryVector, variants, 0.85);
+          // [6] Fan-out: embed each surviving variant + vectorize in parallel.
+          // workspace_id ALWAYS from props — V4 access control (T-03-05 / INT-03).
+          const lists = await Promise.all(
+            kept.map(async (v) => {
+              const variantEmbedResp = await safeRun(env, EMBEDDING_MODEL, { text: [v] });
+              const variantVec = (variantEmbedResp as { data?: number[][] }).data?.[0];
+              if (!variantVec) return [] as typeof result.matches;
+              const variantResult = await vectorizeQuery(env, props.workspace_id, variantVec, {
+                topK: fetchSize,
+                ...typeFilter, // CR-01: fan-out honors the same type filter as the single-query pass
+                returnMetadata: "all",
+              });
+              return variantResult.matches;
+            }),
+          );
+          // [7] RRF merge — scale-invariant, rank-based merge of per-variant result lists (EXP-04).
+          mergedMatches = reciprocalRankFusion(lists).map((x) => x.item);
+          fanOutFired = true;
+        } catch {
+          // EXP-10: persistent 429 or any expansion error → fall back to single-query path.
+          expansionUnavailable = true;
+          mergedMatches = result.matches;
+        }
+      }
 
       // ENG-25 hybrid-rank tuning: drop matches below MIN_COSINE_THRESHOLD,
       // then cap at the user's requested topK. Vectorize returns the BEST
@@ -571,7 +821,7 @@ export function registerTools(
       // this gate, a query with no genuinely-good matches still returns
       // fetchSize loosely-related ones, tanking precision. With qwen3-
       // embedding-0.6b's tight clustering, this gate is essential.
-      const filteredMatches = result.matches
+      const filteredMatches = mergedMatches
         .filter((m) => m.score >= MIN_COSINE_THRESHOLD)
         .slice(0, topK);
 
@@ -592,49 +842,191 @@ export function registerTools(
         ids,
       });
 
+      // === EXP-06: bge-reranker invocation (between RRF/hydrate and hybridRank) ===
+      // Builds contexts index-aligned with filteredMatches (after MIN_COSINE_THRESHOLD filter).
+      // Empty-content candidates are excluded (Pitfall 6 — keeps them at raw cosine).
+      //
+      // CRITICAL: `id` in the reranker response is the INTEGER INDEX into the request
+      // contexts[] array (reordered by score), NOT a memory/block id (T-03-08 / Pitfall 1).
+      // The contexts[] array only contains candidates that survived the empty-content filter,
+      // so we keep a parallel `rankedCandidates` array index-aligned with `contexts`.
+      //
+      // The reranker is called through safeRun (NOT raw env.AI.run) to sidestep workerd#5998
+      // which omits the required `query` field from the generated Ai_Cf_Baai_Bge_Reranker_Base_Input
+      // type. safeRun's body: Record<string,unknown> sidesteps the typed overload entirely.
+      //
+      // Reranker logit scores → sigmoid(x)=1/(1+e^-x) → [0,1] before hybridRank.
+      // HYBRID_WEIGHTS.rerank was tuned against cosine in [0,1] (Pitfall 2).
+      function sigmoid(x: number): number {
+        return 1 / (1 + Math.exp(-x));
+      }
+
+      // rankedCandidates: only the candidates that have non-empty content/summary.
+      // contexts[i] corresponds to rankedCandidates[i].
+      // blocks is typed as Memory[] but Memory.content / Memory.summary can be null.
+      interface BlockWithText { id: string; content?: string | null; summary?: string | null }
+      const blockTextMap = new Map<string, string>(
+        (blocks as BlockWithText[]).map((b) => [
+          b.id,
+          b.content ?? b.summary ?? "",
+        ]),
+      );
+      const rankedCandidates = filteredMatches.filter((m) => {
+        const text = blockTextMap.get(m.id) ?? "";
+        return text.length > 0;
+      });
+      const contexts = rankedCandidates.map((m) => ({
+        text: blockTextMap.get(m.id) ?? "",
+      }));
+
+      // EXP-07 (live ablation 2026-06-08): the bge-reranker is decisively worse
+      // than raw cosine on the labeled corpus (F1@3 0.26 vs 0.46), so RERANKER_ENABLED
+      // ships false — raw cosine fills the rerank slot via the `?? m.score` default
+      // below at the tuned HYBRID_WEIGHTS.rerank=0.6 weight. Gating the call off also
+      // removes one Workers AI round-trip per recall (EXP-11 latency).
+      const rerankScores = new Map<string, number>();
+      if (RERANKER_ENABLED && contexts.length > 0) {
+        try {
+          const rerankResp = await safeRun(env, RERANKER_MODEL, {
+            query: args.query, // raw user query STRING (NOT the embedding vector, NOT a prefixed variant)
+            contexts,
+          });
+          // Response: { response: [{ id: <index into contexts[]>, score: number }] }
+          const reranked =
+            (rerankResp as { response?: { id: number; score: number }[] }).response ?? [];
+          for (const r of reranked) {
+            const cand = rankedCandidates[r.id]; // id is the ORIGINAL contexts index (T-03-08)
+            if (cand !== undefined) {
+              rerankScores.set(cand.id, sigmoid(r.score)); // sigmoid-normalize logit → [0,1]
+            }
+          }
+        } catch (rerankErr) {
+          // EXP-06 fallback: reranker 429/error → leave rerankScores empty.
+          // Each match falls back to raw cosine via the ?? m.score default below.
+          console.warn("recall:EXP-06:reranker-failed", {
+            err: rerankErr instanceof Error ? rerankErr.message : String(rerankErr),
+          });
+        }
+      }
+
+      // Apply reranker scores to filteredMatches (or keep raw cosine via defensive default).
+      const rerankedMatches = filteredMatches.map((m) => ({
+        ...m,
+        score: rerankScores.get(m.id) ?? m.score, // ?? m.score = raw-cosine fallback (EXP-06)
+      }));
+
       // === AI-04 Step 4: hybrid re-rank (spike-validated formula: cosine·1.0 + recency·0.15 + type·0.2 + scope·0.15) ===
-      const ranked = hybridRank(filteredMatches, blocks, args, Date.now());
+      // EXP-06: rerankedMatches feeds the `rerank` component (sigmoid-normalized bge-reranker score
+      // when available; raw cosine on fallback). Formula UNCHANGED from Phase 2 (D-34 sweep result).
+      const ranked = hybridRank(rerankedMatches, blocks, args, Date.now());
+
+      // === CON-05 Step: hydrate inbox-pending conflicts touching the ranked memories ===
+      // Severity is computed AT READ TIME per RESEARCH §"Pattern 6" — the inbox row
+      // stores raw fields only. PITFALLS CD-5 time-blind mitigation: > 180 days between
+      // the two memories → severity="low" per CON-06. "medium" is never produced in v0.2
+      // (reserved for v0.3 conflict() tool surface).
+      //
+      // CON-08 invariant (PULL-ONLY/PASSIVE): conflicts are surfaced in the envelope
+      // ONLY because the caller asked (recall). NEVER pushed/alerted proactively.
+      const recallIds = ranked.map((r) => r.id);
+      let conflicts: Conflict[] = [];
+      try {
+        // Re-use the existing stub variable — do NOT acquire a second stub.
+        const conflictRows = await (
+          stub as unknown as {
+            listInboxConflictsForMemoryIds: (args: {
+              workspace_id: string;
+              ids: string[];
+            }) => Promise<InboxConflictRow[]>;
+          }
+        ).listInboxConflictsForMemoryIds({
+          workspace_id: props.workspace_id, // ALWAYS from props, NEVER from args (MCP-05 / MT-1)
+          ids: recallIds,
+        });
+
+        const blockAgeById = new Map<string, number>(ranked.map((b) => [b.id, b.created_at]));
+        for (const row of conflictRows) {
+          try {
+            const parsed = JSON.parse(row.proposed_properties) as InboxConflictProperties;
+            // Fall back to row.created_at when the conflicted memory is NOT in the ranked set
+            // (RESEARCH §"Pattern 6" lines 517-519 safe-approximation fallback).
+            const memA_age = blockAgeById.get(parsed.memory_a_id) ?? row.created_at;
+            const memB_age = blockAgeById.get(parsed.memory_b_id) ?? row.created_at;
+            const diffDays = Math.abs(memA_age - memB_age) / (1000 * 60 * 60 * 24);
+            // CON-06 + CD-5: > 180 days → "low"; otherwise "high". "medium" NOT used in v0.2.
+            const severity: "low" | "high" = diffDays > 180 ? "low" : "high";
+            conflicts.push({
+              id: row.id,
+              memory_a_id: parsed.memory_a_id,
+              memory_b_id: parsed.memory_b_id,
+              description: parsed.description,
+              severity,
+              detected_at: row.created_at,
+              resolved_at: null, // v0.2: resolution is v0.3 conflict() tool surface
+            });
+          } catch (parseErr) {
+            // Malformed proposed_properties — skip this row silently (T-02-08-01 mitigation).
+            console.warn("recall:CON-05:inbox-conflict-parse-failed", {
+              row_id: row.id,
+              err: parseErr instanceof Error ? parseErr.message : String(parseErr),
+            });
+          }
+        }
+      } catch (rpcErr) {
+        // Conflicts envelope is AUXILIARY — recall MUST NEVER fail because of it (T-02-08-01).
+        console.warn("recall:CON-05:rpc-failed", {
+          err: rpcErr instanceof Error ? rpcErr.message : String(rpcErr),
+        });
+        conflicts = [];
+      }
+      // === End CON-05 Step ===
 
       // === D-01: synthesis is OPT-IN — skipped on default verbosity="chunks" (no 2–5s latency penalty) ===
       let synthesis: string | null = null;
-      if (args.verbosity === "synthesis" || args.verbosity === "both") {
-        // AI-SPEC.md §4b "Context Window Strategy": cap synthesis input at ~6K tokens.
-        // Drop trailing memories first (lowest-ranked position after hybridRank).
-        const trimmedForSynth = trimRankedForSynthesis(ranked, 6000);
+      // Synthesis gaps accumulated during the block; merged into envelope.meta.gaps after
+      // buildRecallResponse (same pattern as queryWasTruncated / expansionUnavailable — EXP-10).
+      const synthesisGaps: string[] = [];
+
+      // SYN-07: single-memory synthesis is not useful — skip and note in meta.gaps.
+      if (
+        (args.verbosity === "synthesis" || args.verbosity === "both") &&
+        ranked.length < 2
+      ) {
+        synthesisGaps.push("synthesis skipped: only one source");
+        // synthesis stays null; fall through to buildRecallResponse
+      }
+
+      if (
+        (args.verbosity === "synthesis" || args.verbosity === "both") &&
+        ranked.length >= 2
+      ) {
+        // Delegate to generateSynthesis() — pure extraction of the synthesis logic.
+        // recall() retains ownership of: SYN-07 guard (above), writeAnalytics timing
+        // calls (SYN-09), and merging returned gaps into synthesisGaps.
         const synthStart = Date.now();
-        const synthInput = formatBlocksForSynthesis(trimmedForSynth, args.query);
-        try {
-           
-          const synthResp = await safeRun(env, CLASSIFIER_MODEL, {
-            messages: [
-              { role: "system", content: SYNTHESIS_SYSTEM_PROMPT },
-              { role: "user", content: synthInput },
-            ],
-            temperature: 0.3,
-            max_tokens: 1024,
-          });
-          synthesis = typeof synthResp.response === "string" ? synthResp.response : null;
-           
+        const synthResult = await generateSynthesis(env, ranked, args.query);
+        synthesis = synthResult.synthesis;
+
+        // SYN-09: blobs[1]="synthesis" (operation-kind discriminator); doubles[1]=estimated token count.
+        // Determine outcome for analytics: success vs rate-limit vs failed.
+        const synthOutcome = synthesis !== null ? "success" : "synthesis-failed";
+        if (synthesis !== null) {
           writeAnalytics(env, {
-            blobs: ["mcp-server", CLASSIFIER_MODEL, wsTag, "success"],
-            doubles: [Date.now() - synthStart, synthInput.length, 0, 0],
+            blobs: ["mcp-server", "synthesis", wsTag, "success"],
+            doubles: [Date.now() - synthStart, Math.ceil(synthResult.synthInput.length / 4), 0, 0],
             indexes: [ANALYTICS_ENV_TAG],
           });
-        } catch (synthErr) {
-          // Per CONTEXT.md D-07 honest-stubs posture — synthesis failures leave synthesis=null;
-          // meta.gaps surfaces the failure rather than crashing the recall.
-          console.warn("recall:synthesis-failed", { synthErr });
-          const synthOutcome =
-            synthErr != null && typeof synthErr === "object" && "isRateLimit" in synthErr
-              ? "retry-429"
-              : "synthesis-failed";
-           
+        } else {
           writeAnalytics(env, {
-            blobs: ["mcp-server", CLASSIFIER_MODEL, wsTag, synthOutcome],
-            doubles: [Date.now() - synthStart, 0, 0, synthOutcome === "retry-429" ? 1 : 0],
+            blobs: ["mcp-server", "synthesis", wsTag, synthOutcome],
+            doubles: [Date.now() - synthStart, 0, 0, 0],
             indexes: [ANALYTICS_ENV_TAG],
           });
-          synthesis = null;
+        }
+
+        // Merge synthesis-specific gaps returned by generateSynthesis into synthesisGaps.
+        for (const gap of synthResult.gaps) {
+          synthesisGaps.push(gap);
         }
       }
 
@@ -649,12 +1041,36 @@ export function registerTools(
         verbosity: args.verbosity,
         synthesis,
         ...(suggestions !== undefined ? { suggestions } : {}),
+        // CON-05: pass the conflict array; buildRecallResponse conditionally-spreads
+        // it into context.conflicts (omits entirely when empty — T-02-08-05).
+        conflicts,
       });
       // T-05-05-TRUNC backfill: append the recall-query truncation gap when applicable.
       // Done AFTER buildRecallResponse so the gap survives trimToBudget (which preserves meta.gaps).
       if (queryWasTruncated) {
         envelope.meta.gaps = [...envelope.meta.gaps, META_GAPS.recallQueryTruncated];
       }
+      // EXP-10: append meta.gaps note when query expansion fell back to single-query.
+      // Done AFTER buildRecallResponse so the gap survives trimToBudget.
+      if (expansionUnavailable) {
+        envelope.meta.gaps = [...envelope.meta.gaps, META_GAPS.queryExpansionUnavailable];
+      }
+      // SYN-07/SYN-05: merge synthesis-specific gaps (single-source skip, preflight overflow).
+      // Done AFTER buildRecallResponse, same pattern as queryWasTruncated/expansionUnavailable.
+      if (synthesisGaps.length > 0) {
+        envelope.meta.gaps = [...envelope.meta.gaps, ...synthesisGaps];
+      }
+
+      // EXP-11: single end-to-end recall latency datapoint (op-kind 'recall').
+      // doubles[0]=total handler latency, [1]=ranked-result count, [2]=fan-out fired,
+      // [3]=expansion-unavailable (degraded path). Lets the production p50/p99 SLA be a
+      // one-row Analytics Engine query (blob2='recall') instead of summing per-op latencies.
+      writeAnalytics(env, {
+        blobs: ["mcp-server", "recall", wsTag, ranked.length === 0 ? "zero-match" : "success"],
+        doubles: [Date.now() - recallStart, ranked.length, fanOutFired ? 1 : 0, expansionUnavailable ? 1 : 0],
+        indexes: [ANALYTICS_ENV_TAG],
+      });
+
       return wrapMcpContent(trimToBudget(envelope));
     } catch (err) {
       throw mapToMcpError(err);

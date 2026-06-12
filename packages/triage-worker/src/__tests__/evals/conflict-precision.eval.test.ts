@@ -76,6 +76,11 @@ const typedFixture = fixture as ConflictFixture;
 const SHIP_PRECISION_THRESHOLD = 0.9;
 const SUGGEST_PRECISION_THRESHOLD = 0.7;
 
+/** v0.2 CON-01 ship gate per CONTEXT.md D-18 — pull-only inbox surface lowers the precision bar from 0.9 to 0.85. */
+const V02_SHIP_PRECISION_THRESHOLD = 0.85;
+/** v0.2 CON-01 ship gate per CONTEXT.md D-18 — explicit recall floor. */
+const V02_SHIP_RECALL_THRESHOLD = 0.9;
+
 type Verdict = "ship-per-write" | "ship-as-suggestions" | "defer-to-batch";
 
 function decisionFor(precision: number): Verdict {
@@ -89,7 +94,7 @@ function decisionFor(precision: number): Verdict {
 // ---------------------------------------------------------------------------
 
 describe("ENG-16 conflict-detection precision (validation gate for v0.2 per-write scanning)", () => {
-  it.skip("meets the v0.2 per-write precision gate on the labeled corpus", async () => {
+  it("meets the v0.2 per-write precision gate on the labeled corpus", async () => {
     const pairs = typedFixture.pairs;
     const target = typedFixture._meta.target_size;
     const isFullCorpus = pairs.length >= target;
@@ -164,9 +169,26 @@ describe("ENG-16 conflict-detection precision (validation gate for v0.2 per-writ
 
     // Hard gate only fires on the full corpus. Seed runs report metrics but
     // do not assert — otherwise a 9-seed run could falsely "pass" the v0.2
-    // gate that requires 50 labeled pairs.
+    // gate that requires 30 labeled pairs.
+    console.log(
+      `[CON-01] v0.2 gate: precision=${precision.toFixed(3)} (≥ 0.85? ${precision >= V02_SHIP_PRECISION_THRESHOLD ? "YES" : "NO"}); ` +
+        `recall=${recall.toFixed(3)} (≥ 0.90? ${recall >= V02_SHIP_RECALL_THRESHOLD ? "YES" : "NO"}); ` +
+        `final verdict=${precision >= V02_SHIP_PRECISION_THRESHOLD && recall >= V02_SHIP_RECALL_THRESHOLD ? "PASS — proceed with Plan 02-05+" : "FAIL — STOP per D-18"}`,
+    );
     if (isFullCorpus) {
-      expect(precision).toBeGreaterThanOrEqual(SUGGEST_PRECISION_THRESHOLD);
+      // v0.2 CON-01 hard gate per D-18:
+      // - precision ≥ V02_SHIP_PRECISION_THRESHOLD (0.85)
+      // - recall ≥ V02_SHIP_RECALL_THRESHOLD (0.90)
+      // - On failure: STOP, Linear blocker, /gsd:plan-phase 2 --replan-section conflict-prompt
+      //   (CONTEXT.md D-18: the executor MUST NOT silently retune the prompt)
+      expect(
+        precision,
+        `CON-01 precision gate: ${precision.toFixed(3)} < 0.85 → STOP per D-18`,
+      ).toBeGreaterThanOrEqual(V02_SHIP_PRECISION_THRESHOLD);
+      expect(
+        recall,
+        `CON-01 recall gate: ${recall.toFixed(3)} < 0.90 → STOP per D-18`,
+      ).toBeGreaterThanOrEqual(V02_SHIP_RECALL_THRESHOLD);
     } else {
       // On seed runs, only assert that the harness produced SOMETHING — at
       // least one classification, not all-AI-failures.

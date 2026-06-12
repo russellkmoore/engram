@@ -36,6 +36,7 @@ import type { MemoryEvent } from "@engram/types";
 import { extractAndScore } from "./extract.js";
 import { routeByMemorability } from "./memorability.js";
 import { writeAnalytics, workspaceTag } from "./analytics.js";
+import { conflictPipeline } from "./conflict-pipeline.js";
 
 const ANALYTICS_ENV_TAG = "engram-prod" as const;
 
@@ -79,7 +80,7 @@ export default {
    * @param batch - The message batch from the Queue.
    * @param env - Worker environment bindings.
    */
-  async queue(batch: MessageBatch<MemoryEvent>, env: Env): Promise<void> {
+  async queue(batch: MessageBatch<MemoryEvent>, env: Env, ctx: ExecutionContext): Promise<void> {
     // Sequential processing (see Design notes above re: 429 risk with Promise.all).
     for (const message of batch.messages as Message<MemoryEvent>[]) {
       const event = message.body;
@@ -239,6 +240,19 @@ export default {
               confidence: parsed.confidence,
               type: parsed.classified_type,
             });
+            // CON-03: fire conflict scan asynchronously after the block is committed.
+            // ctx.waitUntil extends the Worker lifetime without blocking the ingest path.
+            // conflictPipeline catches all errors internally (RESEARCH Pitfall 6).
+            ctx.waitUntil(
+              conflictPipeline(env, {
+                id: event.id,
+                workspace_id: event.workspace_id,
+                type: parsed.classified_type,
+                scope: "personal",
+                content: event.content,
+                created_at: Date.now(),
+              }),
+            );
             break;
 
           case "inbox":

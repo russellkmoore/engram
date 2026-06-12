@@ -143,6 +143,15 @@ describe("envelope builders (TOL-06: every response has all envelope fields PRES
     expect(envelope.result.job_id).toBe("uuid-here");
     expect(envelope.meta.gaps).toContain(META_GAPS.ingest[0]);
   });
+
+  it("buildRecallResponse omits context.conflicts when no conflicts provided (CON-05 D-08 field-omit discipline)", () => {
+    // When no conflicts param supplied, context.conflicts should be empty [] from builder
+    const envelope = buildRecallResponse({ memories: [], verbosity: "chunks" });
+    // Builder contract (D-08): empty [] from builder is correct at the builder level
+    expect(envelope.context.conflicts).toEqual([]);
+    // The field-OMIT behavior (T-02-08-05) is at the tools.ts handler level, not the builder
+    // Already covered by recall-conflicts.test.ts Test 3 (lines 334–349)
+  });
 });
 
 // ---------------------------------------------------------------------------

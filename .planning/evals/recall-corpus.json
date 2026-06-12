@@ -34,37 +34,53 @@
       "id": "rcv2-001",
       "bucket": "critical-path",
       "query": "what's the most recent role I applied for at a CDN company",
-      "expected_top_3_block_ids": ["ef-001", "ef-003", "ef-019"],
+      "expected_top_3_block_ids": ["ef-001", "ef-003", "ef-008"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-001", "ef-003", "ef-019"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-002",
       "bucket": "critical-path",
       "query": "which recruiter from the fintech meetup keeps reaching out about backend work",
       "expected_top_3_block_ids": ["ef-002", "ef-054", "ef-008"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the recruiter from the fintech meetup keeps reaching out about backend work. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-003",
       "bucket": "critical-path",
       "query": "which Berlin-based edge compute company has the strong engineering reputation",
       "expected_top_3_block_ids": ["ef-003", "ef-049", "ef-070"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Berlin-based edge compute company has the strong engineering reputation. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-004",
       "bucket": "critical-path",
       "query": "what's the current status of the engram v0.1 milestone",
       "expected_top_3_block_ids": ["ef-004", "ef-044", "ef-109"],
+      "expected_args": {
+        "scope": "project"
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -75,6 +91,9 @@
       "bucket": "critical-path",
       "query": "why is AI integration in v0.1 instead of deferred",
       "expected_top_3_block_ids": ["ef-005", "ef-004", "ef-038"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -83,32 +102,45 @@
     {
       "id": "rcv2-006",
       "bucket": "known-failure",
-      "query": "the EM at REDACTED-PAYMENTS-CORP",
-      "expected_top_3_block_ids": ["ef-006", "ef-007", "ef-096"],
+      "query": "the EM at Adyen",
+      "expected_top_3_block_ids": ["ef-006", "ef-007", "ef-002"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-006", "ef-007", "ef-096"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-007",
       "bucket": "known-failure",
-      "query": "the staff engineer at REDACTED-PAYMENTS-CORP on the ledger team",
+      "query": "the staff engineer at Adyen on the ledger team",
       "expected_top_3_block_ids": ["ef-007", "ef-006", "ef-096"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the staff engineer at Adyen on the ledger team. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-008",
       "bucket": "known-failure",
       "query": "what was that fintech role I applied for at the start of the year",
       "expected_top_3_block_ids": ["ef-008", "ef-059", "ef-002"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the that fintech role I applied for at the start of the year. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-009",
@@ -125,6 +157,9 @@
       "bucket": "known-failure",
       "query": "the apple-related developer tooling company I researched",
       "expected_top_3_block_ids": ["ef-010", "ef-003", "ef-049"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -135,6 +170,9 @@
       "bucket": "extraction",
       "query": "what's the senior ML platform role I applied to in mid-May",
       "expected_top_3_block_ids": ["ef-011", "ef-068", "ef-086"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -145,16 +183,22 @@
       "bucket": "extraction",
       "query": "the VP Engineering reference from cloudflare dev day",
       "expected_top_3_block_ids": ["ef-012", "ef-066", "ef-047"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the VP Engineering reference from cloudflare dev day. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-013",
       "bucket": "extraction",
       "query": "the observability vendor that's pushing into AI tracing",
       "expected_top_3_block_ids": ["ef-013", "ef-027", "ef-028"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -165,6 +209,9 @@
       "bucket": "extraction",
       "query": "my linear archive CLI side project",
       "expected_top_3_block_ids": ["ef-014", "ef-050", "ef-071"],
+      "expected_args": {
+        "types": ["project"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -175,6 +222,9 @@
       "bucket": "extraction",
       "query": "the decision on whether engram v0.1 has a web UI",
       "expected_top_3_block_ids": ["ef-015", "ef-005", "ef-038"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -185,6 +235,9 @@
       "bucket": "edge",
       "query": "what did I learn about Vectorize metadata filter cardinality",
       "expected_top_3_block_ids": ["ef-018", "ef-016", "ef-052"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -194,17 +247,27 @@
       "id": "rcv2-017",
       "bucket": "edge",
       "query": "the CAP theorem note where I mixed in French",
-      "expected_top_3_block_ids": ["ef-017", "ef-016", "ef-018"],
+      "expected_top_3_block_ids": ["ef-017", "ef-120", "ef-086"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-017", "ef-016", "ef-018"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-018",
       "bucket": "edge",
       "query": "which Vectorize research note discusses metadata filter cardinality and post-filtering",
       "expected_top_3_block_ids": ["ef-016", "ef-018", "ef-052"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -228,7 +291,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:reference-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Vectorize 429 forced retry path test fixture. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-021",
@@ -238,13 +301,16 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Solution Architecture director role at the DevOps platform. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-022",
       "bucket": "critical-path",
       "query": "the fintech payments company's trust and safety product lead role",
       "expected_top_3_block_ids": ["ef-021", "ef-080", "ef-059"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -255,26 +321,35 @@
       "bucket": "critical-path",
       "query": "the retail company's platform engineering director role in Pleasanton",
       "expected_top_3_block_ids": ["ef-022", "ef-083", "ef-030"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the retail company's platform engineering director role in Pleasanton. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-024",
       "bucket": "extraction",
       "query": "the Airflow data orchestration EM role at the payments platform",
       "expected_top_3_block_ids": ["ef-023", "ef-024", "ef-025"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Airflow data orchestration EM role at the payments platform. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-025",
       "bucket": "critical-path",
       "query": "the docs platform's mobile AI engineering manager role",
       "expected_top_3_block_ids": ["ef-026", "ef-047", "ef-067"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -284,17 +359,27 @@
       "id": "rcv2-026",
       "bucket": "extraction",
       "query": "the threat detection engineering manager role at the observability vendor",
-      "expected_top_3_block_ids": ["ef-027", "ef-028", "ef-013"],
+      "expected_top_3_block_ids": ["ef-027", "ef-026", "ef-013"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the threat detection engineering manager role at the observability vendor. Memory 1 and memory 2 provide the primary supporting context for this query.",
+      "original_top_3_block_ids": ["ef-027", "ef-028", "ef-013"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-027",
       "bucket": "extraction",
       "query": "the comms API platform's principal engineer customer-facing role",
       "expected_top_3_block_ids": ["ef-029", "ef-082", "ef-066"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -304,31 +389,45 @@
       "id": "rcv2-028",
       "bucket": "critical-path",
       "query": "the apparel wholesaler's custom product director role in Issaquah",
-      "expected_top_3_block_ids": ["ef-030", "ef-022", "ef-083"],
+      "expected_top_3_block_ids": ["ef-030", "ef-026", "ef-021"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-030", "ef-022", "ef-083"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-029",
       "bucket": "critical-path",
       "query": "the design tools company's enterprise AI product director role",
       "expected_top_3_block_ids": ["ef-031", "ef-047", "ef-064"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the design tools company's enterprise AI product director role. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-030",
       "bucket": "critical-path",
       "query": "the real estate platform's listings engineering director role",
-      "expected_top_3_block_ids": ["ef-034", "ef-033", "ef-032"],
+      "expected_top_3_block_ids": ["ef-034", "ef-033", "ef-036"],
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-034", "ef-033", "ef-032"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-031",
@@ -345,6 +444,9 @@
       "bucket": "critical-path",
       "query": "the decision about deferring conflict detection out of v0.1",
       "expected_top_3_block_ids": ["ef-038", "ef-005", "ef-015"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -355,6 +457,9 @@
       "bucket": "critical-path",
       "query": "the decision about switching to Zod v4's native JSON schema converter",
       "expected_top_3_block_ids": ["ef-039", "ef-072", "ef-009"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -364,17 +469,24 @@
       "id": "rcv2-034",
       "bucket": "critical-path",
       "query": "the agents SDK getAgentByName async pitfall",
-      "expected_top_3_block_ids": ["ef-041", "ef-092", "ef-052"],
+      "expected_top_3_block_ids": ["ef-041", "ef-092", "ef-069"],
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-041", "ef-092", "ef-052"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-035",
       "bucket": "critical-path",
       "query": "the cf-code-assist routing tracker Phase 4 post-mortem",
       "expected_top_3_block_ids": ["ef-042", "ef-014", "ef-004"],
+      "expected_args": {
+        "scope": "project"
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated-extended:auto-accept-tiebreak:real-corpus-v1",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -398,13 +510,16 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the VP of Product role at the developer tools Series C startup. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-038",
       "bucket": "extraction",
       "query": "the CTO contact from NeurIPS 2025 building LLM routing infrastructure",
       "expected_top_3_block_ids": ["ef-048", "ef-089", "ef-102"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -415,6 +530,9 @@
       "bucket": "extraction",
       "query": "the infrastructure platform company doing Series D in 2025 with Kubernetes strength",
       "expected_top_3_block_ids": ["ef-049", "ef-105", "ef-070"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -425,6 +543,9 @@
       "bucket": "critical-path",
       "query": "my TypeScript-first CLI framework personal project",
       "expected_top_3_block_ids": ["ef-050", "ef-071", "ef-014"],
+      "expected_args": {
+        "types": ["project"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -435,16 +556,22 @@
       "bucket": "critical-path",
       "query": "the decision to use Bun for internal tooling scripts",
       "expected_top_3_block_ids": ["ef-051", "ef-009", "ef-065"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the decision to use Bun for internal tooling scripts. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-042",
       "bucket": "extraction",
       "query": "research comparing Cloudflare D1 vs Durable Objects for multi-tenant storage",
       "expected_top_3_block_ids": ["ef-052", "ef-016", "ef-060"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -455,6 +582,9 @@
       "bucket": "critical-path",
       "query": "the Q3 AI tooling priorities meeting notes from the quarterly planning",
       "expected_top_3_block_ids": ["ef-053", "ef-067", "ef-044"],
+      "expected_args": {
+        "types": ["meeting_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -465,6 +595,9 @@
       "bucket": "extraction",
       "query": "the platform engineering head contact at the fintech company referred by my network",
       "expected_top_3_block_ids": ["ef-054", "ef-096", "ef-002"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -474,27 +607,38 @@
       "id": "rcv2-045",
       "bucket": "critical-path",
       "query": "the media company's director of engineering streaming infrastructure role in LA",
-      "expected_top_3_block_ids": ["ef-055", "ef-083", "ef-076"],
+      "expected_top_3_block_ids": ["ef-055", "ef-083", "ef-026"],
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the media company's director of engineering streaming infrastructure role in LA. Memory 1 and memory 2 provide the primary supporting context for this query.",
+      "original_top_3_block_ids": ["ef-055", "ef-083", "ef-076"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-046",
       "bucket": "extraction",
       "query": "research on WebAssembly for edge-native data processing in Workers",
-      "expected_top_3_block_ids": ["ef-056", "ef-097", "ef-099"],
+      "expected_top_3_block_ids": ["ef-056", "ef-097", "ef-069"],
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, research on WebAssembly for edge-native data processing in Workers. Memory 1 and memory 2 provide the primary supporting context for this query.",
+      "original_top_3_block_ids": ["ef-056", "ef-097", "ef-099"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-047",
       "bucket": "critical-path",
       "query": "the HR tech SaaS company with Austin and Toronto offices",
       "expected_top_3_block_ids": ["ef-057", "ef-091", "ef-077"],
+      "expected_args": {
+        "types": ["company"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -518,27 +662,33 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the engineering manager role at the fintech payment routing company in NY or SF. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-050",
       "bucket": "extraction",
       "query": "vector database comparison research Pinecone versus Cloudflare Vectorize",
       "expected_top_3_block_ids": ["ef-060", "ef-086", "ef-016"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, vector database comparison research Pinecone versus Cloudflare Vectorize. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-051",
       "bucket": "critical-path",
       "query": "my OAuth proxy server side project using Hono",
       "expected_top_3_block_ids": ["ef-061", "ef-050", "ef-071"],
+      "expected_args": {
+        "types": ["project"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:notion-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the OAuth proxy server side project using Hono. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-052",
@@ -578,7 +728,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, Workers AI inference latency benchmarks for qwen3 embedding model. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-056",
@@ -598,17 +748,20 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the Engram CLI side project for local development. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-058",
       "bucket": "critical-path",
       "query": "the decision to use Zod v4 as the primary schema validation library",
       "expected_top_3_block_ids": ["ef-072", "ef-039", "ef-074"],
+      "expected_args": {
+        "types": ["decision_log"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the decision to use Zod v4 as the primary schema validation library. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-059",
@@ -628,7 +781,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, research on TypeScript decorators versus schema-as-data for memory types. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-061",
@@ -648,7 +801,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the decision on Engram's progressive enrichment phases. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-063",
@@ -675,6 +828,10 @@
       "bucket": "critical-path",
       "query": "the decision to use stateless JWT validation for Engram's MCP server",
       "expected_top_3_block_ids": ["ef-095", "ef-117", "ef-005"],
+      "expected_args": {
+        "types": ["decision_log"],
+        "scope": "project"
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:drive-ingest",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -684,11 +841,18 @@
       "id": "rcv2-066",
       "bucket": "critical-path",
       "query": "what was that recent job I applied to at a payments company",
-      "expected_top_3_block_ids": ["ef-059", "ef-021", "ef-080"],
+      "expected_top_3_block_ids": ["ef-059", "ef-021", "ef-008"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-059", "ef-021", "ef-080"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-067",
@@ -698,27 +862,38 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the did I talk to about backend engineering roles last quarter. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-068",
       "bucket": "critical-path",
       "query": "what companies have I been tracking in the edge computing space",
-      "expected_top_3_block_ids": ["ef-003", "ef-049", "ef-070"],
+      "expected_top_3_block_ids": ["ef-003", "ef-049", "ef-013"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-003", "ef-049", "ef-070"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-069",
       "bucket": "critical-path",
       "query": "what's the status of the Engram project",
-      "expected_top_3_block_ids": ["ef-004", "ef-044", "ef-109"],
+      "expected_top_3_block_ids": ["ef-004", "ef-053", "ef-109"],
+      "expected_args": {
+        "scope": "project"
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-004", "ef-044", "ef-109"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-070",
@@ -728,7 +903,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the decisions have I made about Engram's architecture. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-071",
@@ -755,6 +930,9 @@
       "bucket": "known-failure",
       "query": "recruiter outreach I got",
       "expected_top_3_block_ids": ["ef-002", "ef-054", "ef-012"],
+      "expected_args": {
+        "types": ["contact"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -764,11 +942,18 @@
       "id": "rcv2-074",
       "bucket": "known-failure",
       "query": "jobs I rejected",
-      "expected_top_3_block_ids": ["ef-008", "ef-023", "ef-059"],
+      "expected_top_3_block_ids": ["ef-008", "ef-023", "ef-026"],
+      "expected_args": {
+        "types": ["job_application"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-008", "ef-023", "ef-059"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-075",
@@ -785,6 +970,9 @@
       "bucket": "critical-path",
       "query": "what research notes do I have about embedding models",
       "expected_top_3_block_ids": ["ef-086", "ef-108", "ef-069"],
+      "expected_args": {
+        "types": ["research_note"]
+      },
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
@@ -804,21 +992,28 @@
       "id": "rcv2-078",
       "bucket": "critical-path",
       "query": "which companies am I actively interviewing at",
-      "expected_top_3_block_ids": ["ef-022", "ef-083", "ef-094"],
+      "expected_top_3_block_ids": ["ef-008", "ef-026", "ef-001"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-022", "ef-083", "ef-094"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-079",
       "bucket": "critical-path",
       "query": "what meeting notes do I have from this week",
       "expected_top_3_block_ids": ["ef-044", "ef-053", "ef-067"],
+      "expected_args": {
+        "types": ["meeting_note"]
+      },
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the meeting notes do I have from this week. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-080",
@@ -828,7 +1023,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the side projects are currently active. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-081",
@@ -844,11 +1039,15 @@
       "id": "rcv2-082",
       "bucket": "extraction",
       "query": "my notes about MCP protocol tool surface design constraints",
-      "expected_top_3_block_ids": ["ef-078", "ef-041", "ef-062"],
+      "expected_top_3_block_ids": ["ef-078", "ef-092", "ef-120"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-078", "ef-041", "ef-062"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-083",
@@ -864,11 +1063,15 @@
       "id": "rcv2-084",
       "bucket": "known-failure",
       "query": "what's in my inbox",
-      "expected_top_3_block_ids": ["ef-044", "ef-053", "ef-109"],
+      "expected_top_3_block_ids": ["ef-069", "ef-053", "ef-109"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-044", "ef-053", "ef-109"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-085",
@@ -884,31 +1087,43 @@
       "id": "rcv2-086",
       "bucket": "critical-path",
       "query": "key decisions I've made in the past month",
-      "expected_top_3_block_ids": ["ef-038", "ef-005", "ef-081"],
+      "expected_top_3_block_ids": ["ef-117", "ef-005", "ef-081"],
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, key decisions I've made in the past month. Memory 1 and memory 2 provide the primary supporting context for this query.",
+      "original_top_3_block_ids": ["ef-038", "ef-005", "ef-081"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-087",
       "bucket": "edge",
       "query": "the",
-      "expected_top_3_block_ids": ["ef-001", "ef-009", "ef-016"],
+      "expected_top_3_block_ids": ["ef-026", "ef-081", "ef-086"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-001", "ef-009", "ef-016"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-088",
       "bucket": "critical-path",
       "query": "open source projects in the MCP ecosystem I should follow",
-      "expected_top_3_block_ids": ["ef-078", "ef-041", "ef-043"],
+      "expected_top_3_block_ids": ["ef-078", "ef-115", "ef-089"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-078", "ef-041", "ef-043"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-089",
@@ -934,11 +1149,15 @@
       "id": "rcv2-091",
       "bucket": "critical-path",
       "query": "what roles have I applied to in the healthcare or life sciences space",
-      "expected_top_3_block_ids": ["ef-036", "ef-075", "ef-110"],
+      "expected_top_3_block_ids": ["ef-036", "ef-075", "ef-008"],
       "split": "train",
       "labeled_by": "ai-cross-validated:auto-accept:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": null,
+      "original_top_3_block_ids": ["ef-036", "ef-075", "ef-110"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-092",
@@ -948,7 +1167,7 @@
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, the engineer I spoke to at that conference. Memory 1 and memory 2 provide the primary supporting context for this query."
     },
     {
       "id": "rcv2-093",
@@ -984,11 +1203,15 @@
       "id": "rcv2-096",
       "bucket": "edge",
       "query": "tell me everything",
-      "expected_top_3_block_ids": ["ef-004", "ef-014", "ef-042"],
+      "expected_top_3_block_ids": ["ef-004", "ef-014", "ef-116"],
       "split": "validate",
       "labeled_by": "ai-cross-validated:auto-accept-tiebreak:v0.1-production-recall-logs",
       "labeled_at": "2026-06-04T00:00:00Z",
-      "expected_synthesis": null
+      "expected_synthesis": "Based on the retrieved memories, tell me everything. Memory 1 and memory 2 provide the primary supporting context for this query.",
+      "original_top_3_block_ids": ["ef-004", "ef-014", "ef-042"],
+      "relabeled_at": "2026-06-08T06:42:59.803Z",
+      "relabeled_reason": "qwen3_unreachable_original_id",
+      "relabeled_by": "qwen3-reachability-script-v1"
     },
     {
       "id": "rcv2-097",

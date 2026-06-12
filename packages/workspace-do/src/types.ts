@@ -145,6 +145,62 @@ export interface InboxEntry {
 }
 
 // ---------------------------------------------------------------------------
+// InboxConflictRow — raw SQL-row shape for conflict-inbox entries (CON-04/CON-05)
+// ---------------------------------------------------------------------------
+
+/**
+ * One row from the `inbox` SQLite table where `proposed_type === "conflict"`.
+ *
+ * Returned by `listInboxConflictsForMemoryIds` before any JSON parsing.
+ * The caller (Plan 02-08 recall handler) is responsible for parsing
+ * `proposed_properties` as `InboxConflictProperties` from `@engram/types`.
+ *
+ * This is a raw SQL-row shape — NOT the `Conflict` envelope type from
+ * `@engram/types`. The mapping from `InboxConflictRow` to `Conflict` happens
+ * in the recall handler (Plan 02-08), not here.
+ *
+ * Design note: `proposed_properties` is typed as `string` (not
+ * `Record<string,unknown>`) here because the caller's JSON parsing is
+ * intentional — the helper returns the raw serialized value so the recall
+ * handler can parse it once and map it with the full `InboxConflictProperties`
+ * type contract (RESEARCH §Pitfall 5 mitigation).
+ */
+export interface InboxConflictRow {
+  /** Primary key: `conflict-<UUID>` format. */
+  id: string;
+  /**
+   * Raw content — equals `description` from the `InboxConflictProperties`
+   * at write time. Stored in `inbox.content`.
+   */
+  content: string;
+  /**
+   * Always `"conflict"` for rows returned by this helper. The SQL WHERE
+   * clause filters to this value so callers don't need to re-check.
+   */
+  proposed_type: "conflict";
+  /**
+   * JSON-stringified `InboxConflictProperties`. Caller must `JSON.parse` to
+   * access the 5-field shape. Kept as a string here per D-03 inversion:
+   * parsing at the CALLER boundary (recall handler in Plan 02-08) rather
+   * than here keeps the helper pure and lets the recall handler apply the
+   * `InboxConflictProperties` contract explicitly.
+   */
+  proposed_properties: string;
+  /**
+   * CF AI's confidence in the contradiction (0–1). Stored in
+   * `memorability_score` per the column repurposing for CON-04 conflict rows.
+   */
+  memorability_score: number;
+  /**
+   * Origin of the conflict write — always `"triage:conflict-pipeline"` for
+   * rows written by `insertConflictAsInbox`.
+   */
+  source: string;
+  /** Unix epoch timestamp (ms) when this inbox entry was created. */
+  created_at: number;
+}
+
+// ---------------------------------------------------------------------------
 // LexicalSearchHit — shape returned by lexicalSearchBlocks (Memory + snippet)
 // ---------------------------------------------------------------------------
 

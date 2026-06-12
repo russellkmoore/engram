@@ -1,13 +1,11 @@
 /**
- * RED test stubs for `hybrid-rank.ts` (AI-04 Vectorize + recency formula).
- *
- * These tests COMPILE but FAIL because `../hybrid-rank.js` does not exist yet —
- * Plan 05-02 (Wave 1) creates it. The import-resolution failure is the
- * expected RED state.
+ * Tests for `hybrid-rank.ts` (AI-04 Vectorize + recency formula).
  *
  * Requirements covered:
  * - AI-04: recall hybrid ranking formula combining Vectorize cosine score,
  *   recency, type_match, and scope_match per AI-SPEC.md §4 starting weights.
+ * - D-05 (Phase 2): `HYBRID_WEIGHTS.rerank` key (renamed from `cosine`).
+ * - D-07 (Phase 2): optional `weights` parameter for 625-config sweep in Plan 02-03.
  *
  * Test patterns:
  * - Mirrors `envelope.test.ts` lines 64–146 (pure-function describe structure,
@@ -16,9 +14,6 @@
  * @module @engram/mcp-server/__tests__/hybrid-rank
  */
 
-// Rationale: hybrid-rank.ts does not exist yet (Plan 05-02 deliverable). TypeScript
-// resolves all imports from ../hybrid-rank.js as error-typed, triggering no-unsafe-*
-// rules. Tests are intentionally RED until Plan 05-02 ships.
 import { describe, it, expect } from "vitest";
 
 import { hybridRank, HYBRID_WEIGHTS } from "../hybrid-rank.js";
@@ -32,12 +27,15 @@ interface RankableMemory {
 }
 
 describe("hybridRank (AI-04 formula)", () => {
-  it("weights are LOCKED at AI-SPEC.md §4 starting values", () => {
+  it("weights are at Plan 02-03 D-34 tuned values with rerank key (renamed from cosine per D-05)", () => {
+    // D-34 (2026-06-08): weights tuned via 2500-config sweep (625 weight configs × 4 thresholds).
+    // Winner: rerank=0.6, recency=0.05, type_match=0.1, scope_match=0.05, threshold=0.45
+    // Cosine-only baseline F1=0.3381; winner F1=0.4476; improvement_delta=0.1095 (gate ≥0.02).
     expect(HYBRID_WEIGHTS).toEqual({
-      cosine: 1.0,
-      recency: 0.15,
-      type_match: 0.2,
-      scope_match: 0.15,
+      rerank: 0.6,
+      recency: 0.05,
+      type_match: 0.1,
+      scope_match: 0.05,
     });
   });
 
@@ -132,5 +130,51 @@ describe("hybridRank (AI-04 formula)", () => {
       // TS without tripping the no-non-null-assertion ESLint rule.
       expect(scores[i] ?? 0).toBeLessThanOrEqual(scores[i - 1] ?? 0);
     }
+  });
+
+  it("uses caller-supplied weights when the 5th argument is provided (D-07 parameterization)", () => {
+    // Fixture: two blocks at the same cosine similarity but different recency.
+    // With default weights (rerank=1.0, recency=0.15): recent block wins.
+    // With custom weights (rerank=0.5, recency=0.5, type_match=0, scope_match=0):
+    //   score = 0.5 * cosine + 0.5 * recency
+    // We can verify that the score is computed using the supplied weights,
+    // not the HYBRID_WEIGHTS defaults, by passing equal cosine scores and
+    // different recency, then checking that the score differences match.
+    const now = Date.now();
+    const recent: RankableMemory = {
+      id: "recent",
+      type: "contact",
+      scope: "personal",
+      created_at: now, // recency ≈ 1.0
+    };
+    const old: RankableMemory = {
+      id: "old",
+      type: "contact",
+      scope: "personal",
+      created_at: now - 30 * 24 * 60 * 60 * 1000, // recency ≈ 0.368 (30-day half-life)
+    };
+
+    const customWeights = { rerank: 0.5, recency: 0.5, type_match: 0.0, scope_match: 0.0 };
+    const vectorMatches = [
+      { id: "recent", score: 0.8 },
+      { id: "old", score: 0.8 },
+    ];
+
+    const ranked = hybridRank(vectorMatches, [recent, old] as never[], {}, now, customWeights);
+    // With equal cosine: recent should still rank first because recency > 0.
+    expect(ranked[0]?.id).toBe("recent");
+
+    // Verify the score uses the custom weight: score = 0.5 * 0.8 + 0.5 * recency
+    // recent: 0.5 * 0.8 + 0.5 * exp(0) = 0.4 + 0.5 = 0.9
+    // old: 0.5 * 0.8 + 0.5 * exp(-1) ≈ 0.4 + 0.5 * 0.3679 ≈ 0.4 + 0.1839 = 0.5839
+    const recentScore = (ranked[0] as { _score?: number })._score ?? 0;
+    const oldScore = (ranked[1] as { _score?: number })._score ?? 0;
+    expect(recentScore).toBeCloseTo(0.9, 4);
+    expect(oldScore).toBeCloseTo(0.5 * 0.8 + 0.5 * Math.exp(-1), 4);
+    // Confirm weights.type_match / scope_match are truly zero — scores use only rerank + recency
+    expect(recentScore + oldScore).toBeCloseTo(
+      0.5 * 0.8 + 0.5 * 1.0 + 0.5 * 0.8 + 0.5 * Math.exp(-1),
+      4,
+    );
   });
 });

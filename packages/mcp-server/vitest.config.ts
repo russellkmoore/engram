@@ -37,6 +37,17 @@ import { defineConfig } from "vitest/config";
 // entirely so local runs without creds skip cleanly (no silent failure).
 const hasEvalCreds = !!process.env.CLOUDFLARE_API_TOKEN && !!process.env.CLOUDFLARE_ACCOUNT_ID;
 
+// runEvalProject: the eval project must ALSO be explicitly opted into via
+// ENGRAM_RUN_EVAL=1 (set by the root `test:eval` script / the isolated
+// `eval-suite` CI job). The build job's plain `npm test` wires CF creds for
+// the OTHER remote-binding tests (recall reranker, smokes) but must NOT run
+// the eval project — it is designed to run single-worker in isolation
+// (maxWorkers:1, isolate:false) and the build job runs all projects in
+// PARALLEL, which contends the remote-binding proxy session → "Network
+// connection lost" → 0 AI results. Evals belong to the dedicated eval-suite
+// job; this flag keeps them out of the parallel build pool.
+const runEvalProject = hasEvalCreds && process.env.ENGRAM_RUN_EVAL === "1";
+
 export default defineConfig({
   test: {
     projects: [
@@ -54,6 +65,8 @@ export default defineConfig({
           include: ["src/__tests__/**/*.test.ts"],
           exclude: [
             "src/__tests__/lint-no-direct-vectorize.test.ts",
+            // Plan 02-08 CON-08: grep gate uses node:fs — must run in lint-node pool.
+            "src/__tests__/no-proactive-notifications.test.ts",
             // PRE-02: eval tier owns all *.eval.test.ts files — the glob below
             // subsumes the previously-explicit recall-f1.eval.test.ts exclusion.
             "src/__tests__/**/*.eval.test.ts",
@@ -97,6 +110,10 @@ export default defineConfig({
           name: "lint-node",
           include: [
             "src/__tests__/lint-no-direct-vectorize.test.ts",
+            // Plan 02-08 CON-08: architectural grep gate for proactive notification
+            // primitives. Mirrors lint-no-direct-vectorize shape. Runs in Node pool
+            // so node:fs is available for the source-tree walk.
+            "src/__tests__/no-proactive-notifications.test.ts",
             // ENG-25: ai-helper-identity + embedding-consistency files were
             // retired (cross-file drift impossible now that model IDs live
             // in the shared @engram/ai-config package).
@@ -108,7 +125,7 @@ export default defineConfig({
       // each eval file gets a fresh budget counter and a 5-file run burns 5×200=1000
       // AI calls silently (Pitfall 3). The post-run Analytics Engine aggregate is
       // the defense-in-depth fallback; the in-process counter is the primary gate.
-      ...(hasEvalCreds
+      ...(runEvalProject
         ? [
             {
               plugins: [

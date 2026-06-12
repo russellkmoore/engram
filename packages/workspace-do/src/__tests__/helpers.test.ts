@@ -22,11 +22,15 @@ import { runInDurableObject } from "cloudflare:test";
 import { env } from "cloudflare:workers";
 import { describe, it, expect } from "vitest";
 
-import type { Memory } from "@engram/types";
+import type { Memory, InboxConflictProperties } from "@engram/types";
 
 import { NotFoundError } from "../errors.js";
 import type { WorkspaceDO } from "../index.js";
-import { markIngestFailed } from "../queries.js";
+import {
+  markIngestFailed,
+  insertConflictAsInbox,
+  listInboxConflictsForMemoryIds,
+} from "../queries.js";
 import type { InboxEntry } from "../types.js";
 
 // Type-coercion shim: the `runInDurableObject` callback parameter is typed as
@@ -518,6 +522,141 @@ describe("WorkspaceDO typed query helpers (STO-06)", () => {
         .exec("SELECT ingest_status FROM blocks WHERE id = ?", block.id)
         .one();
       expect(blockRow.ingest_status).toBe("enriched");
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // CON-04 / CON-05 — insertConflictAsInbox + listInboxConflictsForMemoryIds
+  // (Plan 02-05). Round-trip test per must_haves truths.
+  // ---------------------------------------------------------------------------
+
+  describe("insertConflictAsInbox + listInboxConflictsForMemoryIds (CON-04/CON-05 round-trip)", () => {
+    it("round-trip: insert → list → parse → assert shape equals InboxConflictProperties", async () => {
+      const workspace_id = "ws-con-04-roundtrip";
+      const id = env.WORKSPACE.idFromName(workspace_id);
+      const stub = env.WORKSPACE.get(id);
+      await runInDurableObject(stub, (instance, state) => {
+        // Assertion 1: writer + reader round-trip — insert via helper, find via list
+        const props: InboxConflictProperties = {
+          memory_a_id: "block-A",
+          memory_b_id: "block-B",
+          category: "contradiction",
+          ai_confidence: 0.91,
+          description: "X claims Y while Y claims not-Y",
+        };
+        insertConflictAsInbox(state.storage.sql, props);
+
+        const results = listInboxConflictsForMemoryIds(state.storage.sql, { ids: ["block-A"] });
+        expect(results.length).toBe(1);
+
+        // Assertion 2: parsed proposed_properties deep-equals input shape
+        const row = results[0];
+        expect(row).toBeDefined();
+        if (row === undefined) throw new Error("row should be defined");
+        const parsed = JSON.parse(row.proposed_properties) as InboxConflictProperties;
+        expect(parsed).toEqual(props);
+
+        // Verify row-level fields match the CON-04 contract
+        expect(row.proposed_type).toBe("conflict");
+        expect(row.content).toBe(props.description);
+        expect(row.memorability_score).toBe(props.ai_confidence);
+        expect(row.source).toBe("triage:conflict-pipeline");
+        expect(row.id).toMatch(/^conflict-/);
+      });
+    });
+
+    it("listInboxConflictsForMemoryIds returns [] for non-matching ids", async () => {
+      const workspace_id = "ws-con-04-nomatch";
+      const id = env.WORKSPACE.idFromName(workspace_id);
+      const stub = env.WORKSPACE.get(id);
+      await runInDurableObject(stub, (instance, state) => {
+        insertConflictAsInbox(state.storage.sql, {
+          memory_a_id: "block-A",
+          memory_b_id: "block-B",
+          category: "contradiction",
+          ai_confidence: 0.85,
+          description: "test conflict",
+        });
+
+        // Assertion 3: non-matching id returns empty
+        const noMatch = listInboxConflictsForMemoryIds(state.storage.sql, { ids: ["block-Z"] });
+        expect(noMatch.length).toBe(0);
+      });
+    });
+
+    it("listInboxConflictsForMemoryIds returns [] immediately on empty ids (early return)", async () => {
+      const workspace_id = "ws-con-04-empty-ids";
+      const id = env.WORKSPACE.idFromName(workspace_id);
+      const stub = env.WORKSPACE.get(id);
+      await runInDurableObject(stub, (instance, state) => {
+        insertConflictAsInbox(state.storage.sql, {
+          memory_a_id: "block-A",
+          memory_b_id: "block-B",
+          category: "contradiction",
+          ai_confidence: 0.8,
+          description: "another conflict",
+        });
+
+        // Assertion 4: empty ids → early return, no SQL roundtrip needed
+        const emptyResult = listInboxConflictsForMemoryIds(state.storage.sql, { ids: [] });
+        expect(emptyResult).toEqual([]);
+      });
+    });
+
+    it("listInboxConflictsForMemoryIds multi-row filter: returns only row matching the queried id", async () => {
+      const workspace_id = "ws-con-04-multirow";
+      const id = env.WORKSPACE.idFromName(workspace_id);
+      const stub = env.WORKSPACE.get(id);
+      await runInDurableObject(stub, (instance, state) => {
+        // Insert 2 conflicts: one involving block-A, one involving block-C/block-D
+        insertConflictAsInbox(state.storage.sql, {
+          memory_a_id: "block-A",
+          memory_b_id: "block-B",
+          category: "contradiction",
+          ai_confidence: 0.91,
+          description: "conflict about A",
+        });
+        insertConflictAsInbox(state.storage.sql, {
+          memory_a_id: "block-C",
+          memory_b_id: "block-D",
+          category: "contradiction",
+          ai_confidence: 0.75,
+          description: "conflict about C",
+        });
+
+        // Assertion 5: searching by block-A returns only the one referencing block-A
+        const results = listInboxConflictsForMemoryIds(state.storage.sql, { ids: ["block-A"] });
+        expect(results.length).toBe(1);
+        const multiRow = results[0];
+        if (multiRow === undefined) throw new Error("multiRow should be defined");
+        const parsed = JSON.parse(multiRow.proposed_properties) as InboxConflictProperties;
+        expect(parsed.memory_a_id).toBe("block-A");
+        expect(parsed.description).toBe("conflict about A");
+      });
+    });
+
+    it("DO RPC: insertConflictAsInbox + listInboxConflictsForMemoryIds are exposed on WorkspaceDO", async () => {
+      const workspace_id = "ws-con-04-rpc";
+      const id = env.WORKSPACE.idFromName(workspace_id);
+      const stub = env.WORKSPACE.get(id);
+      await runInDurableObject(stub, (instance) => {
+        const ws = asWorkspaceDO(instance);
+        const props: InboxConflictProperties = {
+          memory_a_id: "block-X",
+          memory_b_id: "block-Y",
+          category: "contradiction",
+          ai_confidence: 0.88,
+          description: "DO RPC test conflict",
+        };
+        ws.insertConflictAsInbox({ workspace_id, ...props });
+
+        const results = ws.listInboxConflictsForMemoryIds({ workspace_id, ids: ["block-X"] });
+        expect(results.length).toBe(1);
+        const rpcRow = results[0];
+        if (rpcRow === undefined) throw new Error("rpcRow should be defined");
+        const parsed = JSON.parse(rpcRow.proposed_properties) as InboxConflictProperties;
+        expect(parsed).toEqual(props);
+      });
     });
   });
 
