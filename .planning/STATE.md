@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.2
 milestone_name: Intelligence Layer
-status: executing
-last_updated: "2026-06-11T03:23:12.468Z"
-last_activity: "2026-06-11 -- Plan 05-02 complete: v02-kitchen-sink.test.ts (INT-01 worst-case + 6 matrix rows, all GREEN)"
+status: "Phase 5 shipped — PR #9 (v0.2 Intelligence Layer milestone close)"
+last_updated: "2026-06-12T03:24:07.437Z"
+last_activity: 2026-06-11
 progress:
   total_phases: 5
   completed_phases: 5
@@ -42,8 +42,8 @@ All v0.1 follow-up issues (ENG-7..25) closed during post-v0.1 maintenance — th
 
 Phase: 05 (integration-kitchen-sink) — EXECUTING
 Plan: 5 of 5
-Status: Executing Phase 05
-Last activity: 2026-06-11 -- Plan 05-02 complete: v02-kitchen-sink.test.ts (INT-01 worst-case + 6 matrix rows, all GREEN)
+Status: Phase 5 shipped — PR #9 (v0.2 Intelligence Layer milestone close)
+Last activity: 2026-06-11
 
 ## Phase Status
 
