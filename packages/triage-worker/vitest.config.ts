@@ -32,6 +32,13 @@ import { defineConfig } from "vitest/config";
 // entirely so local runs without creds skip cleanly (no silent failure).
 const hasEvalCreds = !!process.env.CLOUDFLARE_API_TOKEN && !!process.env.CLOUDFLARE_ACCOUNT_ID;
 
+// runEvalProject: requires explicit opt-in via ENGRAM_RUN_EVAL=1 (set by the
+// root `test:eval` script / isolated `eval-suite` CI job) on top of creds. The
+// build job's parallel `npm test` wires creds for other remote tests but must
+// not run the single-worker eval project alongside them — see the matching
+// note in packages/mcp-server/vitest.config.ts.
+const runEvalProject = hasEvalCreds && process.env.ENGRAM_RUN_EVAL === "1";
+
 export default defineConfig({
   test: {
     projects: [
@@ -66,7 +73,7 @@ export default defineConfig({
       //
       // setupFiles: shared counter from mcp-server — one canonical copy so both
       // packages use the same MAX_AI_CALLS=200 ceiling and Analytics Engine write.
-      ...(hasEvalCreds
+      ...(runEvalProject
         ? [
             {
               plugins: [

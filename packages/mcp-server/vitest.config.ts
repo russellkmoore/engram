@@ -37,6 +37,17 @@ import { defineConfig } from "vitest/config";
 // entirely so local runs without creds skip cleanly (no silent failure).
 const hasEvalCreds = !!process.env.CLOUDFLARE_API_TOKEN && !!process.env.CLOUDFLARE_ACCOUNT_ID;
 
+// runEvalProject: the eval project must ALSO be explicitly opted into via
+// ENGRAM_RUN_EVAL=1 (set by the root `test:eval` script / the isolated
+// `eval-suite` CI job). The build job's plain `npm test` wires CF creds for
+// the OTHER remote-binding tests (recall reranker, smokes) but must NOT run
+// the eval project — it is designed to run single-worker in isolation
+// (maxWorkers:1, isolate:false) and the build job runs all projects in
+// PARALLEL, which contends the remote-binding proxy session → "Network
+// connection lost" → 0 AI results. Evals belong to the dedicated eval-suite
+// job; this flag keeps them out of the parallel build pool.
+const runEvalProject = hasEvalCreds && process.env.ENGRAM_RUN_EVAL === "1";
+
 export default defineConfig({
   test: {
     projects: [
@@ -114,7 +125,7 @@ export default defineConfig({
       // each eval file gets a fresh budget counter and a 5-file run burns 5×200=1000
       // AI calls silently (Pitfall 3). The post-run Analytics Engine aggregate is
       // the defense-in-depth fallback; the in-process counter is the primary gate.
-      ...(hasEvalCreds
+      ...(runEvalProject
         ? [
             {
               plugins: [
